@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100%;
+}
+
+/* Custom scrollbar for modern browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Glassmorphism utility classes */
+@layer components {
+  .glass {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+  }
+
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+  }
+
+  .neumorphic {
+    background: linear-gradient(145deg, #f0f0f3, #caccd1);
+    box-shadow: 20px 20px 60px #bebfc2, -20px -20px 60px #ffffff;
+    border-radius: 20px;
+  }
+
+  .neumorphic-inset {
+    background: linear-gradient(145deg, #e6e6e9, #ffffff);
+    box-shadow: inset 8px 8px 16px #d1d1d4, inset -8px -8px 16px #ffffff;
+    border-radius: 20px;
+  }
+
+  .text-shadow-glow {
+    text-shadow: 0 0 20px currentColor;
+  }
+
+  /* Gradient backgrounds */
+  .bg-gradient-warm {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .bg-gradient-ocean {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 50%, #22d3ee 100%);
+  }
+
+  .bg-gradient-sunset {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fdba74 100%);
+  }
+
+  .bg-gradient-family {
+    background: linear-gradient(135deg, #a855f7 0%, #06b6d4 50%, #f97316 100%);
+  }
+
+  /* Animated gradient background */
+  .bg-animated-gradient {
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Touch-friendly targets */
+@media (pointer: coarse) {
+  button, a, .touchable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Prevent text selection on interactive elements for kids */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Safe area insets for mobile devices */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
