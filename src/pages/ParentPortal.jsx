@@ -8,11 +8,13 @@ import {
   Star,
   Plus,
   Trash2,
-  Edit3,
   ArrowLeft,
   BarChart3,
   Bell,
   Shield,
+  Clock,
+  Trophy,
+  Target,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
@@ -22,9 +24,17 @@ import Button from '../components/ui/Button'
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: BarChart3 },
-  { id: 'children', label: 'Children', icon: Users },
+  { id: 'timeLimits', label: 'Time Limits', icon: Clock },
+  { id: 'challenges', label: 'Challenges', icon: Trophy },
   { id: 'tasks', label: 'Tasks', icon: CheckSquare },
   { id: 'events', label: 'Events', icon: Calendar },
+]
+
+const activityTypes = [
+  { id: 'screen', label: 'Screen Time', emoji: '📺' },
+  { id: 'reading', label: 'Reading', emoji: '📚' },
+  { id: 'play', label: 'Play Time', emoji: '🎮' },
+  { id: 'homework', label: 'Homework', emoji: '✏️' },
 ]
 
 export default function ParentPortal() {
@@ -34,20 +44,37 @@ export default function ParentPortal() {
     chores,
     events,
     starLog,
+    timeLimits,
+    challenges,
     addChore,
     removeChore,
     addEvent,
     removeEvent,
     resetRoutine,
     setParentMode,
+    setTimeLimit,
+    addChallenge,
+    removeChallenge,
+    toggleChallengeActive,
+    getChallengeProgress,
+    completeChallenge,
   } = useStore()
 
   const [activeTab, setActiveTab] = useState('overview')
   const [selectedChild, setSelectedChild] = useState('bria')
   const [showAddTask, setShowAddTask] = useState(false)
   const [showAddEvent, setShowAddEvent] = useState(false)
+  const [showAddChallenge, setShowAddChallenge] = useState(false)
   const [newTask, setNewTask] = useState({ text: '', emoji: '✨', stars: 1, routine: 'chores' })
   const [newEvent, setNewEvent] = useState({ title: '', sticker: 'birthday', date: '', notes: '', child: 'both' })
+  const [newChallenge, setNewChallenge] = useState({
+    title: '',
+    description: '',
+    emoji: '🏆',
+    target: 10,
+    reward: '',
+    rewardStars: 20,
+  })
 
   const handleAddTask = () => {
     if (!newTask.text.trim()) return
@@ -76,9 +103,38 @@ export default function ParentPortal() {
     setShowAddEvent(false)
   }
 
+  const handleAddChallenge = () => {
+    if (!newChallenge.title.trim() || !newChallenge.reward.trim()) return
+    addChallenge({
+      ...newChallenge,
+      progress: { bria: 0, naya: 0 },
+      active: true,
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+    })
+    setNewChallenge({
+      title: '',
+      description: '',
+      emoji: '🏆',
+      target: 10,
+      reward: '',
+      rewardStars: 20,
+    })
+    setShowAddChallenge(false)
+  }
+
   const handleExit = () => {
     setParentMode(false)
     navigate('/')
+  }
+
+  const handleTimeLimitChange = (childId, activity, field, value) => {
+    const current = timeLimits[childId][activity]
+    if (field === 'limit') {
+      setTimeLimit(childId, activity, parseInt(value) || 0, current.enabled)
+    } else if (field === 'enabled') {
+      setTimeLimit(childId, activity, current.limit, value)
+    }
   }
 
   // Calculate stats
@@ -243,6 +299,262 @@ export default function ParentPortal() {
             </motion.div>
           )}
 
+          {/* Time Limits Tab */}
+          {activeTab === 'timeLimits' && (
+            <motion.div
+              key="timeLimits"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="grid md:grid-cols-2 gap-6"
+            >
+              {Object.values(children).map((child) => (
+                <GlassCard key={child.id} variant={child.theme} glow={child.theme}>
+                  <div className="flex items-center gap-4 mb-6">
+                    <span className="text-5xl">{child.avatar}</span>
+                    <div>
+                      <h3 className="text-2xl font-display font-bold text-white">
+                        {child.name}'s Time Limits
+                      </h3>
+                      <p className="text-white/80">Daily limits that reset each day</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {activityTypes.map((activity) => {
+                      const limit = timeLimits[child.id]?.[activity.id] || { limit: 60, enabled: false }
+                      return (
+                        <div
+                          key={activity.id}
+                          className="bg-white/20 rounded-xl p-4"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">{activity.emoji}</span>
+                              <span className="font-display font-semibold text-white">
+                                {activity.label}
+                              </span>
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <span className="text-sm text-white/70">
+                                {limit.enabled ? 'On' : 'Off'}
+                              </span>
+                              <div
+                                className={`
+                                  w-12 h-6 rounded-full transition-colors
+                                  ${limit.enabled ? 'bg-green-400' : 'bg-gray-400'}
+                                  relative cursor-pointer
+                                `}
+                                onClick={() => handleTimeLimitChange(child.id, activity.id, 'enabled', !limit.enabled)}
+                              >
+                                <div
+                                  className={`
+                                    absolute top-1 w-4 h-4 rounded-full bg-white
+                                    transition-transform
+                                    ${limit.enabled ? 'translate-x-7' : 'translate-x-1'}
+                                  `}
+                                />
+                              </div>
+                            </label>
+                          </div>
+
+                          {limit.enabled && (
+                            <div className="flex items-center gap-4">
+                              <input
+                                type="range"
+                                min="15"
+                                max="180"
+                                step="15"
+                                value={limit.limit}
+                                onChange={(e) => handleTimeLimitChange(child.id, activity.id, 'limit', e.target.value)}
+                                className="flex-1 h-2 bg-white/30 rounded-lg appearance-none cursor-pointer"
+                              />
+                              <div className="bg-white/30 px-3 py-1 rounded-lg min-w-[80px] text-center">
+                                <span className="font-display font-bold text-white">
+                                  {limit.limit} min
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </GlassCard>
+              ))}
+
+              {/* Info Card */}
+              <GlassCard variant="default" className="md:col-span-2">
+                <div className="flex items-start gap-4">
+                  <Clock className="w-8 h-8 text-purple-500 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-display font-bold text-gray-800 text-lg mb-2">
+                      How Time Limits Work
+                    </h3>
+                    <ul className="text-gray-600 font-display space-y-2">
+                      <li>• Time limits reset automatically each day at midnight</li>
+                      <li>• When enabled, children will see their remaining time in the Timer</li>
+                      <li>• The Timer will prevent starting new sessions that exceed the limit</li>
+                      <li>• Children can still track activities without limits when disabled</li>
+                    </ul>
+                  </div>
+                </div>
+              </GlassCard>
+            </motion.div>
+          )}
+
+          {/* Challenges Tab */}
+          {activeTab === 'challenges' && (
+            <motion.div
+              key="challenges"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <div className="mb-6">
+                <Button
+                  variant="parent"
+                  icon={<Plus className="w-5 h-5" />}
+                  onClick={() => setShowAddChallenge(true)}
+                >
+                  Create New Challenge
+                </Button>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                {challenges.map((challenge) => {
+                  const progress = getChallengeProgress(challenge.id)
+                  return (
+                    <GlassCard
+                      key={challenge.id}
+                      variant={challenge.active ? 'parent' : 'default'}
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-4xl">{challenge.emoji}</span>
+                          <div>
+                            <h3 className={`font-display font-bold text-lg ${challenge.active ? 'text-white' : 'text-gray-800'}`}>
+                              {challenge.title}
+                            </h3>
+                            <p className={`text-sm ${challenge.active ? 'text-white/80' : 'text-gray-600'}`}>
+                              {challenge.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="glass"
+                            size="sm"
+                            onClick={() => toggleChallengeActive(challenge.id)}
+                          >
+                            {challenge.active ? 'Pause' : 'Resume'}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeChallenge(challenge.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Progress */}
+                      <div className="mb-4">
+                        <div className={`rounded-full h-4 overflow-hidden ${challenge.active ? 'bg-white/30' : 'bg-gray-200'}`}>
+                          <motion.div
+                            className="h-full bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${progress?.percentage || 0}%` }}
+                            transition={{ duration: 0.5 }}
+                          />
+                        </div>
+                        <div className="flex justify-between mt-1">
+                          <span className={`text-sm ${challenge.active ? 'text-white/70' : 'text-gray-500'}`}>
+                            {progress?.total || 0} / {challenge.target}
+                          </span>
+                          <span className={`text-sm font-bold ${challenge.active ? 'text-white' : 'text-purple-600'}`}>
+                            {Math.round(progress?.percentage || 0)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Individual Progress */}
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className={`rounded-xl p-3 ${challenge.active ? 'bg-white/20' : 'bg-gray-100'}`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span>👧</span>
+                            <span className={challenge.active ? 'text-white' : 'text-gray-700'}>Bria</span>
+                          </div>
+                          <p className={`text-2xl font-bold ${challenge.active ? 'text-white' : 'text-gray-800'}`}>
+                            {challenge.progress.bria || 0}
+                          </p>
+                        </div>
+                        <div className={`rounded-xl p-3 ${challenge.active ? 'bg-white/20' : 'bg-gray-100'}`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span>👶</span>
+                            <span className={challenge.active ? 'text-white' : 'text-gray-700'}>Naya</span>
+                          </div>
+                          <p className={`text-2xl font-bold ${challenge.active ? 'text-white' : 'text-gray-800'}`}>
+                            {challenge.progress.naya || 0}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Reward */}
+                      <div className={`rounded-xl p-3 ${challenge.active ? 'bg-white/20' : 'bg-gray-100'}`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className={`text-sm ${challenge.active ? 'text-white/70' : 'text-gray-500'}`}>Reward</p>
+                            <p className={`font-display font-bold ${challenge.active ? 'text-white' : 'text-gray-800'}`}>
+                              {challenge.reward}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                            <span className={`font-bold ${challenge.active ? 'text-white' : 'text-gray-800'}`}>
+                              {challenge.rewardStars}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Complete Button */}
+                      {progress?.isComplete && challenge.active && (
+                        <Button
+                          variant="success"
+                          className="w-full mt-4"
+                          onClick={() => completeChallenge(challenge.id)}
+                        >
+                          🎉 Award Challenge Reward!
+                        </Button>
+                      )}
+                    </GlassCard>
+                  )
+                })}
+
+                {challenges.length === 0 && (
+                  <GlassCard variant="default" className="md:col-span-2 text-center py-12">
+                    <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="font-display font-bold text-gray-600 text-xl mb-2">
+                      No Challenges Yet
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      Create a challenge to encourage teamwork between siblings!
+                    </p>
+                    <Button
+                      variant="parent"
+                      icon={<Plus className="w-5 h-5" />}
+                      onClick={() => setShowAddChallenge(true)}
+                    >
+                      Create First Challenge
+                    </Button>
+                  </GlassCard>
+                )}
+              </div>
+            </motion.div>
+          )}
+
           {/* Tasks Tab */}
           {activeTab === 'tasks' && (
             <motion.div
@@ -377,77 +689,6 @@ export default function ParentPortal() {
                   )}
                 </div>
               </GlassCard>
-            </motion.div>
-          )}
-
-          {/* Children Tab */}
-          {activeTab === 'children' && (
-            <motion.div
-              key="children"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="grid md:grid-cols-2 gap-6"
-            >
-              {Object.values(children).map((child) => (
-                <GlassCard key={child.id} variant={child.theme} glow={child.theme} size="lg">
-                  <div className="flex items-center gap-6 mb-6">
-                    <motion.span
-                      className="text-7xl"
-                      animate={{ y: [0, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      {child.avatar}
-                    </motion.span>
-                    <div>
-                      <h3 className="text-3xl font-display font-bold text-white">
-                        {child.name}
-                      </h3>
-                      <p className="text-white/80 text-lg">Age {child.age}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Star className="w-5 h-5 text-yellow-300 fill-yellow-300" />
-                        <span className="text-2xl font-bold text-white">{child.stars}</span>
-                        <span className="text-white/70">stars</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white/20 rounded-xl p-4">
-                      <h4 className="font-display font-semibold text-white mb-2">
-                        Morning Tasks
-                      </h4>
-                      <p className="text-3xl font-bold text-white">
-                        {chores[child.id]?.morning?.length || 0}
-                      </p>
-                    </div>
-                    <div className="bg-white/20 rounded-xl p-4">
-                      <h4 className="font-display font-semibold text-white mb-2">
-                        Bedtime Tasks
-                      </h4>
-                      <p className="text-3xl font-bold text-white">
-                        {chores[child.id]?.bedtime?.length || 0}
-                      </p>
-                    </div>
-                    <div className="bg-white/20 rounded-xl p-4">
-                      <h4 className="font-display font-semibold text-white mb-2">
-                        Chores
-                      </h4>
-                      <p className="text-3xl font-bold text-white">
-                        {chores[child.id]?.chores?.length || 0}
-                      </p>
-                    </div>
-                    <div className="bg-white/20 rounded-xl p-4">
-                      <h4 className="font-display font-semibold text-white mb-2">
-                        Total Earned
-                      </h4>
-                      <p className="text-3xl font-bold text-white">
-                        {getTotalStarsEarned(child.id)} ⭐
-                      </p>
-                    </div>
-                  </div>
-                </GlassCard>
-              ))}
             </motion.div>
           )}
         </AnimatePresence>
@@ -647,6 +888,135 @@ export default function ParentPortal() {
                     disabled={!newEvent.title.trim() || !newEvent.date}
                   >
                     Add Event
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Add Challenge Modal */}
+        <AnimatePresence>
+          {showAddChallenge && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAddChallenge(false)}
+            >
+              <motion.div
+                className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.8, y: 50 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 50 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h2 className="text-2xl font-display font-bold text-gray-800 mb-4">
+                  Create Team Challenge 🤝
+                </h2>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                      Challenge Name
+                    </label>
+                    <input
+                      type="text"
+                      value={newChallenge.title}
+                      onChange={(e) => setNewChallenge({ ...newChallenge, title: e.target.value })}
+                      placeholder="e.g., Kindness Week"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                      Description
+                    </label>
+                    <input
+                      type="text"
+                      value={newChallenge.description}
+                      onChange={(e) => setNewChallenge({ ...newChallenge, description: e.target.value })}
+                      placeholder="e.g., Send hearts to each other"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                      Emoji
+                    </label>
+                    <input
+                      type="text"
+                      value={newChallenge.emoji}
+                      onChange={(e) => setNewChallenge({ ...newChallenge, emoji: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display text-center text-3xl"
+                      maxLength={2}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                      Target (combined total)
+                    </label>
+                    <input
+                      type="number"
+                      value={newChallenge.target}
+                      onChange={(e) => setNewChallenge({ ...newChallenge, target: parseInt(e.target.value) || 0 })}
+                      min="1"
+                      max="100"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                      Reward
+                    </label>
+                    <input
+                      type="text"
+                      value={newChallenge.reward}
+                      onChange={(e) => setNewChallenge({ ...newChallenge, reward: e.target.value })}
+                      placeholder="e.g., Family Movie Night"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                      Bonus Stars (split between kids)
+                    </label>
+                    <div className="flex gap-2">
+                      {[10, 20, 30, 40, 50].map((num) => (
+                        <Button
+                          key={num}
+                          variant={newChallenge.rewardStars === num ? 'parent' : 'glass'}
+                          size="sm"
+                          onClick={() => setNewChallenge({ ...newChallenge, rewardStars: num })}
+                        >
+                          {num} ⭐
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    variant="ghost"
+                    className="flex-1"
+                    onClick={() => setShowAddChallenge(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="parent"
+                    className="flex-1"
+                    onClick={handleAddChallenge}
+                    disabled={!newChallenge.title.trim() || !newChallenge.reward.trim()}
+                  >
+                    Create Challenge
                   </Button>
                 </div>
               </motion.div>

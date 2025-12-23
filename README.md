@@ -27,15 +27,20 @@ The app serves three core purposes:
 | **Bubble-Pop Chores** | Tasks appear as colorful bubbles. Tap to "pop" them when complete, triggering confetti celebrations and earning stars |
 | **Activity Timer** | Visual sun/moon slider tracks Screen Time, Reading, Play, and Homework with a satisfying progress ring |
 | **Sticker Calendar** | Drag fun stickers (soccer, dance, birthday, etc.) onto calendar dates to mark upcoming events |
-| **Digital Fridge** | Post sticky notes with text messages or finger drawings that appear on a virtual refrigerator |
+| **Digital Fridge** | Post sticky notes with text messages, finger drawings, or **voice recordings** that appear on a virtual refrigerator |
+| **Voice Notes** | Record audio messages directly on the Note Board—perfect for younger children who can't write yet |
 | **Kindness Echo** | Send animated hearts to siblings with a single tap—encouraging kindness and connection |
 | **Rewards Shop** | Spend earned stars on rewards like Extra Screen Time, Choose Dinner, Movie Night, or a New Toy |
+| **Progress & Streaks** | Track weekly progress with visual charts and maintain streaks for consistent task completion |
+| **Sibling Challenges** | Work together on collaborative goals to earn shared rewards as a team |
 
 ### For Parents
 
 | Feature | Description |
 |---------|-------------|
 | **Overview Dashboard** | See both children's stats at a glance—current stars, total earned, tasks completed today |
+| **Daily Time Limits** | Set per-child, per-activity time limits (e.g., Naya gets 60 min/day screen time, Bria gets 90 min) with automatic daily reset |
+| **Challenge Management** | Create and manage sibling collaboration challenges with shared goals and rewards |
 | **Task Management** | Add, edit, or remove tasks from Morning, Bedtime, or Chores routines for each child |
 | **Event Scheduling** | Create calendar events assigned to specific children or the whole family |
 | **Activity Log** | Full history of star earnings and redemptions with timestamps |
@@ -83,24 +88,42 @@ The app will be available at `http://localhost:3000`
 
 ---
 
+## Recently Implemented Features
+
+The following features have been added based on user feedback:
+
+### Voice Notes & Audio Messages
+Record voice messages directly on the Note Board. Perfect for younger children who can't write yet, and lets parents leave encouraging audio messages. Uses the browser's MediaRecorder API for seamless recording.
+
+### Weekly Progress Reports & Streaks
+The new **Progress** page shows weekly task completion charts, streak tracking with flame icons, and motivational statistics. Children can see their consistency and aim for longer streaks!
+
+### Sibling Challenges & Collaborative Goals
+Siblings can now work together on shared challenges like "Complete 20 chores together this week to earn a family movie night." Parents create challenges in the Parent Portal, and both children's progress contributes to the goal.
+
+### Parent-Controlled Daily Time Limits
+Parents can now set per-child, per-activity time limits in the Parent Portal. For example, Naya can have a 60-minute daily screen time limit while Bria has 90 minutes. Time usage resets automatically each day.
+
+---
+
 ## Future Improvements
 
-The following enhancements would significantly improve the app's functionality and user experience:
+The following enhancements would further improve the app's functionality:
 
-### 1. Voice Notes & Audio Messages
-**Benefit:** Younger children (age 4) who can't read or write could record voice messages for the Note Board, making the app more accessible and personal. Parents could also leave encouraging audio messages for their kids to hear.
-
-### 2. Photo-Based Grocery Requests
+### 1. Photo-Based Grocery Requests
 **Benefit:** Kids could snap a photo of an empty cereal box or finished snack to automatically add it to the shopping list. This teaches children to identify when supplies are low while making the grocery list more accurate and engaging.
 
-### 3. Weekly Progress Reports & Streaks
-**Benefit:** Automated weekly summaries showing completed tasks, stars earned, and consistency streaks would motivate children to maintain good habits. Parents get insights into patterns (e.g., "Bria completed her morning routine 6/7 days this week!").
-
-### 4. Sibling Challenges & Collaborative Goals
-**Benefit:** Introduce optional cooperative challenges where siblings work together toward shared rewards (e.g., "Complete 20 chores together this week to earn a family movie night"). This promotes teamwork over competition and strengthens sibling bonds.
-
-### 5. Google/Outlook Calendar Sync
+### 2. Google/Outlook Calendar Sync
 **Benefit:** Parents could sync family events from their existing calendars, automatically populating the kids' sticker calendar with relevant activities. This ensures children always know what's coming up without parents having to manually duplicate entries.
+
+### 3. Push Notifications & Reminders
+**Benefit:** Gentle reminders for uncompleted tasks, upcoming events, and streak maintenance would help children stay on track. Parents could receive notifications when tasks are completed or rewards are redeemed.
+
+### 4. Achievement Badges & Milestones
+**Benefit:** Unlock special badges for reaching milestones (100 tasks completed, 7-day streak, first sibling challenge completed). Creates a sense of accomplishment and collection incentive.
+
+### 5. Family Leaderboards (Optional)
+**Benefit:** Optional friendly competition showing weekly star earnings. Can be toggled off if parents prefer a non-competitive environment.
 
 ---
 
@@ -125,10 +148,11 @@ src/
 │   ├── Checklist.jsx          # Routine task lists
 │   ├── Timer.jsx              # Activity timer
 │   ├── Calendar.jsx           # Sticker-based calendar
-│   ├── NoteBoard.jsx          # Digital fridge
+│   ├── NoteBoard.jsx          # Digital fridge with voice notes
+│   ├── Progress.jsx           # Weekly reports & streaks
 │   ├── Rewards.jsx            # Star redemption shop
 │   ├── Grocery.jsx            # Shopping list
-│   └── ParentPortal.jsx       # Admin dashboard
+│   └── ParentPortal.jsx       # Admin with time limits & challenges
 ├── store/
 │   └── useStore.js            # Zustand state management
 ├── App.jsx                    # Router configuration

@@ -18,10 +18,9 @@ const navItems = [
   { path: '/dashboard', icon: Home, label: 'Home', emoji: '🏠' },
   { path: '/checklist/morning', icon: CheckSquare, label: 'Tasks', emoji: '✅' },
   { path: '/timer', icon: Clock, label: 'Timer', emoji: '⏰' },
-  { path: '/calendar', icon: Calendar, label: 'Calendar', emoji: '📅' },
+  { path: '/progress', icon: Star, label: 'Progress', emoji: '📊' },
   { path: '/notes', icon: StickyNote, label: 'Notes', emoji: '📝' },
   { path: '/rewards', icon: Gift, label: 'Rewards', emoji: '🎁' },
-  { path: '/grocery', icon: ShoppingCart, label: 'Shopping', emoji: '🛒' },
 ]
 
 export default function Layout() {

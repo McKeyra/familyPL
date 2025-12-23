@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useRef } from 'react'
-import { Plus, X, Mic, MicOff, Pencil, MessageCircle } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Plus, X, Mic, MicOff, Pencil, MessageCircle, Play, Square, Pause } from 'lucide-react'
 import useStore from '../store/useStore'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
@@ -26,18 +26,123 @@ export default function NoteBoard() {
   const canvasRef = useRef(null)
   const [lastPos, setLastPos] = useState(null)
 
+  // Voice recording state
+  const [isRecording, setIsRecording] = useState(false)
+  const [audioBlob, setAudioBlob] = useState(null)
+  const [audioUrl, setAudioUrl] = useState(null)
+  const [recordingTime, setRecordingTime] = useState(0)
+  const mediaRecorderRef = useRef(null)
+  const audioChunksRef = useRef([])
+  const timerRef = useRef(null)
+
+  // Audio playback state
+  const [playingNoteId, setPlayingNoteId] = useState(null)
+  const audioRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+      if (audioUrl) URL.revokeObjectURL(audioUrl)
+    }
+  }, [audioUrl])
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      mediaRecorderRef.current = new MediaRecorder(stream)
+      audioChunksRef.current = []
+
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        audioChunksRef.current.push(e.data)
+      }
+
+      mediaRecorderRef.current.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        setAudioBlob(blob)
+        const url = URL.createObjectURL(blob)
+        setAudioUrl(url)
+        stream.getTracks().forEach(track => track.stop())
+      }
+
+      mediaRecorderRef.current.start()
+      setIsRecording(true)
+      setRecordingTime(0)
+
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1)
+      }, 1000)
+    } catch (err) {
+      console.error('Error accessing microphone:', err)
+      alert('Could not access microphone. Please allow microphone access.')
+    }
+  }
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop()
+      setIsRecording(false)
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+      }
+    }
+  }
+
   const handleAddNote = () => {
-    if (!noteContent.trim()) return
+    if (noteType === 'text' && !noteContent.trim()) return
+    if (noteType === 'voice' && !audioBlob) return
 
-    addNote({
-      type: noteType,
-      content: noteContent,
-      author: currentChild,
-      color: noteColors.find(c => c.id === selectedColor)?.bg || 'bg-yellow-300',
-    })
+    if (noteType === 'voice') {
+      // Convert blob to base64 for storage
+      const reader = new FileReader()
+      reader.readAsDataURL(audioBlob)
+      reader.onloadend = () => {
+        addNote({
+          type: 'voice',
+          content: reader.result,
+          duration: recordingTime,
+          author: currentChild,
+          color: noteColors.find(c => c.id === selectedColor)?.bg || 'bg-yellow-300',
+        })
+        resetForm()
+      }
+    } else {
+      addNote({
+        type: noteType,
+        content: noteContent,
+        author: currentChild,
+        color: noteColors.find(c => c.id === selectedColor)?.bg || 'bg-yellow-300',
+      })
+      resetForm()
+    }
+  }
 
+  const resetForm = () => {
     setNoteContent('')
     setShowAddNote(false)
+    setAudioBlob(null)
+    setAudioUrl(null)
+    setRecordingTime(0)
+    setNoteType('text')
+  }
+
+  const playVoiceNote = (noteId, audioData) => {
+    if (playingNoteId === noteId) {
+      // Stop playing
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+      setPlayingNoteId(null)
+    } else {
+      // Start playing
+      if (audioRef.current) {
+        audioRef.current.pause()
+      }
+      audioRef.current = new Audio(audioData)
+      audioRef.current.onended = () => setPlayingNoteId(null)
+      audioRef.current.play()
+      setPlayingNoteId(noteId)
+    }
   }
 
   const startDrawing = (e) => {
@@ -86,6 +191,12 @@ export default function NoteBoard() {
     // Clear canvas
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+  }
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
   if (!child) return null
@@ -158,7 +269,7 @@ export default function NoteBoard() {
 
                   {/* Delete button */}
                   <motion.button
-                    className="absolute -top-1 -right-1 bg-white rounded-full p-1 shadow-md opacity-0 hover:opacity-100 transition-opacity"
+                    className="absolute -top-1 -right-1 bg-white rounded-full p-1 shadow-md opacity-0 hover:opacity-100 transition-opacity z-20"
                     onClick={() => removeNote(note.id)}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -173,6 +284,28 @@ export default function NoteBoard() {
                       alt="Drawing"
                       className="w-full h-32 object-contain bg-white/50 rounded"
                     />
+                  ) : note.type === 'voice' ? (
+                    <div className="flex flex-col items-center justify-center min-h-[80px]">
+                      <motion.button
+                        className={`
+                          w-16 h-16 rounded-full flex items-center justify-center
+                          ${playingNoteId === note.id ? 'bg-red-500' : 'bg-white/50'}
+                          shadow-md
+                        `}
+                        onClick={() => playVoiceNote(note.id, note.content)}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        {playingNoteId === note.id ? (
+                          <Square className="w-6 h-6 text-white" />
+                        ) : (
+                          <Play className="w-6 h-6 text-gray-700 ml-1" />
+                        )}
+                      </motion.button>
+                      <p className="mt-2 text-sm text-gray-600 font-display">
+                        🎤 Voice Note ({note.duration}s)
+                      </p>
+                    </div>
                   ) : (
                     <p className="font-display text-gray-800 text-lg min-h-[80px]">
                       {note.content}
@@ -215,7 +348,7 @@ export default function NoteBoard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setShowAddNote(false)}
+            onClick={() => { resetForm(); setShowAddNote(false); }}
           >
             <motion.div
               className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl"
@@ -237,6 +370,14 @@ export default function NoteBoard() {
                   onClick={() => setNoteType('text')}
                 >
                   Text
+                </Button>
+                <Button
+                  variant={noteType === 'voice' ? child.theme : 'ghost'}
+                  className="flex-1"
+                  icon={<Mic className="w-5 h-5" />}
+                  onClick={() => setNoteType('voice')}
+                >
+                  Voice
                 </Button>
                 <Button
                   variant={noteType === 'drawing' ? child.theme : 'ghost'}
@@ -265,7 +406,7 @@ export default function NoteBoard() {
               </div>
 
               {/* Content Input */}
-              {noteType === 'text' ? (
+              {noteType === 'text' && (
                 <textarea
                   value={noteContent}
                   onChange={(e) => setNoteContent(e.target.value)}
@@ -278,13 +419,80 @@ export default function NoteBoard() {
                   `}
                   maxLength={200}
                 />
-              ) : (
+              )}
+
+              {noteType === 'voice' && (
+                <div className={`rounded-xl p-6 ${noteColors.find(c => c.id === selectedColor)?.bg} text-center`}>
+                  {!audioBlob ? (
+                    <>
+                      <motion.button
+                        className={`
+                          w-24 h-24 rounded-full mx-auto flex items-center justify-center
+                          ${isRecording ? 'bg-red-500' : 'bg-white/50'}
+                          shadow-lg
+                        `}
+                        onClick={isRecording ? stopRecording : startRecording}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        animate={isRecording ? { scale: [1, 1.1, 1] } : {}}
+                        transition={isRecording ? { repeat: Infinity, duration: 1 } : {}}
+                      >
+                        {isRecording ? (
+                          <Square className="w-10 h-10 text-white" />
+                        ) : (
+                          <Mic className="w-10 h-10 text-gray-700" />
+                        )}
+                      </motion.button>
+                      <p className="mt-4 font-display text-gray-700">
+                        {isRecording ? (
+                          <span className="text-red-600 font-bold">
+                            Recording... {formatTime(recordingTime)}
+                          </span>
+                        ) : (
+                          'Tap to record a voice message!'
+                        )}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-center gap-4">
+                        <motion.button
+                          className="w-16 h-16 rounded-full bg-white/50 flex items-center justify-center shadow-lg"
+                          onClick={() => {
+                            const audio = new Audio(audioUrl)
+                            audio.play()
+                          }}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <Play className="w-8 h-8 text-gray-700 ml-1" />
+                        </motion.button>
+                      </div>
+                      <p className="mt-4 font-display text-gray-700">
+                        Voice recorded! ({formatTime(recordingTime)})
+                      </p>
+                      <button
+                        className="mt-2 text-sm text-gray-500 underline"
+                        onClick={() => {
+                          setAudioBlob(null)
+                          setAudioUrl(null)
+                          setRecordingTime(0)
+                        }}
+                      >
+                        Record again
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {noteType === 'drawing' && (
                 <div className={`rounded-xl overflow-hidden ${noteColors.find(c => c.id === selectedColor)?.bg} p-2`}>
                   <canvas
                     ref={canvasRef}
                     width={350}
                     height={200}
-                    className="bg-white rounded-lg cursor-crosshair touch-none"
+                    className="bg-white rounded-lg cursor-crosshair touch-none w-full"
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
@@ -301,7 +509,7 @@ export default function NoteBoard() {
                 <Button
                   variant="ghost"
                   className="flex-1"
-                  onClick={() => setShowAddNote(false)}
+                  onClick={() => { resetForm(); setShowAddNote(false); }}
                 >
                   Cancel
                 </Button>
@@ -309,7 +517,10 @@ export default function NoteBoard() {
                   variant={child.theme}
                   className="flex-1"
                   onClick={noteType === 'drawing' ? saveDrawing : handleAddNote}
-                  disabled={noteType === 'text' && !noteContent.trim()}
+                  disabled={
+                    (noteType === 'text' && !noteContent.trim()) ||
+                    (noteType === 'voice' && !audioBlob)
+                  }
                 >
                   Post Note
                 </Button>

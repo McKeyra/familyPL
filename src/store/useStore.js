@@ -103,7 +103,7 @@ const initialNotes = [
     type: 'text',
     content: 'I love you Mom & Dad! 💕',
     author: 'bria',
-    color: '#f97316',
+    color: 'bg-yellow-300',
     createdAt: Date.now() - 86400000,
   },
   {
@@ -111,7 +111,7 @@ const initialNotes = [
     type: 'drawing',
     content: 'A happy sun',
     author: 'naya',
-    color: '#06b6d4',
+    color: 'bg-blue-300',
     createdAt: Date.now() - 43200000,
   },
 ]
@@ -129,6 +129,68 @@ const initialGroceryList = [
   { id: 'g3', item: 'Apples', emoji: '🍎', addedBy: 'naya', completed: false },
 ]
 
+// Daily time limits for each child (in minutes)
+const initialTimeLimits = {
+  bria: {
+    screen: { limit: 90, enabled: true },
+    reading: { limit: 60, enabled: false },
+    play: { limit: 120, enabled: false },
+    homework: { limit: 60, enabled: false },
+  },
+  naya: {
+    screen: { limit: 60, enabled: true },
+    reading: { limit: 30, enabled: false },
+    play: { limit: 120, enabled: false },
+    homework: { limit: 30, enabled: false },
+  },
+}
+
+// Sibling collaboration challenges
+const initialChallenges = [
+  {
+    id: 'ch1',
+    title: 'Kindness Week',
+    description: 'Send 10 hearts to each other this week',
+    emoji: '💕',
+    target: 10,
+    progress: { bria: 0, naya: 0 },
+    reward: 'Family Movie Night',
+    rewardStars: 20,
+    active: true,
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+  },
+  {
+    id: 'ch2',
+    title: 'Chore Champions',
+    description: 'Complete 20 chores together',
+    emoji: '🏆',
+    target: 20,
+    progress: { bria: 0, naya: 0 },
+    reward: 'Ice Cream Party',
+    rewardStars: 30,
+    active: true,
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+  },
+]
+
+// Weekly streaks tracking
+const initialStreaks = {
+  bria: {
+    currentStreak: 3,
+    longestStreak: 7,
+    lastCompletedDate: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+    weeklyData: [], // Will store { date, tasksCompleted, starsEarned }
+  },
+  naya: {
+    currentStreak: 2,
+    longestStreak: 5,
+    lastCompletedDate: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+    weeklyData: [],
+  },
+}
+
 const useStore = create(
   persist(
     (set, get) => ({
@@ -145,6 +207,12 @@ const useStore = create(
       timerSessions: initialTimerSessions,
       groceryList: initialGroceryList,
       starLog: [],
+
+      // New features
+      timeLimits: initialTimeLimits,
+      challenges: initialChallenges,
+      streaks: initialStreaks,
+      dailyTimeUsage: {}, // Track daily usage: { 'bria': { '2024-01-15': { screen: 45, reading: 30 } } }
 
       // Actions - User Selection
       setCurrentChild: (childId) => set({ currentChild: childId, isParentMode: false }),
@@ -169,6 +237,14 @@ const useStore = create(
           },
           starLog: [logEntry, ...state.starLog],
         }))
+
+        // Update streak
+        get().updateStreak(childId)
+
+        // Update challenge progress for chores
+        if (reason.startsWith('Completed:')) {
+          get().updateChallengeProgress(childId, 'chore')
+        }
       },
 
       spendStars: (childId, amount, reward) => {
@@ -268,7 +344,7 @@ const useStore = create(
         }))
       },
 
-      // Actions - Notes
+      // Actions - Notes (now supports voice notes)
       addNote: (note) => {
         set((state) => ({
           notes: [{ ...note, id: Date.now().toString(), createdAt: Date.now() }, ...state.notes],
@@ -286,6 +362,8 @@ const useStore = create(
         set((state) => ({
           hearts: [{ id: Date.now().toString(), from, to, timestamp: Date.now() }, ...state.hearts],
         }))
+        // Update challenge progress for hearts
+        get().updateChallengeProgress(from, 'heart')
       },
 
       // Actions - Timer
@@ -315,6 +393,8 @@ const useStore = create(
           if (starsEarned > 0) {
             get().addStars(session.childId, starsEarned, `Timer completed: ${session.activity}`)
           }
+          // Update daily time usage
+          get().addTimeUsage(session.childId, session.activity.toLowerCase().replace(' ', ''), session.duration)
         }
       },
 
@@ -343,6 +423,187 @@ const useStore = create(
         set((state) => ({
           groceryList: state.groceryList.filter(i => i.id !== itemId),
         }))
+      },
+
+      // Actions - Time Limits (Parent controlled)
+      setTimeLimit: (childId, activity, limit, enabled) => {
+        set((state) => ({
+          timeLimits: {
+            ...state.timeLimits,
+            [childId]: {
+              ...state.timeLimits[childId],
+              [activity]: { limit, enabled },
+            },
+          },
+        }))
+      },
+
+      getTimeLimit: (childId, activity) => {
+        return get().timeLimits[childId]?.[activity] || { limit: 60, enabled: false }
+      },
+
+      // Actions - Daily Time Usage
+      addTimeUsage: (childId, activity, minutes) => {
+        const today = new Date().toISOString().split('T')[0]
+        set((state) => {
+          const childUsage = state.dailyTimeUsage[childId] || {}
+          const todayUsage = childUsage[today] || {}
+          return {
+            dailyTimeUsage: {
+              ...state.dailyTimeUsage,
+              [childId]: {
+                ...childUsage,
+                [today]: {
+                  ...todayUsage,
+                  [activity]: (todayUsage[activity] || 0) + minutes,
+                },
+              },
+            },
+          }
+        })
+      },
+
+      getTodayTimeUsage: (childId, activity) => {
+        const today = new Date().toISOString().split('T')[0]
+        return get().dailyTimeUsage[childId]?.[today]?.[activity] || 0
+      },
+
+      getRemainingTime: (childId, activity) => {
+        const limit = get().getTimeLimit(childId, activity)
+        if (!limit.enabled) return null // No limit
+        const used = get().getTodayTimeUsage(childId, activity)
+        return Math.max(0, limit.limit - used)
+      },
+
+      // Actions - Streaks
+      updateStreak: (childId) => {
+        const today = new Date().toISOString().split('T')[0]
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+
+        set((state) => {
+          const childStreak = state.streaks[childId]
+          let newStreak = childStreak.currentStreak
+
+          if (childStreak.lastCompletedDate === yesterday) {
+            newStreak = childStreak.currentStreak + 1
+          } else if (childStreak.lastCompletedDate !== today) {
+            newStreak = 1
+          }
+
+          return {
+            streaks: {
+              ...state.streaks,
+              [childId]: {
+                ...childStreak,
+                currentStreak: newStreak,
+                longestStreak: Math.max(newStreak, childStreak.longestStreak),
+                lastCompletedDate: today,
+              },
+            },
+          }
+        })
+      },
+
+      getWeeklyReport: (childId) => {
+        const starLog = get().starLog.filter(log => log.childId === childId)
+        const now = Date.now()
+        const weekAgo = now - 7 * 86400000
+
+        const weeklyLogs = starLog.filter(log => log.timestamp >= weekAgo && log.amount > 0)
+
+        // Group by day
+        const dailyData = {}
+        weeklyLogs.forEach(log => {
+          const date = new Date(log.timestamp).toISOString().split('T')[0]
+          if (!dailyData[date]) {
+            dailyData[date] = { tasks: 0, stars: 0 }
+          }
+          dailyData[date].tasks += 1
+          dailyData[date].stars += log.amount
+        })
+
+        const totalTasks = weeklyLogs.length
+        const totalStars = weeklyLogs.reduce((sum, log) => sum + log.amount, 0)
+        const daysActive = Object.keys(dailyData).length
+
+        return {
+          totalTasks,
+          totalStars,
+          daysActive,
+          dailyData,
+          streak: get().streaks[childId],
+        }
+      },
+
+      // Actions - Sibling Challenges
+      updateChallengeProgress: (childId, type) => {
+        set((state) => ({
+          challenges: state.challenges.map(challenge => {
+            if (!challenge.active) return challenge
+
+            const shouldUpdate =
+              (type === 'heart' && challenge.title === 'Kindness Week') ||
+              (type === 'chore' && challenge.title === 'Chore Champions')
+
+            if (!shouldUpdate) return challenge
+
+            const newProgress = {
+              ...challenge.progress,
+              [childId]: (challenge.progress[childId] || 0) + 1,
+            }
+
+            return {
+              ...challenge,
+              progress: newProgress,
+            }
+          }),
+        }))
+      },
+
+      addChallenge: (challenge) => {
+        set((state) => ({
+          challenges: [...state.challenges, { ...challenge, id: Date.now().toString() }],
+        }))
+      },
+
+      removeChallenge: (challengeId) => {
+        set((state) => ({
+          challenges: state.challenges.filter(c => c.id !== challengeId),
+        }))
+      },
+
+      toggleChallengeActive: (challengeId) => {
+        set((state) => ({
+          challenges: state.challenges.map(c =>
+            c.id === challengeId ? { ...c, active: !c.active } : c
+          ),
+        }))
+      },
+
+      completeChallenge: (challengeId) => {
+        const challenge = get().challenges.find(c => c.id === challengeId)
+        if (challenge) {
+          // Award stars to both children
+          get().addStars('bria', challenge.rewardStars / 2, `Challenge completed: ${challenge.title}`)
+          get().addStars('naya', challenge.rewardStars / 2, `Challenge completed: ${challenge.title}`)
+
+          set((state) => ({
+            challenges: state.challenges.map(c =>
+              c.id === challengeId ? { ...c, active: false, completed: true } : c
+            ),
+          }))
+        }
+      },
+
+      getChallengeProgress: (challengeId) => {
+        const challenge = get().challenges.find(c => c.id === challengeId)
+        if (!challenge) return null
+
+        const total = (challenge.progress.bria || 0) + (challenge.progress.naya || 0)
+        const percentage = Math.min(100, (total / challenge.target) * 100)
+        const isComplete = total >= challenge.target
+
+        return { total, percentage, isComplete, ...challenge }
       },
 
       // Utility - Get child's events

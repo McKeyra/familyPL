@@ -9,6 +9,7 @@ import NoteBoard from './pages/NoteBoard'
 import Rewards from './pages/Rewards'
 import ParentPortal from './pages/ParentPortal'
 import Grocery from './pages/Grocery'
+import Progress from './pages/Progress'
 import Layout from './components/Layout'
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path="/notes" element={<NoteBoard />} />
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/grocery" element={<Grocery />} />
+            <Route path="/progress" element={<Progress />} />
             <Route path="/parent" element={<ParentPortal />} />
           </Route>
         </Routes>
