@@ -25,85 +25,37 @@ export default function Welcome() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-300 to-orange-300 relative overflow-hidden">
-      {/* Animated background shapes */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(8)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-white/20 backdrop-blur-sm"
-            style={{
-              width: 100 + i * 50,
-              height: 100 + i * 50,
-              left: `${(i * 15) % 100}%`,
-              top: `${(i * 12) % 100}%`,
-            }}
-            animate={{
-              x: [0, 30, 0],
-              y: [0, -20, 0],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              duration: 8 + i * 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
+      {/* Static background shapes - optimized for mobile */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-64 h-64 rounded-full bg-white/15 -top-20 -left-10" />
+        <div className="absolute w-48 h-48 rounded-full bg-white/10 top-1/4 right-10" />
+        <div className="absolute w-80 h-80 rounded-full bg-white/10 bottom-20 left-1/4" />
+        <div className="absolute w-32 h-32 rounded-full bg-white/15 bottom-40 right-20" />
       </div>
 
-      {/* Floating stars */}
-      {[...Array(12)].map((_, i) => (
-        <motion.div
-          key={`star-${i}`}
-          className="absolute text-3xl pointer-events-none"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [0, -20, 0],
-            opacity: [0.3, 1, 0.3],
-            rotate: [0, 360],
-          }}
-          transition={{
-            duration: 5 + Math.random() * 5,
-            repeat: Infinity,
-            delay: Math.random() * 2,
-          }}
-        >
-          ⭐
-        </motion.div>
-      ))}
+      {/* Static stars decoration */}
+      <div className="absolute inset-0 pointer-events-none">
+        <span className="absolute text-3xl top-[15%] left-[10%] opacity-50">⭐</span>
+        <span className="absolute text-2xl top-[25%] right-[15%] opacity-40">⭐</span>
+        <span className="absolute text-3xl top-[60%] left-[5%] opacity-30">⭐</span>
+        <span className="absolute text-2xl top-[75%] right-[8%] opacity-40">⭐</span>
+        <span className="absolute text-3xl bottom-[20%] left-[25%] opacity-35">⭐</span>
+      </div>
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-6">
         {/* Title */}
         <motion.div
           className="text-center mb-12"
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
         >
-          <motion.h1
-            className="text-5xl md:text-7xl font-display font-bold text-white mb-4 drop-shadow-lg"
-            animate={{
-              textShadow: [
-                '0 0 20px rgba(255,255,255,0.5)',
-                '0 0 40px rgba(255,255,255,0.8)',
-                '0 0 20px rgba(255,255,255,0.5)',
-              ],
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
+          <h1 className="text-5xl md:text-7xl font-display font-bold text-white mb-4 drop-shadow-lg">
             Happy Day Helper
-          </motion.h1>
-          <motion.p
-            className="text-xl md:text-2xl text-white/90 font-display"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
+          </h1>
+          <p className="text-xl md:text-2xl text-white/90 font-display">
             Who's having a great day today? 🌟
-          </motion.p>
+          </p>
         </motion.div>
 
         {/* Profile Cards */}
@@ -164,18 +116,13 @@ export default function Welcome() {
         {recentHearts.length > 0 && (
           <motion.div
             className="w-full max-w-md mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
           >
             <GlassCard variant="default" size="sm">
               <div className="flex items-center justify-center gap-3">
-                <motion.span
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                >
-                  💕
-                </motion.span>
+                <span>💕</span>
                 <span className="text-gray-700 font-display">
                   {recentHearts.length} hearts shared today!
                 </span>
@@ -188,7 +135,7 @@ export default function Welcome() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.4 }}
         >
           <Button
             variant="glass"
@@ -201,21 +148,11 @@ export default function Welcome() {
         </motion.div>
 
         {/* Footer decoration */}
-        <motion.div
-          className="absolute bottom-6 flex items-center gap-2 text-white/70"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
+        <div className="absolute bottom-6 flex items-center gap-2 text-white/70">
           <span className="font-display text-sm">Made with</span>
-          <motion.span
-            animate={{ scale: [1, 1.3, 1] }}
-            transition={{ duration: 1, repeat: Infinity }}
-          >
-            ❤️
-          </motion.span>
+          <span>❤️</span>
           <span className="font-display text-sm">for our family</span>
-        </motion.div>
+        </div>
       </div>
     </div>
   )

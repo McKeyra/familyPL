@@ -92,13 +92,9 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <motion.div
-          className="text-6xl mb-4"
-          animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >
+        <div className="text-6xl mb-4">
           {child.avatar}
-        </motion.div>
+        </div>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-gray-800 mb-2">
           Hi {child.name}! 👋
         </h1>
@@ -136,13 +132,9 @@ export default function Dashboard() {
                 className="h-full"
               >
                 <div className="flex flex-col items-center text-center">
-                  <motion.span
-                    className="text-4xl md:text-5xl mb-3"
-                    animate={{ y: [0, -5, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, delay: index * 0.3 }}
-                  >
+                  <span className="text-4xl md:text-5xl mb-3">
                     {routine.emoji}
-                  </motion.span>
+                  </span>
                   <h3 className="font-display font-bold text-white text-lg mb-1">
                     {routine.title}
                   </h3>
@@ -173,26 +165,21 @@ export default function Dashboard() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
       >
-        {quickActions.map((action, index) => (
-          <motion.button
+        {quickActions.map((action) => (
+          <button
             key={action.id}
             className={`
               ${action.color} p-3 md:p-4 rounded-2xl
               flex flex-col items-center justify-center
-              shadow-lg hover:shadow-xl transition-shadow
+              shadow-lg hover:shadow-xl transition-all active:scale-95
             `}
             onClick={() => navigate(action.path)}
-            whileHover={{ scale: 1.05, y: -5 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 * index }}
           >
             <span className="text-2xl md:text-3xl mb-1">{action.emoji}</span>
             <span className="text-xs md:text-sm font-display font-semibold text-white">
               {action.label}
             </span>
-          </motion.button>
+          </button>
         ))}
       </motion.div>
 

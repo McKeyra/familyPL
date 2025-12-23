@@ -53,16 +53,12 @@ export default function Grocery() {
       {/* Header */}
       <motion.div
         className="text-center mb-6"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
       >
-        <motion.span
-          className="text-6xl block mb-2"
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
+        <span className="text-6xl block mb-2">
           🛒
-        </motion.span>
+        </span>
         <h1 className="text-3xl font-display font-bold text-gray-800">
           Shopping List
         </h1>

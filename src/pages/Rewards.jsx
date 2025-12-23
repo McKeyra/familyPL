@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Star, Gift, Trophy, Sparkles, Clock } from 'lucide-react'
-import { format, formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 import useStore from '../store/useStore'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
@@ -20,6 +21,7 @@ const rewards = [
 ]
 
 export default function Rewards() {
+  const navigate = useNavigate()
   const { currentChild, children, starLog, spendStars } = useStore()
   const child = currentChild ? children[currentChild] : null
 
@@ -60,16 +62,12 @@ export default function Rewards() {
       {/* Header */}
       <motion.div
         className="text-center mb-6"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
       >
-        <motion.span
-          className="text-6xl block mb-2"
-          animate={{ rotate: [0, 10, -10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
+        <span className="text-6xl block mb-2">
           🎁
-        </motion.span>
+        </span>
         <h1 className="text-3xl font-display font-bold text-gray-800">
           Rewards Shop
         </h1>
@@ -81,9 +79,9 @@ export default function Rewards() {
       {/* Star Balance */}
       <motion.div
         className="flex justify-center mb-8"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
       >
         <StarCounter count={child.stars} size="lg" />
       </motion.div>
@@ -264,29 +262,41 @@ export default function Rewards() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={() => {
+              setShowSuccess(false)
+              setSelectedReward(null)
+            }}
           >
             <motion.div
               className="bg-gradient-to-br from-yellow-400 to-amber-500 rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center text-white"
-              initial={{ scale: 0 }}
+              initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              exit={{ scale: 0 }}
+              exit={{ scale: 0.8 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <motion.div
-                className="text-8xl mb-4"
-                animate={{ rotate: [0, -10, 10, 0], scale: [1, 1.2, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              >
+              <div className="text-8xl mb-4">
                 🎉
-              </motion.div>
+              </div>
               <h2 className="text-3xl font-display font-bold mb-2">
                 Congratulations!
               </h2>
               <p className="text-xl font-display">
                 You got {selectedReward.name}!
               </p>
-              <p className="mt-4 text-white/80">
+              <p className="mt-4 mb-6 text-white/80">
                 Ask mom or dad to give you your reward!
               </p>
+              <Button
+                variant="glass"
+                size="lg"
+                onClick={() => {
+                  setShowSuccess(false)
+                  setSelectedReward(null)
+                  navigate('/dashboard')
+                }}
+              >
+                Back to Home
+              </Button>
             </motion.div>
           </motion.div>
         )}

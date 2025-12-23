@@ -110,16 +110,12 @@ export default function Checklist() {
           rounded-3xl p-6 mb-6 text-center text-white
           shadow-lg
         `}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
       >
-        <motion.span
-          className="text-6xl block mb-3"
-          animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >
+        <span className="text-6xl block mb-3">
           {info.emoji}
-        </motion.span>
+        </span>
         <h1 className="text-3xl font-display font-bold mb-2">{info.title}</h1>
         <p className="text-white/90 font-display">
           {completedCount} of {totalCount} complete • {earnedStars}/{totalStars} ⭐

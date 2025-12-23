@@ -32,8 +32,8 @@ export default function Progress() {
       {/* Header */}
       <motion.div
         className="text-center mb-6"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
       >
         <span className="text-5xl block mb-2">📊</span>
         <h1 className="text-3xl font-display font-bold text-gray-800">
@@ -47,20 +47,16 @@ export default function Progress() {
       {/* Streak Card */}
       <motion.div
         className="mb-6"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
       >
         <GlassCard variant={child.theme} glow={child.theme} size="lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <motion.div
-                className="text-6xl"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
+              <div className="text-6xl">
                 🔥
-              </motion.div>
+              </div>
               <div>
                 <h2 className="text-4xl font-display font-bold text-white">
                   {streak.currentStreak} Day Streak!

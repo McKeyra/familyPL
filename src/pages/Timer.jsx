@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Play, Pause, RotateCcw, Check, Tv, BookOpen, Gamepad2, Pencil } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import useStore from '../store/useStore'
@@ -15,6 +16,7 @@ const activities = [
 ]
 
 export default function Timer() {
+  const navigate = useNavigate()
   const { currentChild, children, startTimer, completeTimer } = useStore()
   const child = currentChild ? children[currentChild] : null
 
@@ -116,16 +118,12 @@ export default function Timer() {
       {/* Header */}
       <motion.div
         className="text-center mb-8"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
       >
-        <motion.span
-          className="text-6xl block mb-3"
-          animate={isRunning ? { rotate: [0, 360] } : {}}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-        >
+        <span className="text-6xl block mb-3">
           ⏰
-        </motion.span>
+        </span>
         <h1 className="text-3xl font-display font-bold text-gray-800">
           Activity Timer
         </h1>
@@ -347,20 +345,22 @@ export default function Timer() {
               </p>
               <div className="flex justify-center gap-2 mb-6">
                 {[...Array(activities.find(a => a.id === selectedActivity)?.stars || 1)].map((_, i) => (
-                  <motion.span
+                  <span
                     key={i}
                     className="text-4xl"
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ delay: 0.2 + i * 0.1 }}
                   >
                     ⭐
-                  </motion.span>
+                  </span>
                 ))}
               </div>
-              <Button variant="glass" size="lg" onClick={handleReset}>
-                Start Another
-              </Button>
+              <div className="flex gap-3">
+                <Button variant="glass" size="lg" onClick={handleReset}>
+                  Start Another
+                </Button>
+                <Button variant="glass" size="lg" onClick={() => navigate('/dashboard')}>
+                  Dashboard
+                </Button>
+              </div>
             </motion.div>
           </motion.div>
         )}

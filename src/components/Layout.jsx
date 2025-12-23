@@ -46,43 +46,25 @@ export default function Layout() {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${bgGradients[theme]} transition-colors duration-500`}>
-      {/* Animated background elements */}
+      {/* Static background elements - optimized for mobile */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {[...Array(6)].map((_, i) => (
-          <motion.div
-            key={i}
-            className={`absolute w-64 h-64 ${accentColors[theme]} opacity-10 rounded-full blur-3xl`}
-            animate={{
-              x: [0, 100, 0],
-              y: [0, -50, 0],
-            }}
-            transition={{
-              duration: 20 + i * 5,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
-            style={{
-              left: `${(i * 20) % 100}%`,
-              top: `${(i * 15) % 100}%`,
-            }}
-          />
-        ))}
+        <div className={`absolute w-96 h-96 ${accentColors[theme]} opacity-10 rounded-full blur-3xl -top-20 -left-20`} />
+        <div className={`absolute w-80 h-80 ${accentColors[theme]} opacity-5 rounded-full blur-3xl bottom-20 right-10`} />
       </div>
 
       {/* Top header */}
       <motion.header
         className="sticky top-0 z-50 glass safe-top"
-        initial={{ y: -100 }}
+        initial={{ y: -60 }}
         animate={{ y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        transition={{ duration: 0.2 }}
       >
         <div className="flex items-center justify-between px-4 py-3">
-          {/* Back button */}
+          {/* Back button - larger touch target */}
           <motion.button
             onClick={() => navigate(-1)}
-            className="p-2 rounded-full hover:bg-white/20 transition-colors"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            className="p-3 -m-1 rounded-2xl bg-white/30 hover:bg-white/40 active:bg-white/50 transition-colors shadow-sm"
+            whileTap={{ scale: 0.95 }}
           >
             <ArrowLeft className="w-6 h-6 text-gray-700" />
           </motion.button>
@@ -131,10 +113,10 @@ export default function Layout() {
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
           >
             <Outlet />
           </motion.div>
@@ -144,33 +126,27 @@ export default function Layout() {
       {/* Bottom navigation */}
       <motion.nav
         className="fixed bottom-0 left-0 right-0 glass safe-bottom z-50"
-        initial={{ y: 100 }}
+        initial={{ y: 80 }}
         animate={{ y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        transition={{ duration: 0.2 }}
       >
         <div className="flex justify-around items-center py-2 px-2">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path.split('/')[1] ? `/${item.path.split('/')[1]}` : item.path)
 
             return (
-              <motion.button
+              <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={`
                   flex flex-col items-center p-2 rounded-2xl min-w-[60px]
-                  transition-colors duration-200
+                  transition-all duration-150 active:scale-95
                   ${isActive ? 'bg-white/40' : 'hover:bg-white/20'}
                 `}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
-                <motion.span
-                  className="text-2xl"
-                  animate={isActive ? { y: [0, -4, 0] } : {}}
-                  transition={{ duration: 0.5 }}
-                >
+                <span className="text-2xl">
                   {item.emoji}
-                </motion.span>
+                </span>
                 <span className={`
                   text-xs font-display mt-1
                   ${isActive ? 'font-bold text-gray-800' : 'text-gray-600'}
@@ -178,12 +154,11 @@ export default function Layout() {
                   {item.label}
                 </span>
                 {isActive && (
-                  <motion.div
+                  <div
                     className={`absolute -bottom-1 w-8 h-1 ${accentColors[theme]} rounded-full`}
-                    layoutId="nav-indicator"
                   />
                 )}
-              </motion.button>
+              </button>
             )
           })}
         </div>

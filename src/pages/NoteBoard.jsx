@@ -206,8 +206,8 @@ export default function NoteBoard() {
       {/* Header */}
       <motion.div
         className="text-center mb-6"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
       >
         <span className="text-5xl block mb-2">📝</span>
         <h1 className="text-3xl font-display font-bold text-gray-800">
