@@ -6,7 +6,7 @@ const initialChildren = {
   bria: {
     id: 'bria',
     name: 'Bria',
-    age: 8,
+    age: 4,
     avatar: '👧',
     theme: 'bria',
     stars: 47,
@@ -15,7 +15,7 @@ const initialChildren = {
   naya: {
     id: 'naya',
     name: 'Naya',
-    age: 4,
+    age: 8,
     avatar: '👶',
     theme: 'naya',
     stars: 32,

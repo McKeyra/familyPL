@@ -14,7 +14,8 @@ import {
 } from 'lucide-react'
 import useStore from '../store/useStore'
 
-const navItems = [
+// Full nav for older children (6+)
+const navItemsOlder = [
   { path: '/dashboard', icon: Home, label: 'Home', emoji: '🏠' },
   { path: '/checklist/morning', icon: CheckSquare, label: 'Tasks', emoji: '✅' },
   { path: '/timer', icon: Clock, label: 'Timer', emoji: '⏰' },
@@ -23,12 +24,21 @@ const navItems = [
   { path: '/rewards', icon: Gift, label: 'Rewards', emoji: '🎁' },
 ]
 
+// Simplified nav for young children (5 and under)
+const navItemsYoung = [
+  { path: '/dashboard', icon: Home, label: 'Home', emoji: '🏠' },
+  { path: '/checklist/morning', icon: CheckSquare, label: 'Do', emoji: '✅' },
+  { path: '/rewards', icon: Gift, label: 'Prizes', emoji: '🎁' },
+]
+
 export default function Layout() {
   const navigate = useNavigate()
   const location = useLocation()
   const { currentChild, children, isParentMode } = useStore()
 
   const child = currentChild ? children[currentChild] : null
+  const isYoungChild = child && child.age <= 5
+  const navItems = isYoungChild ? navItemsYoung : navItemsOlder
 
   const bgGradients = {
     bria: 'from-orange-100 via-pink-50 to-amber-100',
@@ -60,13 +70,16 @@ export default function Layout() {
         transition={{ duration: 0.2 }}
       >
         <div className="flex items-center justify-between px-4 py-3">
-          {/* Back button - larger touch target */}
+          {/* Back button - extra large for young children */}
           <motion.button
             onClick={() => navigate(-1)}
-            className="p-3 -m-1 rounded-2xl bg-white/30 hover:bg-white/40 active:bg-white/50 transition-colors shadow-sm"
+            className={`
+              rounded-2xl bg-white/30 hover:bg-white/40 active:bg-white/50 transition-colors shadow-sm
+              ${isYoungChild ? 'p-4 -m-2' : 'p-3 -m-1'}
+            `}
             whileTap={{ scale: 0.95 }}
           >
-            <ArrowLeft className="w-6 h-6 text-gray-700" />
+            <ArrowLeft className={`text-gray-700 ${isYoungChild ? 'w-10 h-10 stroke-[3]' : 'w-6 h-6'}`} />
           </motion.button>
 
           {/* Current child indicator */}
@@ -130,7 +143,7 @@ export default function Layout() {
         animate={{ y: 0 }}
         transition={{ duration: 0.2 }}
       >
-        <div className="flex justify-around items-center py-2 px-2">
+        <div className={`flex justify-around items-center ${isYoungChild ? 'py-3 px-4' : 'py-2 px-2'}`}>
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path.split('/')[1] ? `/${item.path.split('/')[1]}` : item.path)
 
@@ -139,23 +152,25 @@ export default function Layout() {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={`
-                  flex flex-col items-center p-2 rounded-2xl min-w-[60px]
+                  flex flex-col items-center rounded-2xl
                   transition-all duration-150 active:scale-95
                   ${isActive ? 'bg-white/40' : 'hover:bg-white/20'}
+                  ${isYoungChild ? 'p-3 min-w-[80px]' : 'p-2 min-w-[60px]'}
                 `}
               >
-                <span className="text-2xl">
+                <span className={isYoungChild ? 'text-4xl' : 'text-2xl'}>
                   {item.emoji}
                 </span>
                 <span className={`
-                  text-xs font-display mt-1
+                  font-display mt-1
                   ${isActive ? 'font-bold text-gray-800' : 'text-gray-600'}
+                  ${isYoungChild ? 'text-base' : 'text-xs'}
                 `}>
                   {item.label}
                 </span>
                 {isActive && (
                   <div
-                    className={`absolute -bottom-1 w-8 h-1 ${accentColors[theme]} rounded-full`}
+                    className={`absolute -bottom-1 ${isYoungChild ? 'w-12 h-1.5' : 'w-8 h-1'} ${accentColors[theme]} rounded-full`}
                   />
                 )}
               </button>

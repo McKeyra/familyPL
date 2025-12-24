@@ -1,15 +1,8 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
-  Sun,
-  Moon,
-  CheckSquare,
-  Clock,
   Calendar,
   Heart,
-  Gift,
-  ShoppingCart,
-  Star,
   Sparkles,
 } from 'lucide-react'
 import useStore from '../store/useStore'
@@ -18,34 +11,31 @@ import StarCounter from '../components/ui/StarCounter'
 import HeartButton from '../components/ui/HeartButton'
 import StickerEvent from '../components/ui/StickerEvent'
 
-const routineCards = [
-  {
-    id: 'morning',
-    title: 'Morning Routine',
-    emoji: '🌅',
-    icon: Sun,
-    gradient: 'from-amber-400 to-orange-500',
-    description: 'Start your day right!',
-  },
-  {
-    id: 'bedtime',
-    title: 'Bedtime Routine',
-    emoji: '🌙',
-    icon: Moon,
-    gradient: 'from-indigo-400 to-purple-500',
-    description: 'Wind down time',
-  },
-  {
-    id: 'chores',
-    title: 'Chores',
-    emoji: '🧹',
-    icon: CheckSquare,
-    gradient: 'from-green-400 to-emerald-500',
-    description: 'Earn extra stars!',
-  },
+// Simplified labels for young children (age 5 and under)
+const youngRoutineCards = [
+  { id: 'morning', title: 'Morning', emoji: '🌅' },
+  { id: 'bedtime', title: 'Bedtime', emoji: '🌙' },
+  { id: 'chores', title: 'Chores', emoji: '🧹' },
 ]
 
-const quickActions = [
+// Full labels for older children (age 6+)
+const olderRoutineCards = [
+  { id: 'morning', title: 'Morning Routine', emoji: '🌅', description: 'Start your day right!' },
+  { id: 'bedtime', title: 'Bedtime Routine', emoji: '🌙', description: 'Wind down time' },
+  { id: 'chores', title: 'Chores', emoji: '🧹', description: 'Earn extra stars!' },
+]
+
+// Simplified actions for young children
+const youngQuickActions = [
+  { id: 'timer', path: '/timer', emoji: '⏰', label: 'Timer', color: 'bg-cyan-400' },
+  { id: 'calendar', path: '/calendar', emoji: '📅', label: 'Days', color: 'bg-pink-400' },
+  { id: 'notes', path: '/notes', emoji: '📝', label: 'Notes', color: 'bg-amber-400' },
+  { id: 'rewards', path: '/rewards', emoji: '🎁', label: 'Prizes', color: 'bg-purple-400' },
+  { id: 'grocery', path: '/grocery', emoji: '🛒', label: 'Shop', color: 'bg-green-400' },
+]
+
+// Full labels for older children
+const olderQuickActions = [
   { id: 'timer', path: '/timer', emoji: '⏰', label: 'Timer', color: 'bg-cyan-400' },
   { id: 'calendar', path: '/calendar', emoji: '📅', label: 'Calendar', color: 'bg-pink-400' },
   { id: 'notes', path: '/notes', emoji: '📝', label: 'Notes', color: 'bg-amber-400' },
@@ -68,6 +58,11 @@ export default function Dashboard() {
     return null
   }
 
+  // Age-based content selection
+  const isYoungChild = child.age <= 5
+  const routineCards = isYoungChild ? youngRoutineCards : olderRoutineCards
+  const quickActions = isYoungChild ? youngQuickActions : olderQuickActions
+
   // Calculate progress for each routine
   const getProgress = (routine) => {
     if (!childChores || !childChores[routine]) return { completed: 0, total: 0, percentage: 0 }
@@ -84,13 +79,141 @@ export default function Dashboard() {
     sendHeart(currentChild, siblingId)
   }
 
+  // YOUNG CHILD INTERFACE (age 5 and under)
+  if (isYoungChild) {
+    return (
+      <div className="p-4 max-w-2xl mx-auto">
+        {/* Simple Header - Just name and stars */}
+        <motion.div
+          className="flex items-center justify-between mb-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-5xl">{child.avatar}</span>
+            <span className="text-3xl font-display font-bold text-gray-800">{child.name}</span>
+          </div>
+          <StarCounter count={child.stars} size="lg" />
+        </motion.div>
+
+        {/* Big Routine Buttons - Single word labels */}
+        <div className="grid grid-cols-1 gap-4 mb-6">
+          {routineCards.map((routine) => {
+            const progress = getProgress(routine.id)
+            return (
+              <motion.button
+                key={routine.id}
+                className={`
+                  w-full p-6 rounded-3xl
+                  ${child.theme === 'bria' ? 'bg-gradient-to-r from-orange-400 to-orange-500' : 'bg-gradient-to-r from-cyan-400 to-cyan-500'}
+                  shadow-xl active:scale-98 transition-transform
+                `}
+                onClick={() => navigate(`/checklist/${routine.id}`)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    {/* Big emoji - 72pt */}
+                    <span className="text-7xl">{routine.emoji}</span>
+                    {/* Single word - big and bold */}
+                    <span className="text-3xl font-display font-bold text-white">
+                      {routine.title}
+                    </span>
+                  </div>
+                  {/* Simple progress */}
+                  <div className="text-right">
+                    <span className="text-4xl font-bold text-white">
+                      {progress.completed}/{progress.total}
+                    </span>
+                  </div>
+                </div>
+                {/* Progress bar */}
+                <div className="mt-4 bg-white/30 rounded-full h-3">
+                  <motion.div
+                    className="bg-white rounded-full h-3"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress.percentage}%` }}
+                  />
+                </div>
+              </motion.button>
+            )
+          })}
+        </div>
+
+        {/* Big Quick Action Buttons */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {quickActions.slice(0, 3).map((action) => (
+            <motion.button
+              key={action.id}
+              className={`
+                ${action.color} p-5 rounded-2xl
+                flex flex-col items-center justify-center
+                shadow-lg active:scale-95 transition-transform
+              `}
+              onClick={() => navigate(action.path)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {/* Big emoji - 48pt */}
+              <span className="text-5xl mb-2">{action.emoji}</span>
+              {/* Single word */}
+              <span className="text-lg font-display font-bold text-white">
+                {action.label}
+              </span>
+            </motion.button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {quickActions.slice(3).map((action) => (
+            <motion.button
+              key={action.id}
+              className={`
+                ${action.color} p-5 rounded-2xl
+                flex flex-col items-center justify-center
+                shadow-lg active:scale-95 transition-transform
+              `}
+              onClick={() => navigate(action.path)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <span className="text-5xl mb-2">{action.emoji}</span>
+              <span className="text-lg font-display font-bold text-white">
+                {action.label}
+              </span>
+            </motion.button>
+          ))}
+        </div>
+
+        {/* Simple Heart Button */}
+        <motion.div
+          className="mt-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <button
+            onClick={handleSendHeart}
+            className="w-full p-4 bg-gradient-to-r from-pink-400 to-red-400 rounded-2xl flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-transform"
+          >
+            <span className="text-4xl">💕</span>
+            <span className="text-xl font-display font-bold text-white">
+              Send ❤️ to {sibling.name}
+            </span>
+          </button>
+        </motion.div>
+      </div>
+    )
+  }
+
+  // OLDER CHILD INTERFACE (age 6+)
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
       {/* Welcome Header */}
       <motion.div
         className="text-center mb-8"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
       >
         <div className="text-6xl mb-4">
           {child.avatar}
@@ -106,9 +229,9 @@ export default function Dashboard() {
       {/* Star Counter - Big Display */}
       <motion.div
         className="flex justify-center mb-8"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
       >
         <StarCounter count={child.stars} size="lg" />
       </motion.div>
@@ -121,9 +244,9 @@ export default function Dashboard() {
           return (
             <motion.div
               key={routine.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.05 * index }}
             >
               <GlassCard
                 variant={child.theme}
@@ -145,7 +268,7 @@ export default function Dashboard() {
                       className="bg-white rounded-full h-2"
                       initial={{ width: 0 }}
                       animate={{ width: `${progress.percentage}%` }}
-                      transition={{ duration: 0.5, delay: 0.3 }}
+                      transition={{ duration: 0.3 }}
                     />
                   </div>
                   <span className="text-sm text-white/80">
@@ -163,7 +286,7 @@ export default function Dashboard() {
         className="grid grid-cols-5 gap-2 md:gap-4 mb-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.2 }}
       >
         {quickActions.map((action) => (
           <button
@@ -187,9 +310,9 @@ export default function Dashboard() {
       <div className="grid md:grid-cols-2 gap-4">
         {/* Upcoming Events */}
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
         >
           <GlassCard variant="default" className="h-full">
             <div className="flex items-center gap-2 mb-4">
@@ -213,9 +336,9 @@ export default function Dashboard() {
 
         {/* Kindness Echo */}
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.6 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
         >
           <GlassCard variant="default" className="h-full">
             <div className="flex items-center gap-2 mb-4">
@@ -241,7 +364,7 @@ export default function Dashboard() {
         className="mt-8 text-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
+        transition={{ delay: 0.5 }}
       >
         <GlassCard variant={child.theme} size="sm">
           <div className="flex items-center justify-center gap-2">
