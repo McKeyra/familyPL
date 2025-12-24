@@ -55,74 +55,90 @@ export default function Layout() {
   const theme = isParentMode ? 'parent' : (child?.theme || 'bria')
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${bgGradients[theme]} transition-colors duration-500`}>
-      {/* Static background elements - optimized for mobile */}
+    <div className={`min-h-screen min-h-[100dvh] bg-gradient-to-br ${bgGradients[theme]} transition-colors duration-300`}>
+      {/* Static background elements - responsive sizing */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute w-96 h-96 ${accentColors[theme]} opacity-10 rounded-full blur-3xl -top-20 -left-20`} />
-        <div className={`absolute w-80 h-80 ${accentColors[theme]} opacity-5 rounded-full blur-3xl bottom-20 right-10`} />
+        <div className={`absolute ${accentColors[theme]} opacity-10 rounded-full blur-3xl
+          w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96
+          -top-10 -left-10 sm:-top-16 sm:-left-16 md:-top-20 md:-left-20`}
+        />
+        <div className={`absolute ${accentColors[theme]} opacity-5 rounded-full blur-3xl
+          w-40 h-40 sm:w-56 sm:h-56 md:w-72 md:h-72 lg:w-80 lg:h-80
+          bottom-10 right-5 sm:bottom-16 sm:right-8 md:bottom-20 md:right-10`}
+        />
       </div>
 
-      {/* Top header */}
+      {/* Top header - responsive padding */}
       <motion.header
-        className="sticky top-0 z-50 glass safe-top"
+        className="sticky top-0 z-50 glass safe-top safe-left safe-right landscape-compact"
         initial={{ y: -60 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.2 }}
       >
-        <div className="flex items-center justify-between px-4 py-3">
-          {/* Back button - extra large for young children */}
+        <div className="flex items-center justify-between px-2 py-2 sm:px-4 sm:py-3 md:px-6">
+          {/* Back button - responsive sizing */}
           <motion.button
             onClick={() => navigate(-1)}
             className={`
-              rounded-2xl bg-white/30 hover:bg-white/40 active:bg-white/50 transition-colors shadow-sm
-              ${isYoungChild ? 'p-4 -m-2' : 'p-3 -m-1'}
+              rounded-xl sm:rounded-2xl bg-white/30 hover:bg-white/40 active:bg-white/50 transition-colors shadow-sm
+              ${isYoungChild
+                ? 'p-2.5 sm:p-3 md:p-4'
+                : 'p-2 sm:p-2.5 md:p-3'}
             `}
             whileTap={{ scale: 0.95 }}
           >
-            <ArrowLeft className={`text-gray-700 ${isYoungChild ? 'w-10 h-10 stroke-[3]' : 'w-6 h-6'}`} />
+            <ArrowLeft className={`text-gray-700
+              ${isYoungChild
+                ? 'w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 stroke-[2.5] sm:stroke-[3]'
+                : 'w-5 h-5 sm:w-6 sm:h-6'}`}
+            />
           </motion.button>
 
-          {/* Current child indicator */}
+          {/* Current child indicator - responsive */}
           {child && (
             <motion.div
-              className="flex items-center gap-2"
+              className="flex items-center gap-1.5 sm:gap-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <span className="text-2xl">{child.avatar}</span>
-              <span className="font-display font-bold text-gray-800">{child.name}</span>
-              <div className="flex items-center gap-1 bg-yellow-400 rounded-full px-2 py-1">
-                <Star className="w-4 h-4 text-yellow-700 fill-yellow-700" />
-                <span className="text-sm font-bold text-yellow-700">{child.stars}</span>
+              <span className="text-xl sm:text-2xl">{child.avatar}</span>
+              <span className="font-display font-bold text-gray-800 text-sm sm:text-base hidden xs:inline">
+                {child.name}
+              </span>
+              <div className="flex items-center gap-0.5 sm:gap-1 bg-yellow-400 rounded-full px-1.5 py-0.5 sm:px-2 sm:py-1">
+                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-700 fill-yellow-700" />
+                <span className="text-xs sm:text-sm font-bold text-yellow-700">{child.stars}</span>
               </div>
             </motion.div>
           )}
 
           {isParentMode && (
             <motion.div
-              className="flex items-center gap-2 bg-parent-500 text-white px-3 py-1 rounded-full"
+              className="flex items-center gap-1 sm:gap-2 bg-parent-500 text-white px-2 py-0.5 sm:px-3 sm:py-1 rounded-full"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <Settings className="w-4 h-4" />
-              <span className="font-display font-semibold">Parent Mode</span>
+              <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="font-display font-semibold text-xs sm:text-sm">Parent</span>
             </motion.div>
           )}
 
-          {/* Home button */}
+          {/* Home button - responsive */}
           <motion.button
             onClick={() => navigate('/')}
-            className="p-2 rounded-full hover:bg-white/20 transition-colors"
-            whileHover={{ scale: 1.1 }}
+            className="p-1.5 sm:p-2 rounded-full hover:bg-white/20 transition-colors"
             whileTap={{ scale: 0.9 }}
           >
-            <span className="text-2xl">👋</span>
+            <span className="text-xl sm:text-2xl">👋</span>
           </motion.button>
         </div>
       </motion.header>
 
-      {/* Main content */}
-      <main className="relative z-10 pb-24">
+      {/* Main content - responsive padding for bottom nav */}
+      <main className={`relative z-10 safe-left safe-right
+        ${isYoungChild ? 'pb-28 sm:pb-32' : 'pb-20 sm:pb-24'}
+        landscape-compact`}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -136,14 +152,18 @@ export default function Layout() {
         </AnimatePresence>
       </main>
 
-      {/* Bottom navigation */}
+      {/* Bottom navigation - responsive sizing */}
       <motion.nav
-        className="fixed bottom-0 left-0 right-0 glass safe-bottom z-50"
+        className="fixed bottom-0 left-0 right-0 glass safe-bottom safe-left safe-right z-50 landscape-compact"
         initial={{ y: 80 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.2 }}
       >
-        <div className={`flex justify-around items-center ${isYoungChild ? 'py-3 px-4' : 'py-2 px-2'}`}>
+        <div className={`flex justify-around items-center max-w-3xl mx-auto
+          ${isYoungChild
+            ? 'py-2 px-2 sm:py-3 sm:px-4'
+            : 'py-1.5 px-1 sm:py-2 sm:px-2'}`}
+        >
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path.split('/')[1] ? `/${item.path.split('/')[1]}` : item.path)
 
@@ -152,25 +172,36 @@ export default function Layout() {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={`
-                  flex flex-col items-center rounded-2xl
+                  relative flex flex-col items-center rounded-xl sm:rounded-2xl
                   transition-all duration-150 active:scale-95
                   ${isActive ? 'bg-white/40' : 'hover:bg-white/20'}
-                  ${isYoungChild ? 'p-3 min-w-[80px]' : 'p-2 min-w-[60px]'}
+                  ${isYoungChild
+                    ? 'p-2 sm:p-3 min-w-[60px] sm:min-w-[80px]'
+                    : 'p-1.5 sm:p-2 min-w-[48px] sm:min-w-[60px]'}
                 `}
               >
-                <span className={isYoungChild ? 'text-4xl' : 'text-2xl'}>
+                <span className={`
+                  ${isYoungChild
+                    ? 'text-2xl sm:text-3xl md:text-4xl'
+                    : 'text-xl sm:text-2xl'}
+                `}>
                   {item.emoji}
                 </span>
                 <span className={`
-                  font-display mt-1
+                  font-display mt-0.5 sm:mt-1
                   ${isActive ? 'font-bold text-gray-800' : 'text-gray-600'}
-                  ${isYoungChild ? 'text-base' : 'text-xs'}
+                  ${isYoungChild
+                    ? 'text-xs sm:text-sm md:text-base'
+                    : 'text-[10px] sm:text-xs'}
                 `}>
                   {item.label}
                 </span>
                 {isActive && (
                   <div
-                    className={`absolute -bottom-1 ${isYoungChild ? 'w-12 h-1.5' : 'w-8 h-1'} ${accentColors[theme]} rounded-full`}
+                    className={`absolute -bottom-0.5 sm:-bottom-1 rounded-full ${accentColors[theme]}
+                      ${isYoungChild
+                        ? 'w-8 sm:w-10 md:w-12 h-1 sm:h-1.5'
+                        : 'w-6 sm:w-8 h-0.5 sm:h-1'}`}
                   />
                 )}
               </button>

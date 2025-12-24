@@ -82,29 +82,29 @@ export default function Dashboard() {
   // YOUNG CHILD INTERFACE (age 5 and under)
   if (isYoungChild) {
     return (
-      <div className="p-4 max-w-2xl mx-auto">
+      <div className="p-3 sm:p-4 md:p-6 max-w-2xl mx-auto">
         {/* Simple Header - Just name and stars */}
         <motion.div
-          className="flex items-center justify-between mb-6"
+          className="flex items-center justify-between mb-4 sm:mb-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <div className="flex items-center gap-3">
-            <span className="text-5xl">{child.avatar}</span>
-            <span className="text-3xl font-display font-bold text-gray-800">{child.name}</span>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="text-4xl sm:text-5xl md:text-6xl">{child.avatar}</span>
+            <span className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gray-800">{child.name}</span>
           </div>
           <StarCounter count={child.stars} size="lg" />
         </motion.div>
 
         {/* Big Routine Buttons - Single word labels */}
-        <div className="grid grid-cols-1 gap-4 mb-6">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 mb-4 sm:mb-6">
           {routineCards.map((routine) => {
             const progress = getProgress(routine.id)
             return (
               <motion.button
                 key={routine.id}
                 className={`
-                  w-full p-6 rounded-3xl
+                  w-full p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl
                   ${child.theme === 'bria' ? 'bg-gradient-to-r from-orange-400 to-orange-500' : 'bg-gradient-to-r from-cyan-400 to-cyan-500'}
                   shadow-xl active:scale-98 transition-transform
                 `}
@@ -113,25 +113,25 @@ export default function Dashboard() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    {/* Big emoji - 72pt */}
-                    <span className="text-7xl">{routine.emoji}</span>
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    {/* Big emoji - responsive sizing */}
+                    <span className="text-5xl sm:text-6xl md:text-7xl">{routine.emoji}</span>
                     {/* Single word - big and bold */}
-                    <span className="text-3xl font-display font-bold text-white">
+                    <span className="text-2xl sm:text-3xl font-display font-bold text-white">
                       {routine.title}
                     </span>
                   </div>
                   {/* Simple progress */}
                   <div className="text-right">
-                    <span className="text-4xl font-bold text-white">
+                    <span className="text-3xl sm:text-4xl font-bold text-white">
                       {progress.completed}/{progress.total}
                     </span>
                   </div>
                 </div>
                 {/* Progress bar */}
-                <div className="mt-4 bg-white/30 rounded-full h-3">
+                <div className="mt-3 sm:mt-4 bg-white/30 rounded-full h-2.5 sm:h-3">
                   <motion.div
-                    className="bg-white rounded-full h-3"
+                    className="bg-white rounded-full h-2.5 sm:h-3"
                     initial={{ width: 0 }}
                     animate={{ width: `${progress.percentage}%` }}
                   />
@@ -142,12 +142,12 @@ export default function Dashboard() {
         </div>
 
         {/* Big Quick Action Buttons */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
           {quickActions.slice(0, 3).map((action) => (
             <motion.button
               key={action.id}
               className={`
-                ${action.color} p-5 rounded-2xl
+                ${action.color} p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl
                 flex flex-col items-center justify-center
                 shadow-lg active:scale-95 transition-transform
               `}
@@ -155,22 +155,22 @@ export default function Dashboard() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              {/* Big emoji - 48pt */}
-              <span className="text-5xl mb-2">{action.emoji}</span>
+              {/* Big emoji - responsive */}
+              <span className="text-4xl sm:text-5xl mb-1 sm:mb-2">{action.emoji}</span>
               {/* Single word */}
-              <span className="text-lg font-display font-bold text-white">
+              <span className="text-base sm:text-lg font-display font-bold text-white">
                 {action.label}
               </span>
             </motion.button>
           ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {quickActions.slice(3).map((action) => (
             <motion.button
               key={action.id}
               className={`
-                ${action.color} p-5 rounded-2xl
+                ${action.color} p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl
                 flex flex-col items-center justify-center
                 shadow-lg active:scale-95 transition-transform
               `}
@@ -178,8 +178,8 @@ export default function Dashboard() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <span className="text-5xl mb-2">{action.emoji}</span>
-              <span className="text-lg font-display font-bold text-white">
+              <span className="text-4xl sm:text-5xl mb-1 sm:mb-2">{action.emoji}</span>
+              <span className="text-base sm:text-lg font-display font-bold text-white">
                 {action.label}
               </span>
             </motion.button>
@@ -188,16 +188,16 @@ export default function Dashboard() {
 
         {/* Simple Heart Button */}
         <motion.div
-          className="mt-6"
+          className="mt-4 sm:mt-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <button
             onClick={handleSendHeart}
-            className="w-full p-4 bg-gradient-to-r from-pink-400 to-red-400 rounded-2xl flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-transform"
+            className="w-full p-3 sm:p-4 bg-gradient-to-r from-pink-400 to-red-400 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-3 shadow-lg active:scale-95 transition-transform"
           >
-            <span className="text-4xl">💕</span>
-            <span className="text-xl font-display font-bold text-white">
+            <span className="text-3xl sm:text-4xl">💕</span>
+            <span className="text-lg sm:text-xl font-display font-bold text-white">
               Send ❤️ to {sibling.name}
             </span>
           </button>
@@ -208,27 +208,27 @@ export default function Dashboard() {
 
   // OLDER CHILD INTERFACE (age 6+)
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto">
+    <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto">
       {/* Welcome Header */}
       <motion.div
-        className="text-center mb-8"
+        className="text-center mb-4 sm:mb-6 md:mb-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <div className="text-6xl mb-4">
+        <div className="text-5xl sm:text-6xl mb-2 sm:mb-4">
           {child.avatar}
         </div>
-        <h1 className="text-3xl md:text-4xl font-display font-bold text-gray-800 mb-2">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gray-800 mb-1 sm:mb-2">
           Hi {child.name}! 👋
         </h1>
-        <p className="text-lg text-gray-600 font-display">
+        <p className="text-base sm:text-lg text-gray-600 font-display">
           Ready for an amazing day?
         </p>
       </motion.div>
 
       {/* Star Counter - Big Display */}
       <motion.div
-        className="flex justify-center mb-8"
+        className="flex justify-center mb-4 sm:mb-6 md:mb-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
@@ -237,7 +237,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Bento Grid Layout */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
         {/* Routine Cards */}
         {routineCards.map((routine, index) => {
           const progress = getProgress(routine.id)
@@ -255,23 +255,23 @@ export default function Dashboard() {
                 className="h-full"
               >
                 <div className="flex flex-col items-center text-center">
-                  <span className="text-4xl md:text-5xl mb-3">
+                  <span className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3">
                     {routine.emoji}
                   </span>
-                  <h3 className="font-display font-bold text-white text-lg mb-1">
+                  <h3 className="font-display font-bold text-white text-base sm:text-lg mb-1">
                     {routine.title}
                   </h3>
 
                   {/* Progress bar */}
-                  <div className="w-full bg-white/30 rounded-full h-2 mb-2">
+                  <div className="w-full bg-white/30 rounded-full h-1.5 sm:h-2 mb-1.5 sm:mb-2">
                     <motion.div
-                      className="bg-white rounded-full h-2"
+                      className="bg-white rounded-full h-1.5 sm:h-2"
                       initial={{ width: 0 }}
                       animate={{ width: `${progress.percentage}%` }}
                       transition={{ duration: 0.3 }}
                     />
                   </div>
-                  <span className="text-sm text-white/80">
+                  <span className="text-xs sm:text-sm text-white/80">
                     {progress.completed}/{progress.total} done
                   </span>
                 </div>
@@ -283,7 +283,7 @@ export default function Dashboard() {
 
       {/* Quick Actions Grid */}
       <motion.div
-        className="grid grid-cols-5 gap-2 md:gap-4 mb-8"
+        className="grid grid-cols-5 gap-1.5 sm:gap-2 md:gap-4 mb-4 sm:mb-6 md:mb-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
@@ -292,14 +292,14 @@ export default function Dashboard() {
           <button
             key={action.id}
             className={`
-              ${action.color} p-3 md:p-4 rounded-2xl
+              ${action.color} p-2 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl
               flex flex-col items-center justify-center
               shadow-lg hover:shadow-xl transition-all active:scale-95
             `}
             onClick={() => navigate(action.path)}
           >
-            <span className="text-2xl md:text-3xl mb-1">{action.emoji}</span>
-            <span className="text-xs md:text-sm font-display font-semibold text-white">
+            <span className="text-xl sm:text-2xl md:text-3xl mb-0.5 sm:mb-1">{action.emoji}</span>
+            <span className="text-[10px] sm:text-xs md:text-sm font-display font-semibold text-white">
               {action.label}
             </span>
           </button>
@@ -307,7 +307,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Two Column Layout */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-2 gap-3 sm:gap-4">
         {/* Upcoming Events */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -315,20 +315,20 @@ export default function Dashboard() {
           transition={{ delay: 0.3 }}
         >
           <GlassCard variant="default" className="h-full">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar className="w-5 h-5 text-pink-500" />
-              <h3 className="font-display font-bold text-gray-800">Coming Up</h3>
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
+              <h3 className="font-display font-bold text-gray-800 text-sm sm:text-base">Coming Up</h3>
             </div>
             {upcomingEvents.length > 0 ? (
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 {upcomingEvents.map((event) => (
                   <StickerEvent key={event.id} event={event} size="md" />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-4 text-gray-500">
-                <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p className="font-display">No events coming up!</p>
+              <div className="text-center py-3 sm:py-4 text-gray-500">
+                <Calendar className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 opacity-50" />
+                <p className="font-display text-sm sm:text-base">No events coming up!</p>
               </div>
             )}
           </GlassCard>
@@ -341,12 +341,12 @@ export default function Dashboard() {
           transition={{ delay: 0.4 }}
         >
           <GlassCard variant="default" className="h-full">
-            <div className="flex items-center gap-2 mb-4">
-              <Heart className="w-5 h-5 text-red-500 fill-red-500" />
-              <h3 className="font-display font-bold text-gray-800">Kindness Echo</h3>
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 fill-red-500" />
+              <h3 className="font-display font-bold text-gray-800 text-sm sm:text-base">Kindness Echo</h3>
             </div>
             <div className="flex flex-col items-center">
-              <p className="text-gray-600 mb-4 text-center font-display">
+              <p className="text-gray-600 mb-3 sm:mb-4 text-center font-display text-sm sm:text-base">
                 Send a heart to {sibling.name}! 💕
               </p>
               <HeartButton
@@ -361,18 +361,18 @@ export default function Dashboard() {
 
       {/* Motivational Footer */}
       <motion.div
-        className="mt-8 text-center"
+        className="mt-4 sm:mt-6 md:mt-8 text-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
         <GlassCard variant={child.theme} size="sm">
-          <div className="flex items-center justify-center gap-2">
-            <Sparkles className="w-5 h-5 text-yellow-400" />
-            <p className="font-display font-semibold text-white">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
+            <p className="font-display font-semibold text-white text-sm sm:text-base">
               {child.name} is a Super Star! ⭐
             </p>
-            <Sparkles className="w-5 h-5 text-yellow-400" />
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
           </div>
         </GlassCard>
       </motion.div>

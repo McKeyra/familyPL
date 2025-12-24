@@ -114,20 +114,20 @@ export default function Timer() {
   if (!child) return null
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto">
+    <div className="p-3 sm:p-4 md:p-6 max-w-2xl mx-auto">
       {/* Header */}
       <motion.div
-        className="text-center mb-8"
+        className="text-center mb-4 sm:mb-6 md:mb-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <span className="text-6xl block mb-3">
+        <span className="text-5xl sm:text-6xl block mb-2 sm:mb-3">
           ⏰
         </span>
-        <h1 className="text-3xl font-display font-bold text-gray-800">
+        <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-800">
           Activity Timer
         </h1>
-        <p className="text-gray-600 font-display">
+        <p className="text-sm sm:text-base text-gray-600 font-display">
           Track your time and earn stars!
         </p>
       </motion.div>
@@ -135,20 +135,20 @@ export default function Timer() {
       {/* Activity Selection */}
       {!sessionId && (
         <motion.div
-          className="mb-8"
+          className="mb-4 sm:mb-6 md:mb-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="text-lg font-display font-semibold text-gray-700 mb-4 text-center">
+          <h2 className="text-base sm:text-lg font-display font-semibold text-gray-700 mb-3 sm:mb-4 text-center">
             What are you doing?
           </h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
             {activities.map((activity, index) => (
               <motion.button
                 key={activity.id}
                 className={`
-                  p-4 rounded-2xl text-white
+                  p-3 sm:p-4 rounded-xl sm:rounded-2xl text-white
                   bg-gradient-to-br ${activity.color}
                   ${selectedActivity === activity.id ? 'ring-4 ring-white shadow-xl' : 'shadow-lg'}
                   transition-all
@@ -161,14 +161,14 @@ export default function Timer() {
                 transition={{ delay: 0.1 * index }}
               >
                 <motion.span
-                  className="text-4xl block mb-2"
+                  className="text-3xl sm:text-4xl block mb-1.5 sm:mb-2"
                   animate={selectedActivity === activity.id ? { y: [0, -5, 0] } : {}}
                   transition={{ duration: 1, repeat: Infinity }}
                 >
                   {activity.emoji}
                 </motion.span>
-                <span className="font-display font-bold block">{activity.label}</span>
-                <span className="text-sm text-white/80">
+                <span className="font-display font-bold block text-sm sm:text-base">{activity.label}</span>
+                <span className="text-xs sm:text-sm text-white/80">
                   {activity.stars} ⭐ earned
                 </span>
               </motion.button>
@@ -180,12 +180,12 @@ export default function Timer() {
       {/* Duration Slider */}
       {selectedActivity && !sessionId && (
         <motion.div
-          className="mb-8"
+          className="mb-4 sm:mb-6 md:mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <GlassCard variant={child.theme}>
-            <h2 className="text-lg font-display font-semibold text-white mb-4 text-center">
+            <h2 className="text-base sm:text-lg font-display font-semibold text-white mb-3 sm:mb-4 text-center">
               How long?
             </h2>
             <TimerSlider
@@ -202,7 +202,7 @@ export default function Timer() {
       {/* Timer Display */}
       {sessionId && (
         <motion.div
-          className="mb-8"
+          className="mb-4 sm:mb-6 md:mb-8"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
         >
@@ -210,7 +210,7 @@ export default function Timer() {
             <div className="text-center">
               {/* Current activity */}
               <motion.span
-                className="text-6xl block mb-4"
+                className="text-5xl sm:text-6xl block mb-3 sm:mb-4"
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
@@ -219,7 +219,7 @@ export default function Timer() {
 
               {/* Time remaining */}
               <motion.div
-                className="text-7xl font-display font-bold text-white mb-4"
+                className="text-5xl sm:text-6xl md:text-7xl font-display font-bold text-white mb-3 sm:mb-4"
                 animate={isRunning && timeLeft < 60 ? {
                   scale: [1, 1.1, 1],
                   color: ['#fff', '#ff6b6b', '#fff'],
@@ -230,8 +230,8 @@ export default function Timer() {
               </motion.div>
 
               {/* Progress ring */}
-              <div className="relative w-48 h-48 mx-auto mb-4">
-                <svg className="w-full h-full transform -rotate-90">
+              <div className="relative w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48 mx-auto mb-3 sm:mb-4">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 192 192">
                   <circle
                     cx="96"
                     cy="96"
@@ -255,19 +255,19 @@ export default function Timer() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-6xl">
+                  <span className="text-4xl sm:text-5xl md:text-6xl">
                     {isRunning ? '⏳' : timeLeft > 0 ? '⏸️' : '✅'}
                   </span>
                 </div>
               </div>
 
               {/* Controls */}
-              <div className="flex justify-center gap-4">
+              <div className="flex justify-center gap-2 sm:gap-3 md:gap-4">
                 {isRunning ? (
                   <Button
                     variant="glass"
                     size="lg"
-                    icon={<Pause className="w-6 h-6" />}
+                    icon={<Pause className="w-5 h-5 sm:w-6 sm:h-6" />}
                     onClick={handlePause}
                   >
                     Pause
@@ -276,7 +276,7 @@ export default function Timer() {
                   <Button
                     variant="glass"
                     size="lg"
-                    icon={<Play className="w-6 h-6" />}
+                    icon={<Play className="w-5 h-5 sm:w-6 sm:h-6" />}
                     onClick={handleResume}
                   >
                     Resume
@@ -285,7 +285,7 @@ export default function Timer() {
                 <Button
                   variant="glass"
                   size="lg"
-                  icon={<RotateCcw className="w-6 h-6" />}
+                  icon={<RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />}
                   onClick={handleReset}
                 >
                   Reset
@@ -307,7 +307,7 @@ export default function Timer() {
           <Button
             variant={child.theme}
             size="xl"
-            icon={<Play className="w-8 h-8" />}
+            icon={<Play className="w-6 h-6 sm:w-8 sm:h-8" />}
             onClick={handleStart}
           >
             Start Timer
@@ -319,41 +319,41 @@ export default function Timer() {
       <AnimatePresence>
         {showComplete && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-3xl p-8 max-w-sm w-full text-center text-white shadow-2xl"
+              className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-sm w-full text-center text-white shadow-2xl"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
             >
               <motion.div
-                className="text-8xl mb-4"
+                className="text-6xl sm:text-8xl mb-3 sm:mb-4"
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 0.5, repeat: 3 }}
               >
                 🎉
               </motion.div>
-              <h2 className="text-3xl font-display font-bold mb-2">
+              <h2 className="text-2xl sm:text-3xl font-display font-bold mb-1.5 sm:mb-2">
                 Great Job!
               </h2>
-              <p className="text-xl mb-4 font-display">
+              <p className="text-lg sm:text-xl mb-3 sm:mb-4 font-display">
                 You completed your {activities.find(a => a.id === selectedActivity)?.label}!
               </p>
-              <div className="flex justify-center gap-2 mb-6">
+              <div className="flex justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-6">
                 {[...Array(activities.find(a => a.id === selectedActivity)?.stars || 1)].map((_, i) => (
                   <span
                     key={i}
-                    className="text-4xl"
+                    className="text-3xl sm:text-4xl"
                   >
                     ⭐
                   </span>
                 ))}
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 <Button variant="glass" size="lg" onClick={handleReset}>
                   Start Another
                 </Button>

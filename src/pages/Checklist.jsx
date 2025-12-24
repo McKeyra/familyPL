@@ -102,27 +102,27 @@ export default function Checklist() {
   const earnedStars = tasks.filter((t) => t.completed).reduce((sum, t) => sum + t.stars, 0)
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto">
+    <div className="p-3 sm:p-4 md:p-6 max-w-2xl mx-auto">
       {/* Header */}
       <motion.div
         className={`
           bg-gradient-to-r ${info.gradient}
-          rounded-3xl p-6 mb-6 text-center text-white
+          rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 mb-4 sm:mb-6 text-center text-white
           shadow-lg
         `}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <span className="text-6xl block mb-3">
+        <span className="text-5xl sm:text-6xl block mb-2 sm:mb-3">
           {info.emoji}
         </span>
-        <h1 className="text-3xl font-display font-bold mb-2">{info.title}</h1>
-        <p className="text-white/90 font-display">
+        <h1 className="text-2xl sm:text-3xl font-display font-bold mb-1.5 sm:mb-2">{info.title}</h1>
+        <p className="text-white/90 font-display text-sm sm:text-base">
           {completedCount} of {totalCount} complete • {earnedStars}/{totalStars} ⭐
         </p>
 
         {/* Progress bar */}
-        <div className="mt-4 bg-white/30 rounded-full h-4 overflow-hidden">
+        <div className="mt-3 sm:mt-4 bg-white/30 rounded-full h-3 sm:h-4 overflow-hidden">
           <motion.div
             className="bg-white h-full rounded-full"
             initial={{ width: 0 }}
@@ -133,7 +133,7 @@ export default function Checklist() {
       </motion.div>
 
       {/* Tasks List */}
-      <div className="space-y-4 mb-6">
+      <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
         <AnimatePresence mode="popLayout">
           {tasks.map((task, index) => (
             <BubbleChore
@@ -156,7 +156,7 @@ export default function Checklist() {
       >
         <Button
           variant="glass"
-          icon={<RotateCcw className="w-5 h-5" />}
+          icon={<RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />}
           onClick={handleReset}
         >
           Start Over
@@ -167,7 +167,7 @@ export default function Checklist() {
       <AnimatePresence>
         {showCelebration && allComplete && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -176,7 +176,7 @@ export default function Checklist() {
             <motion.div
               className={`
                 bg-gradient-to-br ${info.gradient}
-                rounded-3xl p-8 max-w-sm w-full text-center text-white
+                rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-sm w-full text-center text-white
                 shadow-2xl
               `}
               initial={{ scale: 0, rotate: -10 }}
@@ -185,7 +185,7 @@ export default function Checklist() {
               onClick={(e) => e.stopPropagation()}
             >
               <motion.div
-                className="text-8xl mb-4"
+                className="text-6xl sm:text-8xl mb-3 sm:mb-4"
                 animate={{
                   scale: [1, 1.2, 1],
                   rotate: [0, -10, 10, 0],
@@ -194,15 +194,15 @@ export default function Checklist() {
               >
                 🏆
               </motion.div>
-              <h2 className="text-3xl font-display font-bold mb-2">
+              <h2 className="text-2xl sm:text-3xl font-display font-bold mb-1.5 sm:mb-2">
                 All Done!
               </h2>
-              <p className="text-xl mb-4 font-display">{info.celebration}</p>
-              <div className="flex justify-center gap-2 mb-6">
+              <p className="text-lg sm:text-xl mb-3 sm:mb-4 font-display">{info.celebration}</p>
+              <div className="flex justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-6">
                 {[...Array(totalStars)].map((_, i) => (
                   <motion.span
                     key={i}
-                    className="text-3xl"
+                    className="text-2xl sm:text-3xl"
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ delay: i * 0.1 }}
@@ -211,7 +211,7 @@ export default function Checklist() {
                   </motion.span>
                 ))}
               </div>
-              <p className="text-lg font-bold mb-6">
+              <p className="text-base sm:text-lg font-bold mb-4 sm:mb-6">
                 You earned {totalStars} stars!
               </p>
               <Button

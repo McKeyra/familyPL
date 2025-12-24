@@ -202,25 +202,25 @@ export default function NoteBoard() {
   if (!child) return null
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto">
+    <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto">
       {/* Header */}
       <motion.div
-        className="text-center mb-6"
+        className="text-center mb-4 sm:mb-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <span className="text-5xl block mb-2">📝</span>
-        <h1 className="text-3xl font-display font-bold text-gray-800">
+        <span className="text-4xl sm:text-5xl block mb-1.5 sm:mb-2">📝</span>
+        <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-800">
           Family Note Board
         </h1>
-        <p className="text-gray-600 font-display">
+        <p className="text-sm sm:text-base text-gray-600 font-display">
           Leave messages for your family! 💕
         </p>
       </motion.div>
 
       {/* Add Note Button */}
       <motion.div
-        className="flex justify-center mb-6"
+        className="flex justify-center mb-4 sm:mb-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
@@ -228,7 +228,7 @@ export default function NoteBoard() {
         <Button
           variant={child.theme}
           size="lg"
-          icon={<Plus className="w-6 h-6" />}
+          icon={<Plus className="w-5 h-5 sm:w-6 sm:h-6" />}
           onClick={() => setShowAddNote(true)}
         >
           Add Note
@@ -236,12 +236,12 @@ export default function NoteBoard() {
       </motion.div>
 
       {/* Notes Grid - Fridge Style */}
-      <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl p-6 min-h-[500px] shadow-neumorphic">
+      <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl sm:rounded-3xl p-3 sm:p-6 min-h-[400px] sm:min-h-[500px] shadow-neumorphic">
         {/* Fridge texture */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.03)_100%)] rounded-3xl" />
 
         {/* Notes */}
-        <div className="relative grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="relative grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
           <AnimatePresence>
             {notes.map((note, index) => {
               const author = children[note.author]
@@ -251,7 +251,7 @@ export default function NoteBoard() {
                 <motion.div
                   key={note.id}
                   className={`
-                    ${note.color} p-4 rounded-lg shadow-lg
+                    ${note.color} p-2.5 sm:p-4 rounded-lg shadow-lg
                     relative
                   `}
                   initial={{ opacity: 0, scale: 0, rotate: -20 }}
@@ -263,18 +263,18 @@ export default function NoteBoard() {
                   }}
                 >
                   {/* Pin/Magnet */}
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-6 bg-red-500 rounded-full shadow-md flex items-center justify-center">
-                    <div className="w-2 h-2 bg-red-700 rounded-full" />
+                  <div className="absolute -top-1.5 sm:-top-2 left-1/2 -translate-x-1/2 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 rounded-full shadow-md flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-700 rounded-full" />
                   </div>
 
                   {/* Delete button */}
                   <motion.button
-                    className="absolute -top-1 -right-1 bg-white rounded-full p-1 shadow-md opacity-0 hover:opacity-100 transition-opacity z-20"
+                    className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 sm:p-1 shadow-md opacity-0 hover:opacity-100 transition-opacity z-20"
                     onClick={() => removeNote(note.id)}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <X className="w-4 h-4 text-gray-500" />
+                    <X className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
                   </motion.button>
 
                   {/* Content */}
@@ -282,13 +282,13 @@ export default function NoteBoard() {
                     <img
                       src={note.content}
                       alt="Drawing"
-                      className="w-full h-32 object-contain bg-white/50 rounded"
+                      className="w-full h-24 sm:h-32 object-contain bg-white/50 rounded"
                     />
                   ) : note.type === 'voice' ? (
-                    <div className="flex flex-col items-center justify-center min-h-[80px]">
+                    <div className="flex flex-col items-center justify-center min-h-[60px] sm:min-h-[80px]">
                       <motion.button
                         className={`
-                          w-16 h-16 rounded-full flex items-center justify-center
+                          w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center
                           ${playingNoteId === note.id ? 'bg-red-500' : 'bg-white/50'}
                           shadow-md
                         `}
@@ -297,25 +297,25 @@ export default function NoteBoard() {
                         whileTap={{ scale: 0.9 }}
                       >
                         {playingNoteId === note.id ? (
-                          <Square className="w-6 h-6 text-white" />
+                          <Square className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                         ) : (
-                          <Play className="w-6 h-6 text-gray-700 ml-1" />
+                          <Play className="w-4 h-4 sm:w-6 sm:h-6 text-gray-700 ml-0.5 sm:ml-1" />
                         )}
                       </motion.button>
-                      <p className="mt-2 text-sm text-gray-600 font-display">
-                        🎤 Voice Note ({note.duration}s)
+                      <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-600 font-display">
+                        🎤 Voice ({note.duration}s)
                       </p>
                     </div>
                   ) : (
-                    <p className="font-display text-gray-800 text-lg min-h-[80px]">
+                    <p className="font-display text-gray-800 text-sm sm:text-lg min-h-[60px] sm:min-h-[80px]">
                       {note.content}
                     </p>
                   )}
 
                   {/* Author */}
-                  <div className="mt-3 flex items-center gap-2">
-                    <span className="text-xl">{author?.avatar}</span>
-                    <span className="font-display font-semibold text-gray-700 text-sm">
+                  <div className="mt-2 sm:mt-3 flex items-center gap-1.5 sm:gap-2">
+                    <span className="text-lg sm:text-xl">{author?.avatar}</span>
+                    <span className="font-display font-semibold text-gray-700 text-xs sm:text-sm">
                       {author?.name}
                     </span>
                   </div>
@@ -327,12 +327,12 @@ export default function NoteBoard() {
           {/* Empty state */}
           {notes.length === 0 && (
             <motion.div
-              className="col-span-full text-center py-20"
+              className="col-span-full text-center py-12 sm:py-20"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <span className="text-6xl block mb-4">📌</span>
-              <p className="text-gray-500 font-display text-lg">
+              <span className="text-5xl sm:text-6xl block mb-3 sm:mb-4">📌</span>
+              <p className="text-gray-500 font-display text-base sm:text-lg">
                 No notes yet! Add one to get started.
               </p>
             </motion.div>
@@ -344,58 +344,58 @@ export default function NoteBoard() {
       <AnimatePresence>
         {showAddNote && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => { resetForm(); setShowAddNote(false); }}
           >
             <motion.div
-              className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl"
+              className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
               initial={{ scale: 0.8, y: 50 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.8, y: 50 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-display font-bold text-gray-800 mb-4 text-center">
+              <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-800 mb-3 sm:mb-4 text-center">
                 Leave a Note 📝
               </h2>
 
               {/* Note Type Tabs */}
-              <div className="flex gap-2 mb-4">
+              <div className="flex gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                 <Button
                   variant={noteType === 'text' ? child.theme : 'ghost'}
                   className="flex-1"
-                  icon={<MessageCircle className="w-5 h-5" />}
+                  icon={<MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />}
                   onClick={() => setNoteType('text')}
                 >
-                  Text
+                  <span className="text-xs sm:text-base">Text</span>
                 </Button>
                 <Button
                   variant={noteType === 'voice' ? child.theme : 'ghost'}
                   className="flex-1"
-                  icon={<Mic className="w-5 h-5" />}
+                  icon={<Mic className="w-4 h-4 sm:w-5 sm:h-5" />}
                   onClick={() => setNoteType('voice')}
                 >
-                  Voice
+                  <span className="text-xs sm:text-base">Voice</span>
                 </Button>
                 <Button
                   variant={noteType === 'drawing' ? child.theme : 'ghost'}
                   className="flex-1"
-                  icon={<Pencil className="w-5 h-5" />}
+                  icon={<Pencil className="w-4 h-4 sm:w-5 sm:h-5" />}
                   onClick={() => setNoteType('drawing')}
                 >
-                  Draw
+                  <span className="text-xs sm:text-base">Draw</span>
                 </Button>
               </div>
 
               {/* Color Selection */}
-              <div className="flex justify-center gap-2 mb-4">
+              <div className="flex justify-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                 {noteColors.map((color) => (
                   <motion.button
                     key={color.id}
                     className={`
-                      w-10 h-10 rounded-full ${color.bg} ${color.border} border-2
+                      w-8 h-8 sm:w-10 sm:h-10 rounded-full ${color.bg} ${color.border} border-2
                       ${selectedColor === color.id ? 'ring-2 ring-gray-800 scale-110' : ''}
                     `}
                     onClick={() => setSelectedColor(color.id)}

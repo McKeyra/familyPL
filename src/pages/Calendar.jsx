@@ -58,33 +58,33 @@ export default function Calendar() {
   if (!child) return null
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto">
+    <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto">
       {/* Header */}
       <motion.div
-        className="text-center mb-6"
+        className="text-center mb-4 sm:mb-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <span className="text-5xl block mb-2">📅</span>
-        <h1 className="text-3xl font-display font-bold text-gray-800">
+        <span className="text-4xl sm:text-5xl block mb-1.5 sm:mb-2">📅</span>
+        <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-800">
           {child.name}'s Calendar
         </h1>
       </motion.div>
 
       {/* Month Navigation */}
-      <GlassCard variant="default" className="mb-6">
+      <GlassCard variant="default" className="mb-4 sm:mb-6">
         <div className="flex items-center justify-between">
           <Button
             variant="glass"
             size="icon"
             onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
 
           <motion.h2
             key={format(currentMonth, 'MMMM yyyy')}
-            className="text-2xl font-display font-bold text-gray-800"
+            className="text-lg sm:text-2xl font-display font-bold text-gray-800"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -96,27 +96,28 @@ export default function Calendar() {
             size="icon"
             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
         </div>
       </GlassCard>
 
       {/* Calendar Grid */}
-      <GlassCard variant={child.theme} className="mb-6">
+      <GlassCard variant={child.theme} className="mb-4 sm:mb-6">
         {/* Day headers */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1.5 sm:mb-2">
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
             <div
-              key={day}
-              className="text-center text-white/80 font-display font-semibold py-2"
+              key={i}
+              className="text-center text-white/80 font-display font-semibold py-1 sm:py-2 text-xs sm:text-base"
             >
-              {day}
+              <span className="hidden sm:inline">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</span>
+              <span className="sm:hidden">{day}</span>
             </div>
           ))}
         </div>
 
         {/* Days */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
           {paddingDays.map((_, i) => (
             <div key={`pad-${i}`} className="aspect-square" />
           ))}
@@ -129,7 +130,7 @@ export default function Calendar() {
               <motion.button
                 key={day.toISOString()}
                 className={`
-                  aspect-square rounded-xl p-1 flex flex-col items-center justify-start
+                  aspect-square rounded-lg sm:rounded-xl p-0.5 sm:p-1 flex flex-col items-center justify-start
                   transition-all relative overflow-hidden
                   ${isToday ? 'bg-white/40 ring-2 ring-white' : 'bg-white/20'}
                   ${isSelected ? 'ring-2 ring-yellow-400' : ''}
@@ -143,7 +144,7 @@ export default function Calendar() {
                 transition={{ delay: index * 0.01 }}
               >
                 <span className={`
-                  text-sm font-display font-semibold
+                  text-xs sm:text-sm font-display font-semibold
                   ${isToday ? 'text-white' : 'text-white/80'}
                 `}>
                   {format(day, 'd')}
@@ -151,14 +152,14 @@ export default function Calendar() {
 
                 {/* Event stickers */}
                 {dayEvents.length > 0 && (
-                  <div className="flex flex-wrap gap-0.5 justify-center mt-1">
+                  <div className="flex flex-wrap gap-0 sm:gap-0.5 justify-center mt-0.5 sm:mt-1">
                     {dayEvents.slice(0, 2).map((event) => (
-                      <span key={event.id} className="text-lg">
+                      <span key={event.id} className="text-sm sm:text-lg">
                         {event.emoji}
                       </span>
                     ))}
                     {dayEvents.length > 2 && (
-                      <span className="text-xs text-white">+{dayEvents.length - 2}</span>
+                      <span className="text-[10px] sm:text-xs text-white">+{dayEvents.length - 2}</span>
                     )}
                   </div>
                 )}
@@ -177,14 +178,14 @@ export default function Calendar() {
             exit={{ opacity: 0, y: 20 }}
           >
             <GlassCard variant="default">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-display font-bold text-gray-800 text-lg">
-                  {format(selectedDate, 'EEEE, MMMM d')}
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h3 className="font-display font-bold text-gray-800 text-base sm:text-lg">
+                  {format(selectedDate, 'EEE, MMM d')}
                 </h3>
                 <Button
                   variant={child.theme}
                   size="sm"
-                  icon={<Plus className="w-4 h-4" />}
+                  icon={<Plus className="w-3 h-3 sm:w-4 sm:h-4" />}
                   onClick={() => setShowAddEvent(true)}
                 >
                   Add
@@ -192,22 +193,22 @@ export default function Calendar() {
               </div>
 
               {getEventsForDate(selectedDate).length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {getEventsForDate(selectedDate).map((event) => (
                     <motion.div
                       key={event.id}
-                      className="flex items-center gap-4 p-3 bg-white/30 rounded-xl"
+                      className="flex items-center gap-2 sm:gap-4 p-2 sm:p-3 bg-white/30 rounded-lg sm:rounded-xl"
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       whileHover={{ scale: 1.02 }}
                     >
                       <StickerEvent event={event} size="sm" />
-                      <div className="flex-1">
-                        <p className="font-display font-bold text-gray-800">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-display font-bold text-gray-800 text-sm sm:text-base truncate">
                           {event.title}
                         </p>
                         {event.notes && (
-                          <p className="text-sm text-gray-600">{event.notes}</p>
+                          <p className="text-xs sm:text-sm text-gray-600 truncate">{event.notes}</p>
                         )}
                       </div>
                       <Button
@@ -215,13 +216,13 @@ export default function Calendar() {
                         size="icon"
                         onClick={() => handleDeleteEvent(event.id)}
                       >
-                        <X className="w-5 h-5 text-gray-500" />
+                        <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
                       </Button>
                     </motion.div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4 font-display">
+                <p className="text-gray-500 text-center py-3 sm:py-4 font-display text-sm sm:text-base">
                   No events scheduled 📝
                 </p>
               )}
@@ -234,26 +235,26 @@ export default function Calendar() {
       <AnimatePresence>
         {showAddEvent && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowAddEvent(false)}
           >
             <motion.div
-              className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl"
+              className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
               initial={{ scale: 0.8, y: 50 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.8, y: 50 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-display font-bold text-gray-800 mb-4 text-center">
+              <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-800 mb-3 sm:mb-4 text-center">
                 Add Event 📅
               </h2>
 
               {/* Event Title */}
-              <div className="mb-4">
-                <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+              <div className="mb-3 sm:mb-4">
+                <label className="block text-xs sm:text-sm font-display font-semibold text-gray-700 mb-1.5 sm:mb-2">
                   What's happening?
                 </label>
                 <input
@@ -261,36 +262,36 @@ export default function Calendar() {
                   value={newEvent.title}
                   onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                   placeholder="e.g., Soccer Practice"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display text-sm sm:text-base"
                 />
               </div>
 
               {/* Sticker Selection */}
-              <div className="mb-4">
-                <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+              <div className="mb-3 sm:mb-4">
+                <label className="block text-xs sm:text-sm font-display font-semibold text-gray-700 mb-1.5 sm:mb-2">
                   Pick a sticker
                 </label>
-                <div className="grid grid-cols-6 gap-2">
+                <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
                   {Object.entries(stickers).map(([key, sticker]) => (
                     <motion.button
                       key={key}
                       className={`
-                        p-2 rounded-xl ${sticker.bg}
+                        p-1.5 sm:p-2 rounded-lg sm:rounded-xl ${sticker.bg}
                         ${newEvent.sticker === key ? 'ring-2 ring-purple-500 scale-110' : ''}
                       `}
                       onClick={() => setNewEvent({ ...newEvent, sticker: key })}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
-                      <span className="text-2xl">{sticker.emoji}</span>
+                      <span className="text-xl sm:text-2xl">{sticker.emoji}</span>
                     </motion.button>
                   ))}
                 </div>
               </div>
 
               {/* Notes */}
-              <div className="mb-6">
-                <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-xs sm:text-sm font-display font-semibold text-gray-700 mb-1.5 sm:mb-2">
                   Notes (optional)
                 </label>
                 <input
@@ -298,12 +299,12 @@ export default function Calendar() {
                   value={newEvent.notes}
                   onChange={(e) => setNewEvent({ ...newEvent, notes: e.target.value })}
                   placeholder="e.g., Bring jersey"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display text-sm sm:text-base"
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 <Button
                   variant="ghost"
                   className="flex-1"
