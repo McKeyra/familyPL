@@ -9,7 +9,7 @@ const initialChildren = {
     age: 4,
     avatar: '👧',
     theme: 'bria',
-    stars: 47,
+    stars: 0,
     color: '#f97316',
   },
   naya: {
@@ -18,7 +18,7 @@ const initialChildren = {
     age: 8,
     avatar: '👶',
     theme: 'naya',
-    stars: 32,
+    stars: 0,
     color: '#06b6d4',
   },
 }
@@ -67,67 +67,15 @@ const initialChores = {
   },
 }
 
-const initialEvents = [
-  {
-    id: 'e1',
-    title: 'Soccer Practice',
-    emoji: '⚽',
-    date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-    child: 'bria',
-    sticker: 'soccer',
-    notes: 'Bring jersey and cleats!',
-  },
-  {
-    id: 'e2',
-    title: 'Dance Class',
-    emoji: '💃',
-    date: new Date(Date.now() + 172800000).toISOString().split('T')[0],
-    child: 'naya',
-    sticker: 'dance',
-    notes: 'Wear ballet shoes',
-  },
-  {
-    id: 'e3',
-    title: 'Birthday Party',
-    emoji: '🎂',
-    date: new Date(Date.now() + 432000000).toISOString().split('T')[0],
-    child: 'both',
-    sticker: 'birthday',
-    notes: "Emma's party at 3pm",
-  },
-]
+const initialEvents = []
 
-const initialNotes = [
-  {
-    id: 'n1',
-    type: 'text',
-    content: 'I love you Mom & Dad! 💕',
-    author: 'bria',
-    color: 'bg-yellow-300',
-    createdAt: Date.now() - 86400000,
-  },
-  {
-    id: 'n2',
-    type: 'drawing',
-    content: 'A happy sun',
-    author: 'naya',
-    color: 'bg-blue-300',
-    createdAt: Date.now() - 43200000,
-  },
-]
+const initialNotes = []
 
-const initialHearts = [
-  { id: 'h1', from: 'bria', to: 'naya', timestamp: Date.now() - 3600000 },
-  { id: 'h2', from: 'naya', to: 'bria', timestamp: Date.now() - 7200000 },
-]
+const initialHearts = []
 
 const initialTimerSessions = []
 
-const initialGroceryList = [
-  { id: 'g1', item: 'Milk', emoji: '🥛', addedBy: 'parent', completed: false },
-  { id: 'g2', item: 'Cereal', emoji: '🥣', addedBy: 'bria', completed: false },
-  { id: 'g3', item: 'Apples', emoji: '🍎', addedBy: 'naya', completed: false },
-]
+const initialGroceryList = []
 
 // Daily time limits for each child (in minutes)
 const initialTimeLimits = {
@@ -178,15 +126,15 @@ const initialChallenges = [
 // Weekly streaks tracking
 const initialStreaks = {
   bria: {
-    currentStreak: 3,
-    longestStreak: 7,
-    lastCompletedDate: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+    currentStreak: 0,
+    longestStreak: 0,
+    lastCompletedDate: null,
     weeklyData: [], // Will store { date, tasksCompleted, starsEarned }
   },
   naya: {
-    currentStreak: 2,
-    longestStreak: 5,
-    lastCompletedDate: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+    currentStreak: 0,
+    longestStreak: 0,
+    lastCompletedDate: null,
     weeklyData: [],
   },
 }
