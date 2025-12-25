@@ -10,6 +10,7 @@ import GlassCard from '../components/ui/GlassCard'
 import StarCounter from '../components/ui/StarCounter'
 import HeartButton from '../components/ui/HeartButton'
 import StickerEvent from '../components/ui/StickerEvent'
+import DateTimeDisplay from '../components/ui/DateTimeDisplay'
 
 // Simplified labels for young children (age 5 and under)
 const youngRoutineCards = [
@@ -95,6 +96,9 @@ export default function Dashboard() {
           </div>
           <StarCounter count={child.stars} size="lg" />
         </motion.div>
+
+        {/* Date and Time Display */}
+        <DateTimeDisplay isYoungChild={true} theme={child.theme} />
 
         {/* Big Routine Buttons - Single word labels */}
         <div className="grid grid-cols-1 gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -235,6 +239,9 @@ export default function Dashboard() {
       >
         <StarCounter count={child.stars} size="lg" />
       </motion.div>
+
+      {/* Date and Time Display */}
+      <DateTimeDisplay isYoungChild={false} theme={child.theme} />
 
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
