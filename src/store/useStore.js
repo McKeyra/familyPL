@@ -162,6 +162,10 @@ const useStore = create(
       streaks: initialStreaks,
       dailyTimeUsage: {}, // Track daily usage: { 'bria': { '2024-01-15': { screen: 45, reading: 30 } } }
 
+      // Daily reset tracking
+      lastResetDate: null,
+      dailyLogs: [], // Historical logs: [{ date, bria: { morning: 3, bedtime: 5, chores: 2, starsEarned: 10 }, naya: {...} }]
+
       // Actions - User Selection
       setCurrentChild: (childId) => set({ currentChild: childId, isParentMode: false }),
       setParentMode: (enabled) => set({ isParentMode: enabled, currentChild: enabled ? null : get().currentChild }),
@@ -563,6 +567,108 @@ const useStore = create(
       getTodayEvents: () => {
         const today = new Date().toISOString().split('T')[0]
         return get().events.filter(e => e.date === today)
+      },
+
+      // Daily Reset Functions
+      checkAndResetDaily: () => {
+        const today = new Date().toISOString().split('T')[0]
+        const lastReset = get().lastResetDate
+
+        // If already reset today, skip
+        if (lastReset === today) {
+          return false
+        }
+
+        // Log yesterday's progress before resetting
+        if (lastReset) {
+          get().logDailyProgress(lastReset)
+        }
+
+        // Reset all chores for all children
+        const chores = get().chores
+        const resetChores = {}
+
+        Object.keys(chores).forEach(childId => {
+          resetChores[childId] = {}
+          Object.keys(chores[childId]).forEach(routineType => {
+            resetChores[childId][routineType] = chores[childId][routineType].map(chore => ({
+              ...chore,
+              completed: false,
+            }))
+          })
+        })
+
+        // Clear daily time usage for new day
+        set({
+          chores: resetChores,
+          lastResetDate: today,
+        })
+
+        return true // Indicates reset occurred
+      },
+
+      logDailyProgress: (date) => {
+        const chores = get().chores
+        const starLog = get().starLog
+
+        // Calculate completed tasks for each child on the given date
+        const dayStart = new Date(date).getTime()
+        const dayEnd = dayStart + 86400000
+
+        const dayLogs = starLog.filter(log =>
+          log.timestamp >= dayStart && log.timestamp < dayEnd && log.amount > 0
+        )
+
+        const logEntry = {
+          date,
+          timestamp: Date.now(),
+        }
+
+        // Count completed tasks per child (before reset)
+        Object.keys(chores).forEach(childId => {
+          const childDayLogs = dayLogs.filter(log => log.childId === childId)
+          const starsEarned = childDayLogs.reduce((sum, log) => sum + log.amount, 0)
+
+          // Count completed tasks by routine type
+          let morningCount = 0
+          let bedtimeCount = 0
+          let choresCount = 0
+
+          Object.keys(chores[childId]).forEach(routineType => {
+            const completed = chores[childId][routineType].filter(c => c.completed).length
+            if (routineType === 'morning') morningCount = completed
+            else if (routineType === 'bedtime') bedtimeCount = completed
+            else if (routineType === 'chores') choresCount = completed
+          })
+
+          logEntry[childId] = {
+            morning: morningCount,
+            bedtime: bedtimeCount,
+            chores: choresCount,
+            starsEarned,
+            tasksCompleted: morningCount + bedtimeCount + choresCount,
+          }
+        })
+
+        set((state) => ({
+          dailyLogs: [logEntry, ...state.dailyLogs].slice(0, 90), // Keep last 90 days
+        }))
+      },
+
+      getDailyLog: (date) => {
+        return get().dailyLogs.find(log => log.date === date) || null
+      },
+
+      getWeeklyLogs: () => {
+        const logs = get().dailyLogs
+        const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0]
+        return logs.filter(log => log.date >= weekAgo)
+      },
+
+      getMonthlyLogs: () => {
+        const logs = get().dailyLogs
+        const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0]
+        return logs.filter(log => log.date >= monthAgo)
       },
     }),
     {
