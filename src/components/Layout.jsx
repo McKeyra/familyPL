@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import useStore from '../store/useStore'
 import useDailyReset from '../hooks/useDailyReset'
+import useSupabaseSync from '../hooks/useSupabaseSync'
 
 // Full nav for older children (6+)
 const navItemsOlder = [
@@ -39,6 +40,9 @@ export default function Layout() {
 
   // Check for daily reset on app load
   useDailyReset()
+
+  // Sync with Supabase
+  useSupabaseSync()
 
   const child = currentChild ? children[currentChild] : null
   const isYoungChild = child && child.age <= 5
