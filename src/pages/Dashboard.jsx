@@ -46,76 +46,73 @@ const olderQuickActions = [
   { id: 'grocery', path: '/grocery', emoji: '🛒', label: 'Shopping', color: 'bg-green-400' },
 ]
 
-// Child selection screen component
-function ChildSelection({ children, onSelect, onParentAccess }) {
+// Tab bar for switching between children
+function ChildTabs({ children, currentChild, onSelect, onParentAccess }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 flex flex-col items-center justify-center p-6">
-      <motion.div
-        className="text-center mb-8"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <h1 className="text-3xl sm:text-4xl font-light text-gray-800 mb-2">Happy Day Helper</h1>
-        <p className="text-gray-500">Who's ready for a great day?</p>
-      </motion.div>
+    <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+      <div className="flex items-center justify-between px-4 py-2">
+        {/* Child Tabs */}
+        <div className="flex gap-2">
+          {/* Bria Tab */}
+          <motion.button
+            onClick={() => onSelect('bria')}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-full transition-all
+              ${currentChild === 'bria'
+                ? 'bg-gradient-to-r from-amber-400 to-orange-500 shadow-lg shadow-amber-200/50'
+                : 'bg-gray-100 hover:bg-gray-200'}
+            `}
+            whileTap={{ scale: 0.95 }}
+          >
+            <div className={`
+              w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
+              ${currentChild === 'bria' ? 'bg-white/30 text-white' : 'bg-amber-100 text-amber-600'}
+            `}>
+              B
+            </div>
+            <div className="flex items-center gap-1">
+              <Star className={`w-3.5 h-3.5 ${currentChild === 'bria' ? 'text-white fill-white' : 'text-amber-500 fill-amber-500'}`} />
+              <span className={`text-sm font-semibold ${currentChild === 'bria' ? 'text-white' : 'text-gray-700'}`}>
+                {children.bria?.stars || 0}
+              </span>
+            </div>
+          </motion.button>
 
-      <div className="grid grid-cols-2 gap-4 sm:gap-6 max-w-lg w-full mb-8">
-        {/* Bria */}
-        <motion.button
-          onClick={() => onSelect('bria')}
-          className="relative overflow-hidden p-6 sm:p-8 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100/50 rounded-3xl text-center transition-all duration-300 hover:shadow-lg hover:shadow-amber-100/50"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          whileHover={{ y: -4, scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/30 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="relative">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-200/50 mb-4">
-              <span className="text-2xl sm:text-3xl font-bold text-white">B</span>
+          {/* Naya Tab */}
+          <motion.button
+            onClick={() => onSelect('naya')}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-full transition-all
+              ${currentChild === 'naya'
+                ? 'bg-gradient-to-r from-cyan-400 to-teal-500 shadow-lg shadow-cyan-200/50'
+                : 'bg-gray-100 hover:bg-gray-200'}
+            `}
+            whileTap={{ scale: 0.95 }}
+          >
+            <div className={`
+              w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
+              ${currentChild === 'naya' ? 'bg-white/30 text-white' : 'bg-cyan-100 text-cyan-600'}
+            `}>
+              N
             </div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-1">Bria</h2>
-            <div className="flex items-center justify-center gap-1">
-              <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-              <span className="text-sm text-gray-600">{children.bria?.stars || 0} stars</span>
+            <div className="flex items-center gap-1">
+              <Star className={`w-3.5 h-3.5 ${currentChild === 'naya' ? 'text-white fill-white' : 'text-cyan-500 fill-cyan-500'}`} />
+              <span className={`text-sm font-semibold ${currentChild === 'naya' ? 'text-white' : 'text-gray-700'}`}>
+                {children.naya?.stars || 0}
+              </span>
             </div>
-          </div>
-        </motion.button>
+          </motion.button>
+        </div>
 
-        {/* Naya */}
+        {/* Parent Settings */}
         <motion.button
-          onClick={() => onSelect('naya')}
-          className="relative overflow-hidden p-6 sm:p-8 bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-100/50 rounded-3xl text-center transition-all duration-300 hover:shadow-lg hover:shadow-cyan-100/50"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          whileHover={{ y: -4, scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          onClick={onParentAccess}
+          className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          whileTap={{ scale: 0.95 }}
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-cyan-200/30 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="relative">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-200/50 mb-4">
-              <span className="text-2xl sm:text-3xl font-bold text-white">N</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-1">Naya</h2>
-            <div className="flex items-center justify-center gap-1">
-              <Star className="w-4 h-4 text-cyan-500 fill-cyan-500" />
-              <span className="text-sm text-gray-600">{children.naya?.stars || 0} stars</span>
-            </div>
-          </div>
+          <Settings className="w-5 h-5 text-gray-500" />
         </motion.button>
       </div>
-
-      {/* Parent Access */}
-      <motion.button
-        onClick={onParentAccess}
-        className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        <Settings className="w-4 h-4 text-gray-500" />
-        <span className="text-sm font-medium text-gray-600">Parent Settings</span>
-      </motion.button>
     </div>
   )
 }
@@ -124,21 +121,17 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { currentChild, children, chores, getChildEvents, sendHeart, setCurrentChild } = useStore()
 
-  const child = currentChild ? children[currentChild] : null
-  const siblingId = currentChild === 'bria' ? 'naya' : 'bria'
+  // Default to bria if no child selected
+  const activeChild = currentChild || 'bria'
+  const child = children[activeChild]
+  const siblingId = activeChild === 'bria' ? 'naya' : 'bria'
   const sibling = children[siblingId]
-  const childChores = currentChild ? chores[currentChild] : null
-  const upcomingEvents = currentChild ? getChildEvents(currentChild).slice(0, 3) : []
+  const childChores = chores[activeChild]
+  const upcomingEvents = getChildEvents(activeChild).slice(0, 3)
 
-  // Show child selection if no child is selected
-  if (!child) {
-    return (
-      <ChildSelection
-        children={children}
-        onSelect={(childId) => setCurrentChild(childId)}
-        onParentAccess={() => navigate('/parent')}
-      />
-    )
+  // Set default child on first load
+  if (!currentChild) {
+    setCurrentChild('bria')
   }
 
   // Age-based content selection
@@ -165,19 +158,24 @@ export default function Dashboard() {
   // YOUNG CHILD INTERFACE (age 5 and under)
   if (isYoungChild) {
     return (
-      <div className="p-3 sm:p-4 md:p-6 max-w-2xl mx-auto">
-        {/* Simple Header - Just name and stars */}
-        <motion.div
-          className="flex items-center justify-between mb-4 sm:mb-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <div className="flex items-center gap-2 sm:gap-3">
-            <span className="text-4xl sm:text-5xl md:text-6xl">{child.avatar}</span>
-            <span className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gray-800">{child.name}</span>
-          </div>
-          <StarCounter count={child.stars} size="lg" />
-        </motion.div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100">
+        {/* Tab Bar */}
+        <ChildTabs
+          children={children}
+          currentChild={activeChild}
+          onSelect={(childId) => setCurrentChild(childId)}
+          onParentAccess={() => navigate('/parent')}
+        />
+
+        <div className="p-3 sm:p-4 md:p-6 max-w-2xl mx-auto">
+          {/* Simple Header - Just avatar */}
+          <motion.div
+            className="flex items-center justify-center mb-4 sm:mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <span className="text-5xl sm:text-6xl md:text-7xl">{child.avatar}</span>
+          </motion.div>
 
         {/* Date and Time Display */}
         <DateTimeDisplay isYoungChild={true} theme={child.theme} />
@@ -288,39 +286,39 @@ export default function Dashboard() {
             </span>
           </button>
         </motion.div>
+        </div>
       </div>
     )
   }
 
   // OLDER CHILD INTERFACE (age 6+)
   return (
-    <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto">
-      {/* Welcome Header */}
-      <motion.div
-        className="text-center mb-4 sm:mb-6 md:mb-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        <div className="text-5xl sm:text-6xl mb-2 sm:mb-4">
-          {child.avatar}
-        </div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gray-800 mb-1 sm:mb-2">
-          Hi {child.name}! 👋
-        </h1>
-        <p className="text-base sm:text-lg text-gray-600 font-display">
-          Ready for an amazing day?
-        </p>
-      </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100">
+      {/* Tab Bar */}
+      <ChildTabs
+        children={children}
+        currentChild={activeChild}
+        onSelect={(childId) => setCurrentChild(childId)}
+        onParentAccess={() => navigate('/parent')}
+      />
 
-      {/* Star Counter - Big Display */}
-      <motion.div
-        className="flex justify-center mb-4 sm:mb-6 md:mb-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-      >
-        <StarCounter count={child.stars} size="lg" />
-      </motion.div>
+      <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto">
+        {/* Welcome Header */}
+        <motion.div
+          className="text-center mb-4 sm:mb-6 md:mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="text-5xl sm:text-6xl mb-2 sm:mb-4">
+            {child.avatar}
+          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gray-800 mb-1 sm:mb-2">
+            Hi {child.name}! 👋
+          </h1>
+          <p className="text-base sm:text-lg text-gray-600 font-display">
+            Ready for an amazing day?
+          </p>
+        </motion.div>
 
       {/* Date and Time Display */}
       <DateTimeDisplay isYoungChild={false} theme={child.theme} />
@@ -465,6 +463,7 @@ export default function Dashboard() {
           </div>
         </GlassCard>
       </motion.div>
+      </div>
     </div>
   )
 }
