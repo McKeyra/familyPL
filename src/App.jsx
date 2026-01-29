@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import Welcome from './pages/Welcome'
+import HomeScreen from './pages/HomeScreen'
 import Dashboard from './pages/Dashboard'
 import Checklist from './pages/Checklist'
 import Timer from './pages/Timer'
@@ -17,7 +18,8 @@ function App() {
     <Router>
       <AnimatePresence mode="wait">
         <Routes>
-          <Route path="/" element={<Welcome />} />
+          <Route path="/" element={<HomeScreen />} />
+          <Route path="/welcome" element={<Welcome />} />
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/checklist/:routine" element={<Checklist />} />
