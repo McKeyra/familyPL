@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { getTodayString, getYesterdayString } from '../lib/timezone'
 
 // Initial data for the family
 const initialChildren = {
@@ -104,9 +105,9 @@ const initialChallenges = [
     progress: { bria: 0, naya: 0 },
     reward: 'Family Movie Night',
     rewardStars: 20,
-    active: true,
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+    active: false,
+    startDate: null,
+    endDate: null,
   },
   {
     id: 'ch2',
@@ -117,9 +118,9 @@ const initialChallenges = [
     progress: { bria: 0, naya: 0 },
     reward: 'Ice Cream Party',
     rewardStars: 30,
-    active: true,
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+    active: false,
+    startDate: null,
+    endDate: null,
   },
 ]
 
@@ -396,7 +397,7 @@ const useStore = create(
 
       // Actions - Daily Time Usage
       addTimeUsage: (childId, activity, minutes) => {
-        const today = new Date().toISOString().split('T')[0]
+        const today = getTodayString()
         set((state) => {
           const childUsage = state.dailyTimeUsage[childId] || {}
           const todayUsage = childUsage[today] || {}
@@ -416,7 +417,7 @@ const useStore = create(
       },
 
       getTodayTimeUsage: (childId, activity) => {
-        const today = new Date().toISOString().split('T')[0]
+        const today = getTodayString()
         return get().dailyTimeUsage[childId]?.[today]?.[activity] || 0
       },
 
@@ -429,8 +430,8 @@ const useStore = create(
 
       // Actions - Streaks
       updateStreak: (childId) => {
-        const today = new Date().toISOString().split('T')[0]
-        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+        const today = getTodayString()
+        const yesterday = getYesterdayString()
 
         set((state) => {
           const childStreak = state.streaks[childId]
@@ -565,13 +566,13 @@ const useStore = create(
 
       // Utility - Get today's events
       getTodayEvents: () => {
-        const today = new Date().toISOString().split('T')[0]
+        const today = getTodayString()
         return get().events.filter(e => e.date === today)
       },
 
       // Daily Reset Functions
       checkAndResetDaily: () => {
-        const today = new Date().toISOString().split('T')[0]
+        const today = getTodayString()
         const lastReset = get().lastResetDate
 
         // If already reset today, skip
@@ -661,14 +662,40 @@ const useStore = create(
 
       getWeeklyLogs: () => {
         const logs = get().dailyLogs
-        const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0]
+        const date = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }))
+        date.setDate(date.getDate() - 7)
+        const weekAgo = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
         return logs.filter(log => log.date >= weekAgo)
       },
 
       getMonthlyLogs: () => {
         const logs = get().dailyLogs
-        const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0]
+        const date = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }))
+        date.setDate(date.getDate() - 30)
+        const monthAgo = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
         return logs.filter(log => log.date >= monthAgo)
+      },
+
+      // Reset all data to initial state
+      resetAllData: () => {
+        set({
+          currentChild: null,
+          isParentMode: false,
+          children: initialChildren,
+          chores: initialChores,
+          events: initialEvents,
+          notes: initialNotes,
+          hearts: initialHearts,
+          timerSessions: initialTimerSessions,
+          groceryList: initialGroceryList,
+          starLog: [],
+          timeLimits: initialTimeLimits,
+          challenges: initialChallenges,
+          streaks: initialStreaks,
+          dailyTimeUsage: {},
+          lastResetDate: null,
+          dailyLogs: [],
+        })
       },
     }),
     {

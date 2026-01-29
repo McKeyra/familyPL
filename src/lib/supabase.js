@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { getTodayString } from './timezone'
 
 const supabaseUrl = 'https://hrsljgzzmmppfmlmtltd.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyc2xqZ3p6bW1wcGZtbG10bHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyMjkyODIsImV4cCI6MjA4MDgwNTI4Mn0.y-b-WZAOEw4qiqmim6b3HTGt3rKGUC59bYQ7to3S0GA'
@@ -36,7 +37,7 @@ export async function getChores() {
 
 // Chore Completions (today's)
 export async function getTodayCompletions() {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayString()
   const { data, error } = await supabase
     .from('chore_completions')
     .select('*')
@@ -46,7 +47,7 @@ export async function getTodayCompletions() {
 }
 
 export async function completeChore(choreId, childId) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayString()
   const { error } = await supabase
     .from('chore_completions')
     .upsert({
@@ -58,7 +59,7 @@ export async function completeChore(choreId, childId) {
 }
 
 export async function uncompleteChore(choreId) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayString()
   const { error } = await supabase
     .from('chore_completions')
     .delete()
@@ -88,7 +89,9 @@ export async function getStarLog(childId, limit = 100) {
 
 // Daily Logs
 export async function getDailyLogs(days = 30) {
-  const startDate = new Date(Date.now() - days * 86400000).toISOString().split('T')[0]
+  const date = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }))
+  date.setDate(date.getDate() - days)
+  const startDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
   const { data, error } = await supabase
     .from('daily_logs')
     .select('*')

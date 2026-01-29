@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Star, Clock, CheckCircle2, Calendar, Gift, FileText, TrendingUp, Settings, Sun, Moon, Sparkles } from 'lucide-react'
 import useStore from '../store/useStore'
+import { getTorontoDate, getTorontoTime, TIMEZONE } from '../lib/timezone'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const DAYS_SHORT = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
@@ -43,16 +44,16 @@ const quickAccessItems = [
 export default function HomeScreen() {
   const navigate = useNavigate()
   const { children, chores, events, setCurrentChild } = useStore()
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const [currentDate, setCurrentDate] = useState(getTorontoDate())
+  const [currentTime, setCurrentTime] = useState(getTorontoDate())
   const [selectedChild, setSelectedChild] = useState(null)
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
+    const timer = setInterval(() => setCurrentTime(getTorontoDate()), 1000)
     return () => clearInterval(timer)
   }, [])
 
-  const today = new Date()
+  const today = getTorontoDate()
   const currentMonth = currentDate.getMonth()
   const currentYear = currentDate.getFullYear()
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
