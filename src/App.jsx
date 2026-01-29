@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AnimatePresence, motion } from 'framer-motion'
 import { lazy, Suspense } from 'react'
 import Welcome from './pages/Welcome'
-import HomeScreen from './pages/HomeScreen'
 import Dashboard from './pages/Dashboard'
 import Checklist from './pages/Checklist'
 import Timer from './pages/Timer'
@@ -78,7 +77,7 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={
           <AnimatedPage>
-            <HomeScreen />
+            <Dashboard />
           </AnimatedPage>
         } />
         <Route path="/welcome" element={

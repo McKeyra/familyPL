@@ -4,6 +4,8 @@ import {
   Calendar,
   Heart,
   Sparkles,
+  Star,
+  Settings,
 } from 'lucide-react'
 import useStore from '../store/useStore'
 import GlassCard from '../components/ui/GlassCard'
@@ -44,19 +46,99 @@ const olderQuickActions = [
   { id: 'grocery', path: '/grocery', emoji: '🛒', label: 'Shopping', color: 'bg-green-400' },
 ]
 
+// Child selection screen component
+function ChildSelection({ children, onSelect, onParentAccess }) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 flex flex-col items-center justify-center p-6">
+      <motion.div
+        className="text-center mb-8"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h1 className="text-3xl sm:text-4xl font-light text-gray-800 mb-2">Happy Day Helper</h1>
+        <p className="text-gray-500">Who's ready for a great day?</p>
+      </motion.div>
+
+      <div className="grid grid-cols-2 gap-4 sm:gap-6 max-w-lg w-full mb-8">
+        {/* Bria */}
+        <motion.button
+          onClick={() => onSelect('bria')}
+          className="relative overflow-hidden p-6 sm:p-8 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100/50 rounded-3xl text-center transition-all duration-300 hover:shadow-lg hover:shadow-amber-100/50"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          whileHover={{ y: -4, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/30 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="relative">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-200/50 mb-4">
+              <span className="text-2xl sm:text-3xl font-bold text-white">B</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-1">Bria</h2>
+            <div className="flex items-center justify-center gap-1">
+              <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+              <span className="text-sm text-gray-600">{children.bria?.stars || 0} stars</span>
+            </div>
+          </div>
+        </motion.button>
+
+        {/* Naya */}
+        <motion.button
+          onClick={() => onSelect('naya')}
+          className="relative overflow-hidden p-6 sm:p-8 bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-100/50 rounded-3xl text-center transition-all duration-300 hover:shadow-lg hover:shadow-cyan-100/50"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          whileHover={{ y: -4, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-cyan-200/30 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="relative">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-200/50 mb-4">
+              <span className="text-2xl sm:text-3xl font-bold text-white">N</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-1">Naya</h2>
+            <div className="flex items-center justify-center gap-1">
+              <Star className="w-4 h-4 text-cyan-500 fill-cyan-500" />
+              <span className="text-sm text-gray-600">{children.naya?.stars || 0} stars</span>
+            </div>
+          </div>
+        </motion.button>
+      </div>
+
+      {/* Parent Access */}
+      <motion.button
+        onClick={onParentAccess}
+        className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <Settings className="w-4 h-4 text-gray-500" />
+        <span className="text-sm font-medium text-gray-600">Parent Settings</span>
+      </motion.button>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { currentChild, children, chores, getChildEvents, sendHeart } = useStore()
+  const { currentChild, children, chores, getChildEvents, sendHeart, setCurrentChild } = useStore()
 
   const child = currentChild ? children[currentChild] : null
   const siblingId = currentChild === 'bria' ? 'naya' : 'bria'
   const sibling = children[siblingId]
   const childChores = currentChild ? chores[currentChild] : null
-  const upcomingEvents = getChildEvents(currentChild).slice(0, 3)
+  const upcomingEvents = currentChild ? getChildEvents(currentChild).slice(0, 3) : []
 
+  // Show child selection if no child is selected
   if (!child) {
-    navigate('/')
-    return null
+    return (
+      <ChildSelection
+        children={children}
+        onSelect={(childId) => setCurrentChild(childId)}
+        onParentAccess={() => navigate('/parent')}
+      />
+    )
   }
 
   // Age-based content selection
