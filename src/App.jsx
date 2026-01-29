@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { lazy, Suspense } from 'react'
 import Welcome from './pages/Welcome'
@@ -85,8 +85,9 @@ function AnimatedRoutes() {
             <Welcome />
           </AnimatedPage>
         } />
+        {/* Redirect /dashboard to / */}
+        <Route path="/dashboard" element={<Navigate to="/" replace />} />
         <Route element={<Layout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/checklist/:routine" element={<Checklist />} />
           <Route path="/timer" element={<Timer />} />
           <Route path="/calendar" element={<Calendar />} />

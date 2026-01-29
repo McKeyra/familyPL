@@ -219,7 +219,7 @@ export default function Checklist() {
                 size="lg"
                 onClick={() => {
                   setShowCelebration(false)
-                  navigate('/dashboard')
+                  navigate('/')
                 }}
               >
                 Back to Dashboard
