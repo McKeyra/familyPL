@@ -6,6 +6,7 @@ import {
   Sparkles,
   Star,
   Settings,
+  Clock,
 } from 'lucide-react'
 import useStore from '../store/useStore'
 import GlassCard from '../components/ui/GlassCard'
@@ -47,7 +48,7 @@ const olderQuickActions = [
 ]
 
 // Tab bar for switching between children
-function ChildTabs({ children, currentChild, onSelect, onParentAccess }) {
+function ChildTabs({ children, currentChild, onSelect, onParentAccess, onTimerAccess }) {
   return (
     <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
       <div className="flex items-center justify-between px-4 py-2">
@@ -104,14 +105,26 @@ function ChildTabs({ children, currentChild, onSelect, onParentAccess }) {
           </motion.button>
         </div>
 
-        {/* Parent Settings */}
-        <motion.button
-          onClick={onParentAccess}
-          className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-          whileTap={{ scale: 0.95 }}
-        >
-          <Settings className="w-5 h-5 text-gray-500" />
-        </motion.button>
+        {/* Right side buttons */}
+        <div className="flex items-center gap-2">
+          {/* Timer Button */}
+          <motion.button
+            onClick={onTimerAccess}
+            className="p-2 rounded-full bg-cyan-100 hover:bg-cyan-200 transition-colors"
+            whileTap={{ scale: 0.95 }}
+          >
+            <Clock className="w-5 h-5 text-cyan-600" />
+          </motion.button>
+
+          {/* Parent Settings */}
+          <motion.button
+            onClick={onParentAccess}
+            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+            whileTap={{ scale: 0.95 }}
+          >
+            <Settings className="w-5 h-5 text-gray-500" />
+          </motion.button>
+        </div>
       </div>
     </div>
   )
@@ -164,6 +177,7 @@ export default function Dashboard() {
           children={children}
           currentChild={activeChild}
           onSelect={(childId) => setCurrentChild(childId)}
+          onTimerAccess={() => navigate('/timer')}
           onParentAccess={() => navigate('/parent')}
         />
 
@@ -299,6 +313,7 @@ export default function Dashboard() {
         children={children}
         currentChild={activeChild}
         onSelect={(childId) => setCurrentChild(childId)}
+        onTimerAccess={() => navigate('/timer')}
         onParentAccess={() => navigate('/parent')}
       />
 
