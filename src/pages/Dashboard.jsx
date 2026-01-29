@@ -152,7 +152,7 @@ export default function Dashboard() {
   }
 
   const handleSendHeart = () => {
-    sendHeart(currentChild, siblingId)
+    sendHeart(activeChild, siblingId)
   }
 
   // YOUNG CHILD INTERFACE (age 5 and under)
