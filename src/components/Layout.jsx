@@ -147,13 +147,18 @@ export default function Layout() {
         ${isYoungChild ? 'pb-28 sm:pb-32' : 'pb-20 sm:pb-24'}
         landscape-compact`}
       >
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{
+              type: "spring",
+              stiffness: 380,
+              damping: 30,
+            }}
+            className="will-change-transform"
           >
             <Outlet />
           </motion.div>

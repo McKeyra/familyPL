@@ -1,5 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { AnimatePresence } from 'framer-motion'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
+import { lazy, Suspense } from 'react'
 import Welcome from './pages/Welcome'
 import HomeScreen from './pages/HomeScreen'
 import Dashboard from './pages/Dashboard'
@@ -13,26 +14,95 @@ import Grocery from './pages/Grocery'
 import Progress from './pages/Progress'
 import Layout from './components/Layout'
 
+// Page transition variants - smooth and fast
+const pageVariants = {
+  initial: {
+    opacity: 0,
+  },
+  in: {
+    opacity: 1,
+  },
+  out: {
+    opacity: 0,
+  }
+}
+
+const pageTransition = {
+  type: "tween",
+  ease: "anticipate",
+  duration: 0.3
+}
+
+// Loading fallback
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-50 to-orange-100">
+      <motion.div
+        className="text-4xl"
+        animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+        transition={{ duration: 1, repeat: Infinity }}
+      >
+        ⭐
+      </motion.div>
+    </div>
+  )
+}
+
+// Animated page wrapper
+function AnimatedPage({ children }) {
+  return (
+    <motion.div
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={pageVariants}
+      transition={pageTransition}
+      className="will-change-opacity"
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+// Routes with animation
+function AnimatedRoutes() {
+  const location = useLocation()
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={
+          <AnimatedPage>
+            <HomeScreen />
+          </AnimatedPage>
+        } />
+        <Route path="/welcome" element={
+          <AnimatedPage>
+            <Welcome />
+          </AnimatedPage>
+        } />
+        <Route element={<Layout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/checklist/:routine" element={<Checklist />} />
+          <Route path="/timer" element={<Timer />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/notes" element={<NoteBoard />} />
+          <Route path="/rewards" element={<Rewards />} />
+          <Route path="/grocery" element={<Grocery />} />
+          <Route path="/progress" element={<Progress />} />
+          <Route path="/parent" element={<ParentPortal />} />
+        </Route>
+      </Routes>
+    </AnimatePresence>
+  )
+}
+
 function App() {
   return (
     <Router>
-      <AnimatePresence mode="wait">
-        <Routes>
-          <Route path="/" element={<HomeScreen />} />
-          <Route path="/welcome" element={<Welcome />} />
-          <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/checklist/:routine" element={<Checklist />} />
-            <Route path="/timer" element={<Timer />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/notes" element={<NoteBoard />} />
-            <Route path="/rewards" element={<Rewards />} />
-            <Route path="/grocery" element={<Grocery />} />
-            <Route path="/progress" element={<Progress />} />
-            <Route path="/parent" element={<ParentPortal />} />
-          </Route>
-        </Routes>
-      </AnimatePresence>
+      <Suspense fallback={<PageLoader />}>
+        <AnimatedRoutes />
+      </Suspense>
     </Router>
   )
 }
