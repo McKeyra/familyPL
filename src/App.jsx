@@ -36,13 +36,18 @@ const pageTransition = {
 // Loading fallback
 function PageLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-50 to-orange-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100">
       <motion.div
-        className="text-4xl"
-        animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
-        transition={{ duration: 1, repeat: Infinity }}
+        className="flex flex-col items-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
       >
-        ⭐
+        <motion.div
+          className="w-8 h-8 border-2 border-gray-200 border-t-gray-600 rounded-full"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        />
+        <p className="mt-4 text-sm text-gray-400 font-medium">Loading...</p>
       </motion.div>
     </div>
   )
