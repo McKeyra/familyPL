@@ -1,10 +1,24 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
-import { CheckCircle2, RotateCcw, Trophy, Sun, Moon, Sparkles } from 'lucide-react'
+import { CheckCircle2, RotateCcw, Trophy, Sun, Moon, Sparkles, GripVertical, Backpack, BedDouble } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import confetti from 'canvas-confetti'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import useStore from '../store/useStore'
-import BubbleChore from '../components/ui/BubbleChore'
+import SortableChore from '../components/ui/SortableChore'
 import Button from '../components/ui/Button'
 import GlassCard from '../components/ui/GlassCard'
 
@@ -35,12 +49,51 @@ const routineInfo = {
 export default function Checklist() {
   const { routine } = useParams()
   const navigate = useNavigate()
-  const { currentChild, children, chores, completeChore, resetRoutine } = useStore()
+  const {
+    currentChild,
+    children,
+    chores,
+    completeChore,
+    resetRoutine,
+    reorderChores,
+    getSleepMask,
+    setSleepMask,
+    getBackpackStatus,
+    setBackpackOnTime,
+    addStars,
+  } = useStore()
   const [showCelebration, setShowCelebration] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [showBackpackBonus, setShowBackpackBonus] = useState(false)
 
   const child = currentChild ? children[currentChild] : null
   const info = routineInfo[routine]
   const tasks = currentChild && chores[currentChild] ? chores[currentChild][routine] : []
+  const sleepMaskActive = currentChild ? getSleepMask(currentChild) : false
+  const backpackStatus = currentChild ? getBackpackStatus(currentChild) : { onTime: false, time: null }
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event
+
+    if (active.id !== over?.id) {
+      const oldIndex = tasks.findIndex((t) => t.id === active.id)
+      const newIndex = tasks.findIndex((t) => t.id === over.id)
+      const newOrder = arrayMove(tasks, oldIndex, newIndex)
+      reorderChores(currentChild, routine, newOrder)
+    }
+  }
 
   useEffect(() => {
     if (!child) {
@@ -90,7 +143,25 @@ export default function Checklist() {
   }, [allComplete, showCelebration, child.theme])
 
   const handleComplete = (choreId) => {
+    const chore = tasks.find(c => c.id === choreId)
+
+    // Check for backpack on-time bonus
+    if (routine === 'morning' && chore?.text?.toLowerCase().includes('backpack')) {
+      const isOnTime = setBackpackOnTime(currentChild)
+      if (isOnTime && !backpackStatus.time) {
+        // Award bonus stars for being on time
+        setShowBackpackBonus(true)
+        setTimeout(() => setShowBackpackBonus(false), 3000)
+        // Bonus stars are added on top of normal stars
+        addStars(currentChild, chore.stars, 'On-time backpack bonus!')
+      }
+    }
+
     completeChore(currentChild, routine, choreId)
+  }
+
+  const handleToggleSleepMask = () => {
+    setSleepMask(currentChild, !sleepMaskActive)
   }
 
   const handleReset = () => {
@@ -130,22 +201,105 @@ export default function Checklist() {
             transition={{ duration: 0.5 }}
           />
         </div>
+
+        {/* Sleep Mask & Edit Mode Buttons */}
+        <div className="mt-3 sm:mt-4 flex justify-center gap-2 sm:gap-3">
+          {routine === 'morning' && (
+            <motion.button
+              className={`
+                flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-display font-semibold
+                ${sleepMaskActive
+                  ? 'bg-purple-500 text-white'
+                  : 'bg-white/30 text-white hover:bg-white/40'
+                }
+              `}
+              onClick={handleToggleSleepMask}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <BedDouble className="w-4 h-4" />
+              {sleepMaskActive ? 'Rough Night' : 'Had Good Sleep'}
+            </motion.button>
+          )}
+          <motion.button
+            className={`
+              flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-display font-semibold
+              ${isEditMode
+                ? 'bg-green-500 text-white'
+                : 'bg-white/30 text-white hover:bg-white/40'
+              }
+            `}
+            onClick={() => setIsEditMode(!isEditMode)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <GripVertical className="w-4 h-4" />
+            {isEditMode ? 'Done Sorting' : 'Reorder'}
+          </motion.button>
+        </div>
       </motion.div>
 
+      {/* Backpack On-Time Bonus Alert */}
+      <AnimatePresence>
+        {showBackpackBonus && (
+          <motion.div
+            className="mb-4 p-4 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-2xl text-center shadow-lg"
+            initial={{ opacity: 0, scale: 0.8, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -20 }}
+          >
+            <div className="flex items-center justify-center gap-2 text-white font-display font-bold text-lg">
+              <Backpack className="w-6 h-6" />
+              <span>On Time Bonus! +2x Stars!</span>
+              <span className="text-2xl">🎉</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sleep Mask Active Notice */}
+      {sleepMaskActive && routine === 'morning' && (
+        <motion.div
+          className="mb-4 p-3 bg-purple-100 border border-purple-300 rounded-xl text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <p className="text-purple-700 font-display text-sm">
+            <BedDouble className="w-4 h-4 inline mr-1" />
+            Rough night mode - Take it easy today! 💜
+          </p>
+        </motion.div>
+      )}
+
       {/* Tasks List */}
-      <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
-        <AnimatePresence mode="popLayout">
-          {tasks.map((task, index) => (
-            <BubbleChore
-              key={task.id}
-              chore={task}
-              onComplete={handleComplete}
-              theme={child.theme}
-              index={index}
-            />
-          ))}
-        </AnimatePresence>
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={tasks.map(t => t.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <motion.div
+            className="space-y-3 sm:space-y-4 mb-4 sm:mb-6"
+            initial={false}
+          >
+            <AnimatePresence initial={false} mode="sync">
+              {tasks.map((task, index) => (
+                <SortableChore
+                  key={task.id}
+                  chore={task}
+                  onComplete={handleComplete}
+                  theme={child.theme}
+                  index={index}
+                  isDraggingEnabled={isEditMode}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        </SortableContext>
+      </DndContext>
 
       {/* Reset Button */}
       <motion.div

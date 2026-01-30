@@ -22,8 +22,8 @@ const navItemsOlder = [
   { path: '/checklist/morning', icon: CheckSquare, label: 'Tasks', emoji: '✅' },
   { path: '/timer', icon: Clock, label: 'Timer', emoji: '⏰' },
   { path: '/progress', icon: Star, label: 'Progress', emoji: '📊' },
-  { path: '/notes', icon: StickyNote, label: 'Notes', emoji: '📝' },
   { path: '/rewards', icon: Gift, label: 'Rewards', emoji: '🎁' },
+  { path: '/parent', icon: Settings, label: 'Parent', emoji: '🔑' },
 ]
 
 // Simplified nav for young children (5 and under)
@@ -86,7 +86,14 @@ export default function Layout() {
         <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3">
           {/* Back button */}
           <motion.button
-            onClick={() => navigate('/')}
+            onClick={() => {
+              // Check if we have history to go back to
+              if (window.history.length > 2) {
+                navigate(-1)
+              } else {
+                navigate('/')
+              }
+            }}
             className={`
               rounded-xl sm:rounded-2xl bg-white/30 hover:bg-white/40 active:bg-white/50 transition-colors shadow-sm
               ${isYoungChild

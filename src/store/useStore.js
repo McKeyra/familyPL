@@ -9,6 +9,8 @@ const initialChildren = {
     name: 'Bria',
     age: 4,
     avatar: 'B',
+    avatarType: 'letter', // 'letter', 'emoji', 'image'
+    avatarImage: null, // Base64 or URL for custom image
     theme: 'bria',
     stars: 0,
     color: '#f97316',
@@ -18,6 +20,8 @@ const initialChildren = {
     name: 'Naya',
     age: 8,
     avatar: 'N',
+    avatarType: 'letter',
+    avatarImage: null,
     theme: 'naya',
     stars: 0,
     color: '#06b6d4',
@@ -77,6 +81,11 @@ const initialHearts = []
 const initialTimerSessions = []
 
 const initialGroceryList = []
+
+// Daily status tracking (sleep mask, on-time bonus, etc.)
+const initialDailyStatus = {
+  // Structure: { 'bria': { '2024-01-15': { sleepMask: false, backpackOnTime: false, backpackTime: null } } }
+}
 
 // Daily time limits for each child (in minutes)
 const initialTimeLimits = {
@@ -162,6 +171,7 @@ const useStore = create(
       challenges: initialChallenges,
       streaks: initialStreaks,
       dailyTimeUsage: {}, // Track daily usage: { 'bria': { '2024-01-15': { screen: 45, reading: 30 } } }
+      dailyStatus: initialDailyStatus, // Track daily status (sleep mask, on-time bonus)
 
       // Daily reset tracking
       lastResetDate: null,
@@ -170,9 +180,27 @@ const useStore = create(
       // Active timer state (persisted)
       activeTimer: null, // { childId, activity, duration, timeLeft, isRunning, sessionId, startedAt, pausedAt }
 
+      // Pending timer configuration (parent sets, kid starts)
+      pendingTimers: {}, // { childId: { activity, duration, setByParent: true } }
+
       // Actions - User Selection
       setCurrentChild: (childId) => set({ currentChild: childId, isParentMode: false }),
       setParentMode: (enabled) => set({ isParentMode: enabled, currentChild: enabled ? null : get().currentChild }),
+
+      // Actions - Avatar Customization
+      updateChildAvatar: (childId, avatarType, avatar, avatarImage = null) => {
+        set((state) => ({
+          children: {
+            ...state.children,
+            [childId]: {
+              ...state.children[childId],
+              avatarType,
+              avatar,
+              avatarImage,
+            },
+          },
+        }))
+      },
 
       // Actions - Stars
       addStars: (childId, amount, reason) => {
@@ -282,6 +310,32 @@ const useStore = create(
             [childId]: {
               ...state.chores[childId],
               [routineType]: state.chores[childId][routineType].filter(c => c.id !== choreId),
+            },
+          },
+        }))
+      },
+
+      reorderChores: (childId, routineType, newOrder) => {
+        set((state) => ({
+          chores: {
+            ...state.chores,
+            [childId]: {
+              ...state.chores[childId],
+              [routineType]: newOrder,
+            },
+          },
+        }))
+      },
+
+      updateChore: (childId, routineType, choreId, updates) => {
+        set((state) => ({
+          chores: {
+            ...state.chores,
+            [childId]: {
+              ...state.chores[childId],
+              [routineType]: state.chores[childId][routineType].map(c =>
+                c.id === choreId ? { ...c, ...updates } : c
+              ),
             },
           },
         }))
@@ -398,6 +452,27 @@ const useStore = create(
         set({ activeTimer: null })
       },
 
+      // Actions - Pending Timer (parent sets up, kid starts)
+      setPendingTimer: (childId, activity, duration) => {
+        set((state) => ({
+          pendingTimers: {
+            ...state.pendingTimers,
+            [childId]: { activity, duration, setByParent: true, setAt: Date.now() },
+          },
+        }))
+      },
+
+      getPendingTimer: (childId) => {
+        return get().pendingTimers[childId] || null
+      },
+
+      clearPendingTimer: (childId) => {
+        set((state) => {
+          const { [childId]: removed, ...rest } = state.pendingTimers
+          return { pendingTimers: rest }
+        })
+      },
+
       // Actions - Grocery
       addGroceryItem: (item, addedBy) => {
         set((state) => ({
@@ -473,6 +548,64 @@ const useStore = create(
         if (!limit.enabled) return null // No limit
         const used = get().getTodayTimeUsage(childId, activity)
         return Math.max(0, limit.limit - used)
+      },
+
+      // Actions - Daily Status (sleep mask, backpack on-time)
+      setDailyStatus: (childId, statusKey, value) => {
+        const today = getTodayString()
+        set((state) => {
+          const childStatus = state.dailyStatus[childId] || {}
+          const todayStatus = childStatus[today] || {}
+          return {
+            dailyStatus: {
+              ...state.dailyStatus,
+              [childId]: {
+                ...childStatus,
+                [today]: {
+                  ...todayStatus,
+                  [statusKey]: value,
+                },
+              },
+            },
+          }
+        })
+      },
+
+      getDailyStatus: (childId, statusKey) => {
+        const today = getTodayString()
+        return get().dailyStatus[childId]?.[today]?.[statusKey] || false
+      },
+
+      setSleepMask: (childId, enabled) => {
+        get().setDailyStatus(childId, 'sleepMask', enabled)
+      },
+
+      getSleepMask: (childId) => {
+        return get().getDailyStatus(childId, 'sleepMask')
+      },
+
+      setBackpackOnTime: (childId) => {
+        const now = new Date()
+        const hours = now.getHours()
+        const minutes = now.getMinutes()
+        const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+
+        // Check if before 8:05 AM
+        const isOnTime = hours < 8 || (hours === 8 && minutes < 5)
+
+        get().setDailyStatus(childId, 'backpackTime', timeString)
+        get().setDailyStatus(childId, 'backpackOnTime', isOnTime)
+
+        return isOnTime
+      },
+
+      getBackpackStatus: (childId) => {
+        const today = getTodayString()
+        const status = get().dailyStatus[childId]?.[today] || {}
+        return {
+          time: status.backpackTime || null,
+          onTime: status.backpackOnTime || false,
+        }
       },
 
       // Actions - Streaks

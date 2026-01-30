@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import {
   Calendar,
   Heart,
@@ -14,6 +15,8 @@ import StarCounter from '../components/ui/StarCounter'
 import HeartButton from '../components/ui/HeartButton'
 import StickerEvent from '../components/ui/StickerEvent'
 import DateTimeDisplay from '../components/ui/DateTimeDisplay'
+import ChildAvatar from '../components/ui/ChildAvatar'
+import AvatarCustomizer from '../components/ui/AvatarCustomizer'
 
 // Simplified labels for young children (age 5 and under)
 const youngRoutineCards = [
@@ -133,6 +136,7 @@ function ChildTabs({ children, currentChild, onSelect, onParentAccess, onTimerAc
 export default function Dashboard() {
   const navigate = useNavigate()
   const { currentChild, children, chores, getChildEvents, sendHeart, setCurrentChild } = useStore()
+  const [showAvatarCustomizer, setShowAvatarCustomizer] = useState(false)
 
   // Default to bria if no child selected
   const activeChild = currentChild || 'bria'
@@ -182,20 +186,17 @@ export default function Dashboard() {
         />
 
         <div className="p-3 sm:p-4 md:p-6 max-w-2xl mx-auto">
-          {/* Simple Header - Avatar circle */}
+          {/* Simple Header - Avatar circle (clickable to customize) */}
           <motion.div
             className="flex items-center justify-center mb-4 sm:mb-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <div className={`
-              w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center
-              ${child.theme === 'bria'
-                ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-200/50'
-                : 'bg-gradient-to-br from-cyan-400 to-teal-500 shadow-lg shadow-cyan-200/50'}
-            `}>
-              <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-white">{child.avatar}</span>
-            </div>
+            <ChildAvatar
+              child={child}
+              size="xl"
+              onClick={() => setShowAvatarCustomizer(true)}
+            />
           </motion.div>
 
         {/* Date and Time Display */}
@@ -308,6 +309,13 @@ export default function Dashboard() {
           </button>
         </motion.div>
         </div>
+
+        {/* Avatar Customizer Modal */}
+        <AvatarCustomizer
+          isOpen={showAvatarCustomizer}
+          onClose={() => setShowAvatarCustomizer(false)}
+          childId={activeChild}
+        />
       </div>
     )
   }
@@ -331,13 +339,12 @@ export default function Dashboard() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <div className={`
-            w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4
-            ${child.theme === 'bria'
-              ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-200/50'
-              : 'bg-gradient-to-br from-cyan-400 to-teal-500 shadow-lg shadow-cyan-200/50'}
-          `}>
-            <span className="text-3xl sm:text-4xl font-bold text-white">{child.avatar}</span>
+          <div className="flex justify-center mb-2 sm:mb-4">
+            <ChildAvatar
+              child={child}
+              size="lg"
+              onClick={() => setShowAvatarCustomizer(true)}
+            />
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gray-800 mb-1 sm:mb-2">
             Hi {child.name}! 👋
@@ -491,6 +498,13 @@ export default function Dashboard() {
         </GlassCard>
       </motion.div>
       </div>
+
+      {/* Avatar Customizer Modal */}
+      <AvatarCustomizer
+        isOpen={showAvatarCustomizer}
+        onClose={() => setShowAvatarCustomizer(false)}
+        childId={activeChild}
+      />
     </div>
   )
 }

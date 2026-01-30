@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Play, Pause, RotateCcw, Check, Tv, BookOpen, Gamepad2, Pencil } from 'lucide-react'
+import { Play, Pause, RotateCcw, Check, Tv, BookOpen, Gamepad2, Pencil, Volume2, VolumeX, Sparkles } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import useStore from '../store/useStore'
 import GlassCard from '../components/ui/GlassCard'
@@ -15,19 +15,32 @@ const activities = [
   { id: 'homework', label: 'Homework', emoji: '✏️', icon: Pencil, color: 'from-purple-400 to-purple-600', stars: 3 },
 ]
 
+// Funny celebration messages for starting the timer
+const startCelebrations = [
+  { emoji: '🚀', text: 'Blast off!' },
+  { emoji: '🎪', text: 'Let the fun begin!' },
+  { emoji: '🦸', text: 'Hero mode activated!' },
+  { emoji: '🎯', text: 'Ready, set, GO!' },
+  { emoji: '🌟', text: 'Superstar time!' },
+  { emoji: '🎉', text: 'Party time!' },
+]
+
 export default function Timer() {
   const navigate = useNavigate()
   const {
     currentChild,
     children,
+    isParentMode,
     startTimer,
     completeTimer,
     activeTimer,
     setActiveTimer,
-    updateActiveTimerTime,
     pauseActiveTimer,
     resumeActiveTimer,
     clearActiveTimer,
+    getPendingTimer,
+    setPendingTimer,
+    clearPendingTimer,
   } = useStore()
   const child = currentChild ? children[currentChild] : null
 
@@ -38,8 +51,76 @@ export default function Timer() {
   const [isRunning, setIsRunning] = useState(activeTimer?.isRunning || false)
   const [sessionId, setSessionId] = useState(activeTimer?.sessionId || null)
   const [showComplete, setShowComplete] = useState(false)
+  const [showStartCelebration, setShowStartCelebration] = useState(false)
+  const [startCelebration, setStartCelebration] = useState(null)
+  const [audioEnabled, setAudioEnabled] = useState(true)
+  const [showOneMinuteWarning, setShowOneMinuteWarning] = useState(false)
+  const [hasPlayedWarning, setHasPlayedWarning] = useState(false)
 
   const intervalRef = useRef(null)
+  const audioContextRef = useRef(null)
+
+  // Get pending timer set by parent
+  const pendingTimer = currentChild ? getPendingTimer(currentChild) : null
+
+  // Initialize audio context
+  useEffect(() => {
+    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)()
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close()
+      }
+    }
+  }, [])
+
+  // Play a beep sound
+  const playBeep = useCallback((frequency = 440, duration = 200, type = 'sine') => {
+    if (!audioEnabled || !audioContextRef.current) return
+
+    try {
+      const oscillator = audioContextRef.current.createOscillator()
+      const gainNode = audioContextRef.current.createGain()
+
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContextRef.current.destination)
+
+      oscillator.frequency.value = frequency
+      oscillator.type = type
+
+      gainNode.gain.setValueAtTime(0.3, audioContextRef.current.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + duration / 1000)
+
+      oscillator.start(audioContextRef.current.currentTime)
+      oscillator.stop(audioContextRef.current.currentTime + duration / 1000)
+    } catch (e) {
+      console.log('Audio not available')
+    }
+  }, [audioEnabled])
+
+  // Play warning sound (multiple beeps)
+  const playWarningSound = useCallback(() => {
+    if (!audioEnabled) return
+    playBeep(880, 150)
+    setTimeout(() => playBeep(880, 150), 200)
+    setTimeout(() => playBeep(880, 150), 400)
+  }, [playBeep, audioEnabled])
+
+  // Play completion sound (happy melody)
+  const playCompletionSound = useCallback(() => {
+    if (!audioEnabled) return
+    playBeep(523, 150) // C
+    setTimeout(() => playBeep(659, 150), 150) // E
+    setTimeout(() => playBeep(784, 150), 300) // G
+    setTimeout(() => playBeep(1047, 300), 450) // High C
+  }, [playBeep, audioEnabled])
+
+  // Play start sound
+  const playStartSound = useCallback(() => {
+    if (!audioEnabled) return
+    playBeep(440, 100)
+    setTimeout(() => playBeep(554, 100), 100)
+    setTimeout(() => playBeep(659, 150), 200)
+  }, [playBeep, audioEnabled])
 
   // Restore state from persisted activeTimer on mount
   useEffect(() => {
@@ -60,8 +141,12 @@ export default function Timer() {
       } else {
         setTimeLeft(activeTimer.timeLeft)
       }
+    } else if (pendingTimer && !sessionId) {
+      // Load pending timer from parent
+      setSelectedActivity(pendingTimer.activity)
+      setDuration(pendingTimer.duration)
     }
-  }, [currentChild])
+  }, [currentChild, pendingTimer])
 
   // Persist timer state when it changes
   useEffect(() => {
@@ -95,19 +180,51 @@ export default function Timer() {
     }
     setShowComplete(true)
     clearActiveTimer()
+    playCompletionSound()
 
-    // Celebration confetti
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-    })
-  }, [sessionId, selectedActivity, completeTimer, clearActiveTimer])
+    // Big celebration confetti
+    const duration = 3000
+    const end = Date.now() + duration
+    const colors = child?.theme === 'bria'
+      ? ['#f97316', '#fb923c', '#fcd34d', '#fef3c7']
+      : ['#06b6d4', '#22d3ee', '#67e8f9', '#cffafe']
 
+    const frame = () => {
+      confetti({
+        particleCount: 4,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors,
+      })
+      confetti({
+        particleCount: 4,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors,
+      })
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame)
+      }
+    }
+    frame()
+  }, [sessionId, selectedActivity, completeTimer, clearActiveTimer, playCompletionSound, child?.theme])
+
+  // Timer countdown effect with 1-minute warning
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
       intervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
+          // 1-minute warning
+          if (prev === 61 && !hasPlayedWarning) {
+            setShowOneMinuteWarning(true)
+            playWarningSound()
+            setHasPlayedWarning(true)
+            setTimeout(() => setShowOneMinuteWarning(false), 3000)
+          }
+
           if (prev <= 1) {
             handleComplete()
             return 0
@@ -126,40 +243,78 @@ export default function Timer() {
         clearInterval(intervalRef.current)
       }
     }
-  }, [isRunning, handleComplete])
+  }, [isRunning, handleComplete, playWarningSound, hasPlayedWarning])
 
   const handleStart = () => {
     if (!selectedActivity) return
 
-    const activity = activities.find(a => a.id === selectedActivity)
-    const id = startTimer(currentChild, activity.label, duration)
-    const initialTimeLeft = duration * 60
+    // Show celebration animation
+    const celebration = startCelebrations[Math.floor(Math.random() * startCelebrations.length)]
+    setStartCelebration(celebration)
+    setShowStartCelebration(true)
+    playStartSound()
 
-    setSessionId(id)
-    setTimeLeft(initialTimeLeft)
-    setIsRunning(true)
+    // Trigger confetti
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { y: 0.7 },
+    })
 
-    // Persist the new timer
-    setActiveTimer({
-      childId: currentChild,
-      activity: selectedActivity,
-      duration,
-      timeLeft: initialTimeLeft,
-      isRunning: true,
-      sessionId: id,
-      startedAt: Date.now(),
-      pausedAt: null,
+    // Start timer after celebration
+    setTimeout(() => {
+      const activity = activities.find(a => a.id === selectedActivity)
+      const id = startTimer(currentChild, activity.label, duration)
+      const initialTimeLeft = duration * 60
+
+      setSessionId(id)
+      setTimeLeft(initialTimeLeft)
+      setIsRunning(true)
+      setHasPlayedWarning(false)
+      setShowStartCelebration(false)
+
+      // Clear pending timer if it exists
+      if (pendingTimer) {
+        clearPendingTimer(currentChild)
+      }
+
+      // Persist the new timer
+      setActiveTimer({
+        childId: currentChild,
+        activity: selectedActivity,
+        duration,
+        timeLeft: initialTimeLeft,
+        isRunning: true,
+        sessionId: id,
+        startedAt: Date.now(),
+        pausedAt: null,
+      })
+    }, 1500)
+  }
+
+  const handleParentSetTimer = () => {
+    if (!selectedActivity) return
+    setPendingTimer(currentChild, selectedActivity, duration)
+
+    // Show confirmation
+    confetti({
+      particleCount: 30,
+      spread: 50,
+      origin: { y: 0.6 },
+      colors: ['#a855f7', '#c084fc', '#e9d5ff'],
     })
   }
 
   const handlePause = () => {
     setIsRunning(false)
     pauseActiveTimer()
+    playBeep(330, 100)
   }
 
   const handleResume = () => {
     setIsRunning(true)
     resumeActiveTimer()
+    playBeep(440, 100)
   }
 
   const handleReset = () => {
@@ -168,6 +323,7 @@ export default function Timer() {
     setSessionId(null)
     setSelectedActivity(null)
     setShowComplete(false)
+    setHasPlayedWarning(false)
     clearActiveTimer()
   }
 
@@ -196,12 +352,38 @@ export default function Timer() {
           Activity Timer
         </h1>
         <p className="text-sm sm:text-base text-gray-600 font-display">
-          Track your time and earn stars!
+          {isParentMode ? 'Set up a timer for your child' : 'Track your time and earn stars!'}
         </p>
+
+        {/* Audio toggle */}
+        <motion.button
+          className={`mt-2 p-2 rounded-full ${audioEnabled ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}
+          onClick={() => setAudioEnabled(!audioEnabled)}
+          whileTap={{ scale: 0.9 }}
+        >
+          {audioEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+        </motion.button>
       </motion.div>
 
-      {/* Activity Selection */}
-      {!sessionId && (
+      {/* Pending Timer Notice (for kids) */}
+      {pendingTimer && !sessionId && !isParentMode && (
+        <motion.div
+          className="mb-4 p-4 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl border-2 border-purple-300"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Sparkles className="w-5 h-5 text-purple-500" />
+            <span className="font-display font-bold text-purple-700">Timer Ready!</span>
+          </div>
+          <p className="text-center text-purple-600 text-sm font-display">
+            Mom or Dad set up a {duration} minute {activities.find(a => a.id === selectedActivity)?.label} timer for you!
+          </p>
+        </motion.div>
+      )}
+
+      {/* Activity Selection (only if no pending timer for kids, or parent mode) */}
+      {!sessionId && (isParentMode || !pendingTimer) && (
         <motion.div
           className="mb-4 sm:mb-6 md:mb-8"
           initial={{ opacity: 0 }}
@@ -209,7 +391,7 @@ export default function Timer() {
           transition={{ delay: 0.2 }}
         >
           <h2 className="text-base sm:text-lg font-display font-semibold text-gray-700 mb-3 sm:mb-4 text-center">
-            What are you doing?
+            {isParentMode ? 'Select activity for your child:' : 'What are you doing?'}
           </h2>
           <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
             {activities.map((activity, index) => (
@@ -246,7 +428,7 @@ export default function Timer() {
       )}
 
       {/* Duration Slider */}
-      {selectedActivity && !sessionId && (
+      {selectedActivity && !sessionId && (isParentMode || !pendingTimer) && (
         <motion.div
           className="mb-4 sm:mb-6 md:mb-8"
           initial={{ opacity: 0, y: 20 }}
@@ -329,7 +511,7 @@ export default function Timer() {
                 </div>
               </div>
 
-              {/* Controls */}
+              {/* Controls - Only pause/resume for parents */}
               <div className="flex justify-center gap-2 sm:gap-3 md:gap-4">
                 {isRunning ? (
                   <Button
@@ -350,38 +532,134 @@ export default function Timer() {
                     Resume
                   </Button>
                 ) : null}
-                <Button
-                  variant="glass"
-                  size="lg"
-                  icon={<RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />}
-                  onClick={handleReset}
-                >
-                  Reset
-                </Button>
+                {isParentMode && (
+                  <Button
+                    variant="glass"
+                    size="lg"
+                    icon={<RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />}
+                    onClick={handleReset}
+                  >
+                    Reset
+                  </Button>
+                )}
               </div>
             </div>
           </GlassCard>
         </motion.div>
       )}
 
-      {/* Start Button */}
+      {/* Start Button (for kids) or Set Timer Button (for parents) */}
       {selectedActivity && !sessionId && (
         <motion.div
-          className="flex justify-center"
+          className="flex flex-col items-center gap-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          <Button
-            variant={child.theme}
-            size="xl"
-            icon={<Play className="w-6 h-6 sm:w-8 sm:h-8" />}
-            onClick={handleStart}
-          >
-            Start Timer
-          </Button>
+          {isParentMode ? (
+            <>
+              <Button
+                variant={child.theme}
+                size="xl"
+                icon={<Check className="w-6 h-6 sm:w-8 sm:h-8" />}
+                onClick={handleParentSetTimer}
+              >
+                Set Timer for {child.name}
+              </Button>
+              {pendingTimer && (
+                <p className="text-green-600 font-display text-sm">
+                  ✓ Timer is set! {child.name} can start when ready.
+                </p>
+              )}
+            </>
+          ) : (
+            <Button
+              variant={child.theme}
+              size="xl"
+              icon={<Play className="w-6 h-6 sm:w-8 sm:h-8" />}
+              onClick={handleStart}
+            >
+              {pendingTimer ? 'Start My Timer!' : 'Start Timer'}
+            </Button>
+          )}
         </motion.div>
       )}
+
+      {/* Start Celebration Modal */}
+      <AnimatePresence>
+        {showStartCelebration && startCelebration && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="text-center"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0, rotate: 180 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+            >
+              <motion.span
+                className="text-9xl block"
+                animate={{
+                  scale: [1, 1.3, 1],
+                  rotate: [0, -10, 10, 0],
+                }}
+                transition={{ duration: 0.5, repeat: 2 }}
+              >
+                {startCelebration.emoji}
+              </motion.span>
+              <motion.p
+                className="text-3xl font-display font-bold text-white mt-4 drop-shadow-lg"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {startCelebration.text}
+              </motion.p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* One Minute Warning */}
+      <AnimatePresence>
+        {showOneMinuteWarning && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-yellow-400 text-yellow-900 px-8 py-4 rounded-2xl shadow-2xl"
+              initial={{ scale: 0, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0, y: -50 }}
+            >
+              <div className="flex items-center gap-3">
+                <motion.span
+                  className="text-4xl"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 0.5, repeat: 3 }}
+                >
+                  ⚡
+                </motion.span>
+                <span className="text-xl font-display font-bold">1 Minute Left!</span>
+                <motion.span
+                  className="text-4xl"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 0.5, repeat: 3 }}
+                >
+                  ⚡
+                </motion.span>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Completion Modal */}
       <AnimatePresence>
@@ -413,12 +691,15 @@ export default function Timer() {
               </p>
               <div className="flex justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-6">
                 {[...Array(activities.find(a => a.id === selectedActivity)?.stars || 1)].map((_, i) => (
-                  <span
+                  <motion.span
                     key={i}
                     className="text-3xl sm:text-4xl"
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: i * 0.1 }}
                   >
                     ⭐
-                  </span>
+                  </motion.span>
                 ))}
               </div>
               <div className="flex gap-2 sm:gap-3">

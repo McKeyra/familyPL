@@ -14,10 +14,10 @@ const rewards = [
   { id: 'r2', name: 'Choose Dinner', emoji: '🍕', cost: 20, description: 'Pick what we eat!' },
   { id: 'r3', name: 'Stay Up Late', emoji: '🌙', cost: 25, description: '30 extra minutes!' },
   { id: 'r4', name: 'Special Treat', emoji: '🍦', cost: 15, description: 'Ice cream or candy!' },
-  { id: 'r5', name: 'New Toy', emoji: '🎁', cost: 50, description: 'Small toy of choice!' },
+  { id: 'r5', name: 'Game Night', emoji: '🎲', cost: 50, description: 'Family game time!' },
   { id: 'r6', name: 'Movie Night', emoji: '🎬', cost: 30, description: 'Pick the movie!' },
   { id: 'r7', name: 'Park Trip', emoji: '🎢', cost: 35, description: 'Trip to the park!' },
-  { id: 'r8', name: 'Sleepover', emoji: '🏠', cost: 75, description: 'Have a friend over!' },
+  { id: 'r8', name: 'Dance Party', emoji: '💃', cost: 75, description: 'Dance like crazy!' },
 ]
 
 export default function Rewards() {
@@ -292,7 +292,7 @@ export default function Rewards() {
                 onClick={() => {
                   setShowSuccess(false)
                   setSelectedReward(null)
-                  navigate('/dashboard')
+                  navigate('/')
                 }}
               >
                 Back to Home
