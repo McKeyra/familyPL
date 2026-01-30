@@ -182,13 +182,20 @@ export default function Dashboard() {
         />
 
         <div className="p-3 sm:p-4 md:p-6 max-w-2xl mx-auto">
-          {/* Simple Header - Just avatar */}
+          {/* Simple Header - Avatar circle */}
           <motion.div
             className="flex items-center justify-center mb-4 sm:mb-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <span className="text-5xl sm:text-6xl md:text-7xl">{child.avatar}</span>
+            <div className={`
+              w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center
+              ${child.theme === 'bria'
+                ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-200/50'
+                : 'bg-gradient-to-br from-cyan-400 to-teal-500 shadow-lg shadow-cyan-200/50'}
+            `}>
+              <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-white">{child.avatar}</span>
+            </div>
           </motion.div>
 
         {/* Date and Time Display */}
@@ -324,8 +331,13 @@ export default function Dashboard() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <div className="text-5xl sm:text-6xl mb-2 sm:mb-4">
-            {child.avatar}
+          <div className={`
+            w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-4
+            ${child.theme === 'bria'
+              ? 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-200/50'
+              : 'bg-gradient-to-br from-cyan-400 to-teal-500 shadow-lg shadow-cyan-200/50'}
+          `}>
+            <span className="text-3xl sm:text-4xl font-bold text-white">{child.avatar}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gray-800 mb-1 sm:mb-2">
             Hi {child.name}! 👋
