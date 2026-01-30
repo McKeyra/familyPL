@@ -167,6 +167,9 @@ const useStore = create(
       lastResetDate: null,
       dailyLogs: [], // Historical logs: [{ date, bria: { morning: 3, bedtime: 5, chores: 2, starsEarned: 10 }, naya: {...} }]
 
+      // Active timer state (persisted)
+      activeTimer: null, // { childId, activity, duration, timeLeft, isRunning, sessionId, startedAt, pausedAt }
+
       // Actions - User Selection
       setCurrentChild: (childId) => set({ currentChild: childId, isParentMode: false }),
       setParentMode: (enabled) => set({ isParentMode: enabled, currentChild: enabled ? null : get().currentChild }),
@@ -349,6 +352,50 @@ const useStore = create(
           // Update daily time usage
           get().addTimeUsage(session.childId, session.activity.toLowerCase().replace(' ', ''), session.duration)
         }
+        // Clear active timer
+        set({ activeTimer: null })
+      },
+
+      // Actions - Active Timer (persisted)
+      setActiveTimer: (timerData) => {
+        set({ activeTimer: timerData })
+      },
+
+      updateActiveTimerTime: (timeLeft) => {
+        const activeTimer = get().activeTimer
+        if (activeTimer) {
+          set({ activeTimer: { ...activeTimer, timeLeft } })
+        }
+      },
+
+      pauseActiveTimer: () => {
+        const activeTimer = get().activeTimer
+        if (activeTimer) {
+          set({
+            activeTimer: {
+              ...activeTimer,
+              isRunning: false,
+              pausedAt: Date.now(),
+            }
+          })
+        }
+      },
+
+      resumeActiveTimer: () => {
+        const activeTimer = get().activeTimer
+        if (activeTimer) {
+          set({
+            activeTimer: {
+              ...activeTimer,
+              isRunning: true,
+              pausedAt: null,
+            }
+          })
+        }
+      },
+
+      clearActiveTimer: () => {
+        set({ activeTimer: null })
       },
 
       // Actions - Grocery
@@ -695,6 +742,7 @@ const useStore = create(
           dailyTimeUsage: {},
           lastResetDate: null,
           dailyLogs: [],
+          activeTimer: null,
         })
       },
     }),

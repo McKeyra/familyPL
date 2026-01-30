@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Play, Pause, RotateCcw, Check, Tv, BookOpen, Gamepad2, Pencil } from 'lucide-react'
 import confetti from 'canvas-confetti'
@@ -17,17 +17,67 @@ const activities = [
 
 export default function Timer() {
   const navigate = useNavigate()
-  const { currentChild, children, startTimer, completeTimer } = useStore()
+  const {
+    currentChild,
+    children,
+    startTimer,
+    completeTimer,
+    activeTimer,
+    setActiveTimer,
+    updateActiveTimerTime,
+    pauseActiveTimer,
+    resumeActiveTimer,
+    clearActiveTimer,
+  } = useStore()
   const child = currentChild ? children[currentChild] : null
 
-  const [selectedActivity, setSelectedActivity] = useState(null)
-  const [duration, setDuration] = useState(15) // minutes
-  const [timeLeft, setTimeLeft] = useState(0) // seconds
-  const [isRunning, setIsRunning] = useState(false)
-  const [sessionId, setSessionId] = useState(null)
+  // Local state derived from persisted activeTimer or defaults
+  const [selectedActivity, setSelectedActivity] = useState(activeTimer?.activity || null)
+  const [duration, setDuration] = useState(activeTimer?.duration || 15)
+  const [timeLeft, setTimeLeft] = useState(activeTimer?.timeLeft || 0)
+  const [isRunning, setIsRunning] = useState(activeTimer?.isRunning || false)
+  const [sessionId, setSessionId] = useState(activeTimer?.sessionId || null)
   const [showComplete, setShowComplete] = useState(false)
 
   const intervalRef = useRef(null)
+
+  // Restore state from persisted activeTimer on mount
+  useEffect(() => {
+    if (activeTimer && activeTimer.childId === currentChild) {
+      setSelectedActivity(activeTimer.activity)
+      setDuration(activeTimer.duration)
+      setSessionId(activeTimer.sessionId)
+      setIsRunning(activeTimer.isRunning)
+
+      // Calculate remaining time if timer was running
+      if (activeTimer.isRunning && activeTimer.timeLeft > 0) {
+        const elapsed = Math.floor((Date.now() - (activeTimer.pausedAt || activeTimer.startedAt)) / 1000)
+        const remaining = Math.max(0, activeTimer.timeLeft - elapsed)
+        setTimeLeft(remaining)
+        if (remaining <= 0) {
+          handleComplete()
+        }
+      } else {
+        setTimeLeft(activeTimer.timeLeft)
+      }
+    }
+  }, [currentChild])
+
+  // Persist timer state when it changes
+  useEffect(() => {
+    if (sessionId && selectedActivity) {
+      setActiveTimer({
+        childId: currentChild,
+        activity: selectedActivity,
+        duration,
+        timeLeft,
+        isRunning,
+        sessionId,
+        startedAt: activeTimer?.startedAt || Date.now(),
+        pausedAt: isRunning ? null : Date.now(),
+      })
+    }
+  }, [timeLeft, isRunning, sessionId, selectedActivity])
 
   useEffect(() => {
     return () => {
@@ -36,6 +86,23 @@ export default function Timer() {
       }
     }
   }, [])
+
+  const handleComplete = useCallback(() => {
+    setIsRunning(false)
+    const activity = activities.find(a => a.id === selectedActivity)
+    if (sessionId && activity) {
+      completeTimer(sessionId, activity.stars)
+    }
+    setShowComplete(true)
+    clearActiveTimer()
+
+    // Celebration confetti
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+    })
+  }, [sessionId, selectedActivity, completeTimer, clearActiveTimer])
 
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
@@ -59,24 +126,40 @@ export default function Timer() {
         clearInterval(intervalRef.current)
       }
     }
-  }, [isRunning])
+  }, [isRunning, handleComplete])
 
   const handleStart = () => {
     if (!selectedActivity) return
 
     const activity = activities.find(a => a.id === selectedActivity)
     const id = startTimer(currentChild, activity.label, duration)
+    const initialTimeLeft = duration * 60
+
     setSessionId(id)
-    setTimeLeft(duration * 60)
+    setTimeLeft(initialTimeLeft)
     setIsRunning(true)
+
+    // Persist the new timer
+    setActiveTimer({
+      childId: currentChild,
+      activity: selectedActivity,
+      duration,
+      timeLeft: initialTimeLeft,
+      isRunning: true,
+      sessionId: id,
+      startedAt: Date.now(),
+      pausedAt: null,
+    })
   }
 
   const handlePause = () => {
     setIsRunning(false)
+    pauseActiveTimer()
   }
 
   const handleResume = () => {
     setIsRunning(true)
+    resumeActiveTimer()
   }
 
   const handleReset = () => {
@@ -85,22 +168,7 @@ export default function Timer() {
     setSessionId(null)
     setSelectedActivity(null)
     setShowComplete(false)
-  }
-
-  const handleComplete = () => {
-    setIsRunning(false)
-    const activity = activities.find(a => a.id === selectedActivity)
-    if (sessionId && activity) {
-      completeTimer(sessionId, activity.stars)
-    }
-    setShowComplete(true)
-
-    // Celebration confetti
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-    })
+    clearActiveTimer()
   }
 
   const formatTime = (seconds) => {
@@ -357,7 +425,7 @@ export default function Timer() {
                 <Button variant="glass" size="lg" onClick={handleReset}>
                   Start Another
                 </Button>
-                <Button variant="glass" size="lg" onClick={() => navigate('/dashboard')}>
+                <Button variant="glass" size="lg" onClick={() => navigate('/')}>
                   Dashboard
                 </Button>
               </div>
