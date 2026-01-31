@@ -234,7 +234,129 @@ export async function getChallenges() {
   return data
 }
 
+// ============================================================================
+// DAILY STARS - Per-day, per-area star tracking
+// ============================================================================
+
+/**
+ * Upsert daily star record (idempotent)
+ */
+export async function upsertDailyStars(childId, dayDate, starAreaId, stars, reason = null) {
+  const { data, error } = await supabase
+    .from('daily_stars')
+    .upsert({
+      child_id: childId,
+      day_date: dayDate,
+      star_area_id: starAreaId,
+      stars,
+      reason,
+      updated_at: new Date().toISOString(),
+    }, {
+      onConflict: 'child_id,day_date,star_area_id',
+    })
+    .select()
+
+  if (error) throw error
+  return data?.[0]
+}
+
+/**
+ * Get daily stars for a child within a date range
+ */
+export async function getDailyStars(childId, startDate, endDate = null) {
+  let query = supabase
+    .from('daily_stars')
+    .select('*')
+    .eq('child_id', childId)
+    .gte('day_date', startDate)
+    .order('day_date', { ascending: false })
+
+  if (endDate) {
+    query = query.lte('day_date', endDate)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get all daily stars for all children within a date range
+ */
+export async function getAllDailyStars(startDate, endDate = null) {
+  let query = supabase
+    .from('daily_stars')
+    .select('*')
+    .gte('day_date', startDate)
+    .order('day_date', { ascending: false })
+
+  if (endDate) {
+    query = query.lte('day_date', endDate)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+  return data || []
+}
+
+/**
+ * Get star totals per child
+ */
+export async function getChildStarTotals() {
+  const { data, error } = await supabase
+    .rpc('get_child_star_totals')
+
+  if (error) {
+    // RPC might not exist, calculate via query
+    console.warn('[Supabase] get_child_star_totals RPC not available')
+    return null
+  }
+  return data || []
+}
+
+/**
+ * Get daily totals for a child (all areas summed per day)
+ */
+export async function getDailyStarTotals(childId, days = 30) {
+  const startDate = new Date()
+  startDate.setDate(startDate.getDate() - days)
+  const startDateStr = startDate.toISOString().split('T')[0]
+
+  const { data, error } = await supabase
+    .from('daily_stars')
+    .select('day_date, stars')
+    .eq('child_id', childId)
+    .gte('day_date', startDateStr)
+    .order('day_date', { ascending: false })
+
+  if (error) throw error
+
+  // Aggregate by day
+  const totals = {}
+  for (const row of (data || [])) {
+    totals[row.day_date] = (totals[row.day_date] || 0) + row.stars
+  }
+
+  return Object.entries(totals).map(([day_date, total_stars]) => ({
+    day_date,
+    total_stars
+  }))
+}
+
+/**
+ * Subscribe to daily_stars changes (real-time)
+ */
+export function subscribeToDailyStars(callback) {
+  return supabase
+    .channel('daily-stars-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'daily_stars' }, callback)
+    .subscribe()
+}
+
+// ============================================================================
 // Real-time subscriptions
+// ============================================================================
+
 export function subscribeToChildren(callback) {
   return supabase
     .channel('children-changes')

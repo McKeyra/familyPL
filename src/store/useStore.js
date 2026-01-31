@@ -203,7 +203,8 @@ const useStore = create(
       },
 
       // Actions - Stars
-      addStars: (childId, amount, reason) => {
+      // Enhanced to use per-day, per-area star service for proper tracking
+      addStars: (childId, amount, reason, starAreaId = null) => {
         const logEntry = {
           id: Date.now().toString(),
           childId,
@@ -211,6 +212,27 @@ const useStore = create(
           reason,
           timestamp: Date.now(),
         }
+
+        // Determine star area from reason if not provided
+        let area = starAreaId
+        if (!area) {
+          const lowerReason = (reason || '').toLowerCase()
+          if (lowerReason.includes('morning') || lowerReason.includes('brush') || lowerReason.includes('breakfast') || lowerReason.includes('backpack')) {
+            area = 'morning'
+          } else if (lowerReason.includes('bedtime') || lowerReason.includes('bath') || lowerReason.includes('pjs')) {
+            area = 'bedtime'
+          } else if (lowerReason.includes('chore') || lowerReason.includes('clean') || lowerReason.includes('homework') || lowerReason.includes('completed:')) {
+            area = 'chores'
+          } else if (lowerReason.includes('timer')) {
+            area = 'timer'
+          } else if (lowerReason.includes('challenge')) {
+            area = 'challenge'
+          } else {
+            area = 'bonus'
+          }
+        }
+
+        // Update local store immediately
         set((state) => ({
           children: {
             ...state.children,
@@ -221,6 +243,13 @@ const useStore = create(
           },
           starLog: [logEntry, ...state.starLog],
         }))
+
+        // Also update the star service (async, non-blocking)
+        import('../lib/starService').then(({ addStarsToArea }) => {
+          addStarsToArea(childId, area, amount, reason).catch(err => {
+            console.warn('[Store] Star service update failed:', err)
+          })
+        })
 
         // Update streak
         get().updateStreak(childId)
@@ -250,6 +279,14 @@ const useStore = create(
               timestamp: Date.now(),
             }, ...state.starLog],
           }))
+
+          // Also update the star service (async, non-blocking)
+          import('../lib/starService').then(({ addStarsToArea }) => {
+            addStarsToArea(childId, 'bonus', -amount, `Redeemed: ${reward}`).catch(err => {
+              console.warn('[Store] Star service update failed:', err)
+            })
+          })
+
           return true
         }
         return false

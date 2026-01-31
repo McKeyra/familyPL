@@ -15,6 +15,7 @@ import {
 import useStore from '../store/useStore'
 import useDailyReset from '../hooks/useDailyReset'
 import useSupabaseSync from '../hooks/useSupabaseSync'
+import useStarSync from '../hooks/useStarSync'
 
 // Full nav for older children (6+)
 const navItemsOlder = [
@@ -43,6 +44,9 @@ export default function Layout() {
 
   // Sync with Supabase
   useSupabaseSync()
+
+  // Sync star data with Supabase
+  useStarSync()
 
   const child = currentChild ? children[currentChild] : null
   const isYoungChild = child && child.age <= 5
