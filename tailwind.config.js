@@ -8,9 +8,60 @@ export default {
     extend: {
       fontFamily: {
         'sans': ['Inter', 'system-ui', 'sans-serif'],
-        'display': ['Outfit', 'system-ui', 'sans-serif'],
+        'display': ['Nunito', 'system-ui', 'sans-serif'],
+        'toddler': ['Nunito', 'system-ui', 'sans-serif'],
+        'child': ['Space Grotesk', 'system-ui', 'sans-serif'],
+        'parent': ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
+        // ========================================
+        // UR1IFE Earth Tone Palette
+        // ========================================
+        earth: {
+          // Primary earth palette
+          terracotta: '#C9A88A',
+          sand: '#D9CAB3',
+          clay: '#8B7355',
+          stone: '#A89F91',
+          // Accent palette
+          sage: '#9FAA97',
+          mint: '#B8D4C8',
+          warmGreen: '#B4C4AE',
+          dustyRose: '#D4A574',
+          // Neutral foundations
+          cream: '#FAF8F5',
+          linen: '#F5F5F0',
+          warmWhite: '#FFF9F5',
+          charcoal: '#3E3731',
+          softBlack: '#3A3D3A',
+        },
+
+        // Age-specific theme colors
+        toddler: {
+          primary: '#E8D5C4',
+          secondary: '#C8B5A6',
+          accent: '#B8D4C8',
+          background: '#FFF9F5',
+          text: '#4A3F35',
+        },
+        childTheme: {
+          primary: '#B89976',
+          secondary: '#8F7A66',
+          accent: '#9FB4A8',
+          background: '#F8F6F3',
+          text: '#3D3731',
+        },
+        parentTheme: {
+          primary: '#C9A88A',
+          secondary: '#8B7355',
+          accent: '#9FAA97',
+          background: '#FAF8F5',
+          text: '#3E3731',
+        },
+
+        // ========================================
+        // Legacy child themes (kept for compatibility)
+        // ========================================
         // Bria's Theme - Warm Sunset
         bria: {
           50: '#fff7ed',
@@ -62,9 +113,19 @@ export default {
         'glow-bria': '0 0 40px rgba(249, 115, 22, 0.3)',
         'glow-naya': '0 0 40px rgba(6, 182, 212, 0.3)',
         'glow-parent': '0 0 40px rgba(168, 85, 247, 0.3)',
+        // Earth tone shadows
+        'earth-sm': '0 1px 4px rgba(62, 55, 49, 0.06)',
+        'earth-md': '0 2px 8px rgba(62, 55, 49, 0.08)',
+        'earth-lg': '0 4px 16px rgba(62, 55, 49, 0.08)',
       },
       backdropBlur: {
         'glass': '16px',
+      },
+      borderRadius: {
+        'earth-sm': '8px',
+        'earth-md': '12px',
+        'earth-lg': '16px',
+        'earth-xl': '24px',
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',
@@ -73,6 +134,7 @@ export default {
         'pop': 'pop 0.3s ease-out',
         'slide-up': 'slide-up 0.5s ease-out',
         'heart-beat': 'heart-beat 1s ease-in-out infinite',
+        'earth-bounce': 'earth-bounce 0.4s ease-out',
       },
       keyframes: {
         float: {
@@ -99,6 +161,11 @@ export default {
         'heart-beat': {
           '0%, 100%': { transform: 'scale(1)' },
           '50%': { transform: 'scale(1.2)' },
+        },
+        'earth-bounce': {
+          '0%': { transform: 'scale(0.95)' },
+          '50%': { transform: 'scale(1.02)' },
+          '100%': { transform: 'scale(1)' },
         },
       },
     },
