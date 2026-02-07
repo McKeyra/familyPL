@@ -11,11 +11,14 @@ import {
   Settings,
   ArrowLeft,
   Star,
+  WifiOff,
+  CloudOff,
 } from 'lucide-react'
 import useStore from '../store/useStore'
 import useDailyReset from '../hooks/useDailyReset'
-import useSupabaseSync from '../hooks/useSupabaseSync'
+import useSupabaseSync, { getSyncQueueLength } from '../hooks/useSupabaseSync'
 import useStarSync from '../hooks/useStarSync'
+import useNetworkStatus from '../hooks/useNetworkStatus'
 
 // Full nav for older children (6+)
 const navItemsOlder = [
@@ -47,6 +50,10 @@ export default function Layout() {
 
   // Sync star data with Supabase
   useStarSync()
+
+  // Network status for offline indicator
+  const { isOnline } = useNetworkStatus()
+  const pendingCount = getSyncQueueLength()
 
   const child = currentChild ? children[currentChild] : null
   const isYoungChild = child && child.age <= 5
@@ -112,6 +119,21 @@ export default function Layout() {
                 : 'w-5 h-5 sm:w-6 sm:h-6'}`}
             />
           </motion.button>
+
+          {/* Offline indicator */}
+          {!isOnline && (
+            <motion.div
+              className="flex items-center gap-1 bg-amber-500 text-white px-2 py-1 rounded-full text-xs font-medium"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <WifiOff className="w-3 h-3" />
+              <span>Offline</span>
+              {pendingCount > 0 && (
+                <span className="bg-white/30 px-1.5 rounded-full">{pendingCount}</span>
+              )}
+            </motion.div>
+          )}
 
           {/* Page title area - minimal */}
           {isParentMode && (

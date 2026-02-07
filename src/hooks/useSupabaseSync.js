@@ -1,7 +1,12 @@
+/**
+ * Supabase Sync Hook - LOCAL-FIRST / OFFLINE-CAPABLE
+ * Works fully offline, syncs with Supabase when online
+ */
+
 import { useEffect, useRef, useCallback } from 'react'
 import useStore from '../store/useStore'
+import { checkOnline } from './useNetworkStatus'
 import {
-  supabase,
   getChildren,
   getChores,
   getTodayCompletions,
@@ -23,17 +28,112 @@ import {
   subscribeToChoreCompletions,
 } from '../lib/supabase'
 
+// Offline queue storage key
+const SYNC_QUEUE_KEY = 'happy-day-helper-sync-queue'
+
+// Get pending sync operations
+function getSyncQueue() {
+  try {
+    const raw = localStorage.getItem(SYNC_QUEUE_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+// Save pending sync operations
+function saveSyncQueue(queue) {
+  try {
+    localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(queue))
+  } catch (error) {
+    console.error('[Sync] Error saving queue:', error)
+  }
+}
+
+// Add operation to sync queue
+function enqueueSync(operation) {
+  const queue = getSyncQueue()
+  queue.push({
+    ...operation,
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    queuedAt: Date.now(),
+  })
+  saveSyncQueue(queue)
+}
+
+// Get queue length for UI display
+export function getSyncQueueLength() {
+  return getSyncQueue().length
+}
+
+// Flush pending sync queue
+async function flushSyncQueue() {
+  if (!checkOnline()) return
+
+  const queue = getSyncQueue()
+  if (queue.length === 0) return
+
+  console.log(`[Sync] Flushing ${queue.length} pending operations...`)
+  const remaining = []
+
+  for (const op of queue) {
+    try {
+      switch (op.type) {
+        case 'COMPLETE_CHORE':
+          await dbCompleteChore(op.choreId, op.childId)
+          await updateChildStars(op.childId, op.newStars)
+          break
+        case 'ADD_EVENT':
+          await dbAddEvent(op.event)
+          break
+        case 'DELETE_EVENT':
+          await dbDeleteEvent(op.eventId)
+          break
+        case 'ADD_NOTE':
+          await dbAddNote(op.note)
+          break
+        case 'DELETE_NOTE':
+          await dbDeleteNote(op.noteId)
+          break
+        case 'SEND_HEART':
+          await dbSendHeart(op.from, op.to)
+          break
+        case 'UPDATE_STREAK':
+          await dbUpdateStreak(op.childId, op.currentStreak, op.longestStreak, op.lastCompletedDate)
+          break
+        default:
+          console.warn('[Sync] Unknown operation type:', op.type)
+      }
+    } catch (error) {
+      console.warn('[Sync] Failed to sync operation:', op.type, error.message)
+      if ((op.retryCount || 0) < 3) {
+        remaining.push({ ...op, retryCount: (op.retryCount || 0) + 1 })
+      }
+    }
+  }
+
+  saveSyncQueue(remaining)
+  console.log(`[Sync] Flush complete. ${remaining.length} operations remaining.`)
+}
+
 export default function useSupabaseSync() {
   const hasLoaded = useRef(false)
-  const store = useStore()
+  const subscriptionsRef = useRef({ children: null, completions: null })
 
-  // Load initial data from Supabase
+  // Load initial data - LOCAL FIRST, then try Supabase
   const loadFromSupabase = useCallback(async () => {
     if (hasLoaded.current) return
     hasLoaded.current = true
 
+    // Store already has localStorage data via Zustand persist
+    // Only try to load from Supabase if online
+    if (!checkOnline()) {
+      console.log('[Sync] Offline - using local data only')
+      return
+    }
+
     try {
-      console.log('[Supabase] Loading data...')
+      console.log('[Sync] Online - fetching from Supabase...')
 
       // Load children
       const childrenData = await getChildren()
@@ -50,6 +150,16 @@ export default function useSupabaseSync() {
             color: child.color,
           }
         })
+        // Merge with local - prefer higher star count to avoid data loss
+        const localChildren = useStore.getState().children
+        Object.keys(childrenObj).forEach(childId => {
+          if (localChildren[childId]) {
+            childrenObj[childId].stars = Math.max(
+              childrenObj[childId].stars || 0,
+              localChildren[childId].stars || 0
+            )
+          }
+        })
         useStore.setState({ children: childrenObj })
       }
 
@@ -61,28 +171,35 @@ export default function useSupabaseSync() {
 
       if (choresData && choresData.length > 0) {
         const completedIds = new Set(completionsData?.map(c => c.chore_id) || [])
+        const localChores = useStore.getState().chores
         const choresObj = {}
 
         choresData.forEach(chore => {
           if (!choresObj[chore.child_id]) {
             choresObj[chore.child_id] = { morning: [], bedtime: [], chores: [] }
           }
+          // Merge completion status - if completed locally, keep it
+          const localChoreList = localChores[chore.child_id]?.[chore.routine_type] || []
+          const localChore = localChoreList.find(c => c.id === chore.id)
+          const isCompleted = completedIds.has(chore.id) || localChore?.completed
+
           choresObj[chore.child_id][chore.routine_type].push({
             id: chore.id,
             text: chore.text,
             emoji: chore.emoji,
             stars: chore.stars,
-            completed: completedIds.has(chore.id),
+            completed: isCompleted,
           })
         })
 
         useStore.setState({ chores: choresObj })
       }
 
-      // Load events
+      // Load events (merge with local)
       const eventsData = await getEvents()
       if (eventsData) {
-        const events = eventsData.map(e => ({
+        const localEvents = useStore.getState().events || []
+        const remoteEvents = eventsData.map(e => ({
           id: e.id,
           title: e.title,
           emoji: e.emoji,
@@ -91,13 +208,20 @@ export default function useSupabaseSync() {
           sticker: e.sticker,
           notes: e.notes,
         }))
-        useStore.setState({ events })
+        // Merge: keep local events not in remote, add all remote
+        const remoteIds = new Set(remoteEvents.map(e => e.id))
+        const merged = [
+          ...remoteEvents,
+          ...localEvents.filter(e => !remoteIds.has(e.id))
+        ]
+        useStore.setState({ events: merged })
       }
 
-      // Load notes
+      // Load notes (merge with local)
       const notesData = await getNotes()
       if (notesData) {
-        const notes = notesData.map(n => ({
+        const localNotes = useStore.getState().notes || []
+        const remoteNotes = notesData.map(n => ({
           id: n.id,
           type: n.note_type,
           content: n.content,
@@ -105,7 +229,12 @@ export default function useSupabaseSync() {
           color: n.color,
           createdAt: new Date(n.created_at).getTime(),
         }))
-        useStore.setState({ notes })
+        const remoteIds = new Set(remoteNotes.map(n => n.id))
+        const merged = [
+          ...remoteNotes,
+          ...localNotes.filter(n => !remoteIds.has(n.id))
+        ]
+        useStore.setState({ notes: merged })
       }
 
       // Load hearts
@@ -135,125 +264,190 @@ export default function useSupabaseSync() {
         useStore.setState({ streaks: streaksObj })
       }
 
-      console.log('[Supabase] Data loaded successfully')
+      // Flush any pending sync operations
+      await flushSyncQueue()
+
+      console.log('[Sync] Data loaded and merged successfully')
     } catch (error) {
-      console.error('[Supabase] Error loading data:', error)
+      console.warn('[Sync] Error loading from Supabase (using local data):', error.message)
     }
   }, [])
 
-  // Set up real-time subscriptions
+  // Set up real-time subscriptions (only if online)
   useEffect(() => {
     loadFromSupabase()
 
-    // Subscribe to children changes (stars updates)
-    const childrenSub = subscribeToChildren((payload) => {
-      if (payload.new) {
-        const child = payload.new
-        useStore.setState((state) => ({
-          children: {
-            ...state.children,
-            [child.id]: {
-              ...state.children[child.id],
-              stars: child.stars,
-            }
-          }
-        }))
-      }
-    })
+    if (!checkOnline()) {
+      console.log('[Sync] Offline - skipping subscriptions')
+      return
+    }
 
-    // Subscribe to chore completions
-    const completionsSub = subscribeToChoreCompletions((payload) => {
-      // Reload completions when changes happen
-      getTodayCompletions().then(completionsData => {
-        const completedIds = new Set(completionsData?.map(c => c.chore_id) || [])
-        useStore.setState((state) => {
-          const newChores = { ...state.chores }
-          Object.keys(newChores).forEach(childId => {
-            Object.keys(newChores[childId]).forEach(routineType => {
-              newChores[childId][routineType] = newChores[childId][routineType].map(chore => ({
-                ...chore,
-                completed: completedIds.has(chore.id),
-              }))
-            })
-          })
-          return { chores: newChores }
-        })
+    try {
+      // Subscribe to children changes (stars updates)
+      subscriptionsRef.current.children = subscribeToChildren((payload) => {
+        if (payload.new) {
+          const child = payload.new
+          useStore.setState((state) => ({
+            children: {
+              ...state.children,
+              [child.id]: {
+                ...state.children[child.id],
+                stars: child.stars,
+              }
+            }
+          }))
+        }
       })
-    })
+
+      // Subscribe to chore completions
+      subscriptionsRef.current.completions = subscribeToChoreCompletions((payload) => {
+        getTodayCompletions().then(completionsData => {
+          const completedIds = new Set(completionsData?.map(c => c.chore_id) || [])
+          useStore.setState((state) => {
+            const newChores = { ...state.chores }
+            Object.keys(newChores).forEach(childId => {
+              Object.keys(newChores[childId]).forEach(routineType => {
+                newChores[childId][routineType] = newChores[childId][routineType].map(chore => ({
+                  ...chore,
+                  completed: completedIds.has(chore.id) || chore.completed,
+                }))
+              })
+            })
+            return { chores: newChores }
+          })
+        }).catch(() => {})
+      })
+    } catch (error) {
+      console.warn('[Sync] Error setting up subscriptions:', error.message)
+    }
+
+    // Re-sync when coming back online
+    const handleOnline = () => {
+      console.log('[Sync] Back online - re-syncing...')
+      hasLoaded.current = false
+      loadFromSupabase()
+    }
+
+    window.addEventListener('online', handleOnline)
 
     return () => {
-      childrenSub.unsubscribe()
-      completionsSub.unsubscribe()
+      window.removeEventListener('online', handleOnline)
+      if (subscriptionsRef.current.children) {
+        subscriptionsRef.current.children.unsubscribe()
+      }
+      if (subscriptionsRef.current.completions) {
+        subscriptionsRef.current.completions.unsubscribe()
+      }
     }
   }, [loadFromSupabase])
 
   return { loadFromSupabase }
 }
 
-// Wrapper functions that sync to Supabase
+// Wrapper functions that work offline and queue for sync
+
 export async function syncCompleteChore(childId, choreId, stars) {
-  try {
-    await dbCompleteChore(choreId, childId)
-    const child = useStore.getState().children[childId]
-    await updateChildStars(childId, child.stars + stars)
-    await addStarLogEntry(childId, stars, `Completed chore`)
-  } catch (error) {
-    console.error('[Supabase] Error completing chore:', error)
+  const child = useStore.getState().children[childId]
+  const newStars = (child?.stars || 0) + stars
+
+  if (checkOnline()) {
+    try {
+      await dbCompleteChore(choreId, childId)
+      await updateChildStars(childId, newStars)
+      await addStarLogEntry(childId, stars, `Completed chore`)
+    } catch (error) {
+      console.warn('[Sync] Queueing chore completion for later')
+      enqueueSync({ type: 'COMPLETE_CHORE', childId, choreId, newStars })
+    }
+  } else {
+    enqueueSync({ type: 'COMPLETE_CHORE', childId, choreId, newStars })
   }
 }
 
 export async function syncAddEvent(event) {
-  try {
-    return await dbAddEvent(event)
-  } catch (error) {
-    console.error('[Supabase] Error adding event:', error)
+  if (checkOnline()) {
+    try {
+      return await dbAddEvent(event)
+    } catch (error) {
+      console.warn('[Sync] Queueing event for later')
+      enqueueSync({ type: 'ADD_EVENT', event })
+    }
+  } else {
+    enqueueSync({ type: 'ADD_EVENT', event })
   }
 }
 
 export async function syncDeleteEvent(eventId) {
-  try {
-    await dbDeleteEvent(eventId)
-  } catch (error) {
-    console.error('[Supabase] Error deleting event:', error)
+  if (checkOnline()) {
+    try {
+      await dbDeleteEvent(eventId)
+    } catch (error) {
+      console.warn('[Sync] Queueing event deletion for later')
+      enqueueSync({ type: 'DELETE_EVENT', eventId })
+    }
+  } else {
+    enqueueSync({ type: 'DELETE_EVENT', eventId })
   }
 }
 
 export async function syncAddNote(note) {
-  try {
-    return await dbAddNote(note)
-  } catch (error) {
-    console.error('[Supabase] Error adding note:', error)
+  if (checkOnline()) {
+    try {
+      return await dbAddNote(note)
+    } catch (error) {
+      console.warn('[Sync] Queueing note for later')
+      enqueueSync({ type: 'ADD_NOTE', note })
+    }
+  } else {
+    enqueueSync({ type: 'ADD_NOTE', note })
   }
 }
 
 export async function syncDeleteNote(noteId) {
-  try {
-    await dbDeleteNote(noteId)
-  } catch (error) {
-    console.error('[Supabase] Error deleting note:', error)
+  if (checkOnline()) {
+    try {
+      await dbDeleteNote(noteId)
+    } catch (error) {
+      console.warn('[Sync] Queueing note deletion for later')
+      enqueueSync({ type: 'DELETE_NOTE', noteId })
+    }
+  } else {
+    enqueueSync({ type: 'DELETE_NOTE', noteId })
   }
 }
 
 export async function syncSendHeart(from, to) {
-  try {
-    return await dbSendHeart(from, to)
-  } catch (error) {
-    console.error('[Supabase] Error sending heart:', error)
+  if (checkOnline()) {
+    try {
+      return await dbSendHeart(from, to)
+    } catch (error) {
+      console.warn('[Sync] Queueing heart for later')
+      enqueueSync({ type: 'SEND_HEART', from, to })
+    }
+  } else {
+    enqueueSync({ type: 'SEND_HEART', from, to })
   }
 }
 
 export async function syncDailyLog(date, childId, morning, bedtime, chores, starsEarned) {
-  try {
-    await saveDailyLog(date, childId, morning, bedtime, chores, starsEarned)
-  } catch (error) {
-    console.error('[Supabase] Error saving daily log:', error)
+  if (checkOnline()) {
+    try {
+      await saveDailyLog(date, childId, morning, bedtime, chores, starsEarned)
+    } catch (error) {
+      console.warn('[Sync] Daily log sync failed:', error.message)
+    }
   }
 }
 
 export async function syncUpdateStreak(childId, currentStreak, longestStreak, lastCompletedDate) {
-  try {
-    await dbUpdateStreak(childId, currentStreak, longestStreak, lastCompletedDate)
-  } catch (error) {
-    console.error('[Supabase] Error updating streak:', error)
+  if (checkOnline()) {
+    try {
+      await dbUpdateStreak(childId, currentStreak, longestStreak, lastCompletedDate)
+    } catch (error) {
+      console.warn('[Sync] Queueing streak update for later')
+      enqueueSync({ type: 'UPDATE_STREAK', childId, currentStreak, longestStreak, lastCompletedDate })
+    }
+  } else {
+    enqueueSync({ type: 'UPDATE_STREAK', childId, currentStreak, longestStreak, lastCompletedDate })
   }
 }
