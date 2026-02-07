@@ -4,7 +4,12 @@ import { getTodayString } from './timezone'
 const supabaseUrl = 'https://hrsljgzzmmppfmlmtltd.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyc2xqZ3p6bW1wcGZtbG10bHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyMjkyODIsImV4cCI6MjA4MDgwNTI4Mn0.y-b-WZAOEw4qiqmim6b3HTGt3rKGUC59bYQ7to3S0GA'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Create Supabase client with 'hw' schema for Happy Day Helper
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  db: {
+    schema: 'hw'
+  }
+})
 
 // Helper functions for database operations
 
@@ -41,7 +46,7 @@ export async function getTodayCompletions() {
   const { data, error } = await supabase
     .from('chore_completions')
     .select('*')
-    .eq('completed_date', today)
+    .eq('day_date', today)
   if (error) throw error
   return data
 }
@@ -53,7 +58,7 @@ export async function completeChore(choreId, childId) {
     .upsert({
       chore_id: choreId,
       child_id: childId,
-      completed_date: today
+      day_date: today
     })
   if (error) throw error
 }
@@ -64,15 +69,20 @@ export async function uncompleteChore(choreId) {
     .from('chore_completions')
     .delete()
     .eq('chore_id', choreId)
-    .eq('completed_date', today)
+    .eq('day_date', today)
   if (error) throw error
 }
 
 // Star Log
-export async function addStarLogEntry(childId, amount, reason) {
+export async function addStarLogEntry(childId, amount, reason, starAreaId = null) {
   const { error } = await supabase
     .from('star_log')
-    .insert({ child_id: childId, amount, reason })
+    .insert({
+      child_id: childId,
+      stars: amount,
+      reason,
+      star_area_id: starAreaId
+    })
   if (error) throw error
 }
 
@@ -95,22 +105,19 @@ export async function getDailyLogs(days = 30) {
   const { data, error } = await supabase
     .from('daily_logs')
     .select('*')
-    .gte('log_date', startDate)
-    .order('log_date', { ascending: false })
+    .gte('day_date', startDate)
+    .order('day_date', { ascending: false })
   if (error) throw error
   return data
 }
 
-export async function saveDailyLog(logDate, childId, morning, bedtime, chores, starsEarned) {
+export async function saveDailyLog(logDate, childId, summary) {
   const { error } = await supabase
     .from('daily_logs')
     .upsert({
-      log_date: logDate,
+      day_date: logDate,
       child_id: childId,
-      morning_completed: morning,
-      bedtime_completed: bedtime,
-      chores_completed: chores,
-      stars_earned: starsEarned
+      summary
     })
   if (error) throw error
 }
@@ -130,11 +137,9 @@ export async function addEvent(event) {
     .from('events')
     .insert({
       title: event.title,
-      emoji: event.emoji,
+      description: event.description,
       event_date: event.date,
-      child_id: event.child,
-      sticker: event.sticker,
-      notes: event.notes
+      event_time: event.time
     })
     .select()
   if (error) throw error
@@ -163,10 +168,8 @@ export async function addNote(note) {
   const { data, error } = await supabase
     .from('notes')
     .insert({
-      note_type: note.type,
-      content: note.content,
-      author: note.author,
-      color: note.color
+      child_id: note.childId,
+      note_text: note.content
     })
     .select()
   if (error) throw error
@@ -191,10 +194,14 @@ export async function getHearts() {
   return data
 }
 
-export async function sendHeart(fromChild, toChild) {
+export async function sendHeart(fromChild, toChild, message = '') {
   const { data, error } = await supabase
     .from('hearts')
-    .insert({ from_child: fromChild, to_child: toChild })
+    .insert({
+      from_child_id: fromChild,
+      to_child_id: toChild,
+      message
+    })
     .select()
   if (error) throw error
   return data[0]
@@ -209,15 +216,15 @@ export async function getStreaks() {
   return data
 }
 
-export async function updateStreak(childId, currentStreak, longestStreak, lastCompletedDate) {
+export async function updateStreak(childId, streakType, currentStreak, longestStreak, lastUpdated) {
   const { error } = await supabase
     .from('streaks')
     .upsert({
       child_id: childId,
+      streak_type: streakType,
       current_streak: currentStreak,
       longest_streak: longestStreak,
-      last_completed_date: lastCompletedDate,
-      updated_at: new Date().toISOString()
+      last_updated: lastUpdated
     })
   if (error) throw error
 }
@@ -232,6 +239,46 @@ export async function getChallenges() {
     `)
   if (error) throw error
   return data
+}
+
+// Star Areas
+export async function getStarAreas() {
+  const { data, error } = await supabase
+    .from('star_areas')
+    .select('*')
+  if (error) throw error
+  return data
+}
+
+// Theme Presets
+export async function getThemePresets() {
+  const { data, error } = await supabase
+    .from('theme_presets')
+    .select('*')
+  if (error) throw error
+  return data
+}
+
+// Layout Preferences
+export async function getLayoutPreferences(userId) {
+  const { data, error } = await supabase
+    .from('layout_preferences')
+    .select('*')
+    .eq('user_id', userId)
+  if (error) throw error
+  return data
+}
+
+export async function saveLayoutPreference(userId, componentType, layoutConfig) {
+  const { error } = await supabase
+    .from('layout_preferences')
+    .upsert({
+      user_id: userId,
+      component_type: componentType,
+      layout_config: layoutConfig,
+      updated_at: new Date().toISOString()
+    })
+  if (error) throw error
 }
 
 // ============================================================================
@@ -307,7 +354,6 @@ export async function getChildStarTotals() {
     .rpc('get_child_star_totals')
 
   if (error) {
-    // RPC might not exist, calculate via query
     console.warn('[Supabase] get_child_star_totals RPC not available')
     return null
   }
@@ -331,7 +377,6 @@ export async function getDailyStarTotals(childId, days = 30) {
 
   if (error) throw error
 
-  // Aggregate by day
   const totals = {}
   for (const row of (data || [])) {
     totals[row.day_date] = (totals[row.day_date] || 0) + row.stars
@@ -349,7 +394,7 @@ export async function getDailyStarTotals(childId, days = 30) {
 export function subscribeToDailyStars(callback) {
   return supabase
     .channel('daily-stars-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'daily_stars' }, callback)
+    .on('postgres_changes', { event: '*', schema: 'hw', table: 'daily_stars' }, callback)
     .subscribe()
 }
 
@@ -360,13 +405,13 @@ export function subscribeToDailyStars(callback) {
 export function subscribeToChildren(callback) {
   return supabase
     .channel('children-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'children' }, callback)
+    .on('postgres_changes', { event: '*', schema: 'hw', table: 'children' }, callback)
     .subscribe()
 }
 
 export function subscribeToChoreCompletions(callback) {
   return supabase
     .channel('completions-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'chore_completions' }, callback)
+    .on('postgres_changes', { event: '*', schema: 'hw', table: 'chore_completions' }, callback)
     .subscribe()
 }
