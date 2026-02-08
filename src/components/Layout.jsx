@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   Star,
   WifiOff,
+  Users,
 } from 'lucide-react'
 import useStore from '../store/useStore'
 import useDailyReset from '../hooks/useDailyReset'
@@ -34,14 +35,21 @@ const pageTitles = {
   '/parent': 'Parent',
 }
 
-// Full nav for older children (6+)
+// Main nav items - consistent across all views
+const mainNavItems = [
+  { path: '/', icon: Home, label: 'Home' },
+  { path: '/grocery', icon: ShoppingCart, label: 'Grocery' },
+  { path: '/dashboard', icon: Users, label: 'Kids' },
+  { path: '/parent', icon: Settings, label: 'Parent' },
+]
+
+// Full nav for older children (6+) - shown in kid mode
 const navItemsOlder = [
   { path: '/', icon: Home, label: 'Home', emoji: '🏠' },
   { path: '/checklist/morning', icon: CheckSquare, label: 'Tasks', emoji: '✅' },
   { path: '/timer', icon: Clock, label: 'Timer', emoji: '⏰' },
   { path: '/progress', icon: Star, label: 'Progress', emoji: '📊' },
   { path: '/rewards', icon: Gift, label: 'Rewards', emoji: '🎁' },
-  { path: '/parent', icon: Settings, label: 'Parent', emoji: '👤' },
 ]
 
 // Simplified nav for young children (5 and under)
@@ -71,7 +79,12 @@ export default function Layout() {
 
   const child = currentChild ? children[currentChild] : null
   const isYoungChild = child && child.age <= 5
-  const navItems = isYoungChild ? navItemsYoung : navItemsOlder
+
+  // Use main nav for parent mode or when no child is selected
+  // Use kid-specific nav when a child is selected
+  const navItems = isParentMode || !currentChild
+    ? mainNavItems
+    : (isYoungChild ? navItemsYoung : navItemsOlder)
 
   // Get current page title
   const currentPageTitle = pageTitles[location.pathname] ||

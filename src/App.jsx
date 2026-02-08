@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'r
 import { AnimatePresence, motion } from 'framer-motion'
 import { lazy, Suspense } from 'react'
 import Welcome from './pages/Welcome'
+import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Checklist from './pages/Checklist'
 import Timer from './pages/Timer'
@@ -75,9 +76,10 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
+        {/* Landing page is the home/overview */}
         <Route path="/" element={
           <AnimatedPage>
-            <Dashboard />
+            <Landing />
           </AnimatedPage>
         } />
         <Route path="/welcome" element={
@@ -85,8 +87,12 @@ function AnimatedRoutes() {
             <Welcome />
           </AnimatedPage>
         } />
-        {/* Redirect /dashboard to / */}
-        <Route path="/dashboard" element={<Navigate to="/" replace />} />
+        {/* Dashboard for kids section */}
+        <Route path="/dashboard" element={
+          <AnimatedPage>
+            <Dashboard />
+          </AnimatedPage>
+        } />
         <Route element={<Layout />}>
           <Route path="/checklist/:routine" element={<Checklist />} />
           <Route path="/timer" element={<Timer />} />

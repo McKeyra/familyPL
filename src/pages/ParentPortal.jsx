@@ -922,6 +922,9 @@ export default function ParentPortal() {
                       <option value="both">Everyone</option>
                       <option value="bria">Bria</option>
                       <option value="naya">Naya</option>
+                      <option value="mom">Mom</option>
+                      <option value="dad">Dad</option>
+                      <option value="parents">Parents</option>
                     </select>
                   </div>
 
