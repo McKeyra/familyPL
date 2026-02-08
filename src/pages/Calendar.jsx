@@ -3,15 +3,22 @@ import { useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Plus,
   X,
   Calendar as CalendarIcon,
+  Clock,
+  Users,
+  FileText,
 } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from 'date-fns'
 import useStore from '../store/useStore'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
 import { eventCategories, eventCategoryList } from '../data/eventCategories'
+
+// Top 6 most common categories for quick access
+const quickCategories = eventCategoryList.slice(0, 6)
 
 export default function Calendar() {
   const { currentChild, children, events, addEvent, removeEvent, getChildEvents, isParentMode } = useStore()
@@ -20,6 +27,9 @@ export default function Calendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(null)
   const [showAddEvent, setShowAddEvent] = useState(false)
+  const [showMoreOptions, setShowMoreOptions] = useState(false)
+  const [showAllCategories, setShowAllCategories] = useState(false)
+  const [selectedFor, setSelectedFor] = useState('both')
   const [newEvent, setNewEvent] = useState({
     title: '',
     category: 'other',
@@ -85,10 +95,13 @@ export default function Calendar() {
       date: format(selectedDate, 'yyyy-MM-dd'),
       time: newEvent.time,
       notes: newEvent.notes,
-      child: currentChild,
+      child: selectedFor,
     })
 
     setNewEvent({ title: '', category: 'other', notes: '', time: '' })
+    setSelectedFor('both')
+    setShowMoreOptions(false)
+    setShowAllCategories(false)
     setShowAddEvent(false)
   }
 
@@ -251,112 +264,216 @@ export default function Calendar() {
         )}
       </AnimatePresence>
 
-      {/* Add Event Modal */}
+      {/* Add Event Modal - Bottom Sheet */}
       <AnimatePresence>
         {showAddEvent && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowAddEvent(false)}
           >
             <motion.div
-              className="bg-white rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
-              initial={{ scale: 0.9, y: 30 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 30 }}
+              className="bg-white rounded-t-3xl p-5 w-full max-w-lg shadow-2xl max-h-[85vh] overflow-y-auto"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-xl font-display font-bold text-gray-800 mb-4 text-center">
-                Add Event
-              </h2>
+              {/* Drag Handle */}
+              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4" />
 
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-lg font-semibold text-slate-800">New Event</h2>
+                <button
+                  onClick={() => setShowAddEvent(false)}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"
+                >
+                  <X className="w-5 h-5" strokeWidth={1.5} />
+                </button>
+              </div>
+
+              {/* Primary Fields */}
               {/* Event Title */}
               <div className="mb-4">
-                <label className="block text-sm font-display font-medium text-gray-600 mb-2">
-                  Event Title
-                </label>
                 <input
                   type="text"
                   value={newEvent.title}
                   onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                  placeholder="e.g., Soccer Practice"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:outline-none font-display"
+                  placeholder="Event title"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-400 focus:outline-none text-base"
                   autoFocus
                 />
               </div>
 
-              {/* Category Selection */}
+              {/* Date Display */}
+              <div className="mb-4 p-3 bg-slate-50 rounded-xl flex items-center gap-3">
+                <CalendarIcon className="w-5 h-5 text-slate-400" strokeWidth={1.5} />
+                <span className="text-sm text-slate-700">
+                  {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'Select a date'}
+                </span>
+              </div>
+
+              {/* For Selector - Avatar Pills */}
               <div className="mb-4">
-                <label className="block text-sm font-display font-medium text-gray-600 mb-2">
-                  Category
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+                  For
                 </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {eventCategoryList.map((cat) => (
+                <div className="flex gap-2">
+                  {[
+                    { id: 'both', label: 'Everyone', icon: Users },
+                    { id: 'bria', label: 'Bria', color: 'from-rose-400 to-pink-500' },
+                    { id: 'naya', label: 'Naya', color: 'from-teal-400 to-cyan-500' },
+                  ].map((option) => (
                     <button
-                      key={cat.id}
-                      onClick={() => setNewEvent({ ...newEvent, category: cat.id })}
+                      key={option.id}
+                      onClick={() => setSelectedFor(option.id)}
                       className={`
-                        p-2 rounded-xl flex flex-col items-center gap-1 transition-all border
-                        ${newEvent.category === cat.id
-                          ? `${cat.color} border-2`
-                          : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}
+                        flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all
+                        ${selectedFor === option.id
+                          ? option.color
+                            ? `bg-gradient-to-r ${option.color} text-white shadow-sm`
+                            : 'bg-slate-800 text-white shadow-sm'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}
                       `}
                     >
-                      <span className="text-xl">{cat.icon}</span>
-                      <span className="text-[10px] font-display text-gray-600 truncate w-full text-center">
-                        {cat.name}
-                      </span>
+                      {option.icon ? (
+                        <option.icon className="w-4 h-4" strokeWidth={1.5} />
+                      ) : (
+                        <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${option.color} flex items-center justify-center`}>
+                          <span className="text-[10px] text-white font-bold">{option.label[0]}</span>
+                        </div>
+                      )}
+                      <span>{option.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Time (Optional) */}
+              {/* Quick Category Pills */}
               <div className="mb-4">
-                <label className="block text-sm font-display font-medium text-gray-600 mb-2">
-                  Time (optional)
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+                  Category
                 </label>
-                <input
-                  type="time"
-                  value={newEvent.time}
-                  onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:outline-none font-display"
-                />
+                <div className="flex flex-wrap gap-2">
+                  {quickCategories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setNewEvent({ ...newEvent, category: cat.id })}
+                      className={`
+                        flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm transition-all
+                        ${newEvent.category === cat.id
+                          ? `${cat.color} ring-2 ring-offset-1`
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}
+                      `}
+                    >
+                      <span className="text-base">{cat.icon}</span>
+                      <span>{cat.name}</span>
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setShowAllCategories(!showAllCategories)}
+                    className="flex items-center gap-1 px-3 py-2 rounded-xl text-sm bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  >
+                    More
+                    <ChevronDown className={`w-3 h-3 transition-transform ${showAllCategories ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
+
+                {/* Expanded Categories */}
+                <AnimatePresence>
+                  {showAllCategories && (
+                    <motion.div
+                      className="mt-2 flex flex-wrap gap-2"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                    >
+                      {eventCategoryList.slice(6).map((cat) => (
+                        <button
+                          key={cat.id}
+                          onClick={() => setNewEvent({ ...newEvent, category: cat.id })}
+                          className={`
+                            flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm transition-all
+                            ${newEvent.category === cat.id
+                              ? `${cat.color} ring-2 ring-offset-1`
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}
+                          `}
+                        >
+                          <span className="text-base">{cat.icon}</span>
+                          <span>{cat.name}</span>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {/* Notes */}
-              <div className="mb-6">
-                <label className="block text-sm font-display font-medium text-gray-600 mb-2">
-                  Notes (optional)
-                </label>
-                <input
-                  type="text"
-                  value={newEvent.notes}
-                  onChange={(e) => setNewEvent({ ...newEvent, notes: e.target.value })}
-                  placeholder="e.g., Bring jersey"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:outline-none font-display"
-                />
+              {/* More Options - Progressive Disclosure */}
+              <div className="mb-5">
+                <button
+                  onClick={() => setShowMoreOptions(!showMoreOptions)}
+                  className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700"
+                >
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showMoreOptions ? 'rotate-180' : ''}`} />
+                  More options
+                </button>
+
+                <AnimatePresence>
+                  {showMoreOptions && (
+                    <motion.div
+                      className="mt-3 space-y-3"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                    >
+                      {/* Time */}
+                      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                        <Clock className="w-5 h-5 text-slate-400" strokeWidth={1.5} />
+                        <input
+                          type="time"
+                          value={newEvent.time}
+                          onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                          className="flex-1 bg-transparent focus:outline-none text-sm text-slate-700"
+                          placeholder="Add time"
+                        />
+                      </div>
+
+                      {/* Notes */}
+                      <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                        <FileText className="w-5 h-5 text-slate-400 mt-0.5" strokeWidth={1.5} />
+                        <input
+                          type="text"
+                          value={newEvent.notes}
+                          onChange={(e) => setNewEvent({ ...newEvent, notes: e.target.value })}
+                          placeholder="Add notes"
+                          className="flex-1 bg-transparent focus:outline-none text-sm text-slate-700"
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Actions */}
               <div className="flex gap-3">
-                <Button
-                  variant="ghost"
-                  className="flex-1"
+                <button
                   onClick={() => setShowAddEvent(false)}
+                  className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50"
                 >
                   Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  className={`flex-1 bg-gradient-to-r ${colors.gradient} text-white`}
+                </button>
+                <motion.button
                   onClick={handleAddEvent}
                   disabled={!newEvent.title}
+                  className={`flex-1 py-3 rounded-xl bg-gradient-to-r ${colors.gradient} text-white text-sm font-medium shadow-sm disabled:opacity-50`}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Add Event
-                </Button>
+                </motion.button>
               </div>
             </motion.div>
           </motion.div>
