@@ -71,8 +71,8 @@ export default function Layout() {
   const theme = isParentMode ? 'parent' : (child?.theme || 'bria')
   const colors = themeColors[theme] || themeColors.bria
 
-  // Hide header on landing page
-  const showHeader = location.pathname !== '/'
+  // Hide header on landing page and alternate home
+  const showHeader = location.pathname !== '/' && location.pathname !== '/home-alt'
 
   return (
     <div className={`min-h-screen min-h-[100dvh] bg-gradient-to-br ${colors.gradient} transition-colors duration-300`}>
