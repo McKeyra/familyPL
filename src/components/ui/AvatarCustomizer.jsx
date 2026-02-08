@@ -106,7 +106,7 @@ export default function AvatarCustomizer({ isOpen, onClose, childId }) {
             {/* Preview */}
             <div className="flex justify-center mb-6">
               <motion.div
-                className={`w-24 h-24 rounded-full ${child.theme === 'bria' ? 'bg-gradient-to-br from-orange-400 to-orange-600' : 'bg-gradient-to-br from-cyan-400 to-cyan-600'} flex items-center justify-center shadow-lg overflow-hidden`}
+                className={`w-24 h-24 rounded-full ${child.theme === 'bria' ? 'bg-gradient-to-br from-rose-400 to-pink-500' : 'bg-gradient-to-br from-cyan-400 to-cyan-600'} flex items-center justify-center shadow-lg overflow-hidden`}
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >

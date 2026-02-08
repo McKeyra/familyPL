@@ -45,7 +45,7 @@ export default function DateTimeDisplay({ isYoungChild = false, theme = 'bria' }
   const langLabel = isFrench ? '🇫🇷 Français' : '🇬🇧 English'
 
   const themeColors = theme === 'bria'
-    ? 'from-orange-400/90 to-amber-500/90'
+    ? 'from-rose-400/90 to-pink-500/90'
     : 'from-cyan-400/90 to-teal-500/90'
 
   if (isYoungChild) {

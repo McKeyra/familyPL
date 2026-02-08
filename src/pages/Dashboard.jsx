@@ -63,19 +63,19 @@ function ChildTabs({ children, currentChild, onSelect, onParentAccess, onTimerAc
             className={`
               flex items-center gap-2 px-4 py-2 rounded-full transition-all
               ${currentChild === 'bria'
-                ? 'bg-gradient-to-r from-amber-400 to-orange-500 shadow-lg shadow-amber-200/50'
+                ? 'bg-gradient-to-r from-rose-400 to-pink-500 shadow-lg shadow-rose-200/50'
                 : 'bg-gray-100 hover:bg-gray-200'}
             `}
             whileTap={{ scale: 0.95 }}
           >
             <div className={`
               w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
-              ${currentChild === 'bria' ? 'bg-white/30 text-white' : 'bg-amber-100 text-amber-600'}
+              ${currentChild === 'bria' ? 'bg-white/30 text-white' : 'bg-rose-100 text-rose-600'}
             `}>
               B
             </div>
             <div className="flex items-center gap-1">
-              <Star className={`w-3.5 h-3.5 ${currentChild === 'bria' ? 'text-white fill-white' : 'text-amber-500 fill-amber-500'}`} />
+              <Star className={`w-3.5 h-3.5 ${currentChild === 'bria' ? 'text-white fill-white' : 'text-rose-500 fill-rose-500'}`} />
               <span className={`text-sm font-semibold ${currentChild === 'bria' ? 'text-white' : 'text-gray-700'}`}>
                 {children.bria?.stars || 0}
               </span>
@@ -211,7 +211,7 @@ export default function Dashboard() {
                 key={routine.id}
                 className={`
                   w-full p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl
-                  ${child.theme === 'bria' ? 'bg-gradient-to-r from-orange-400 to-orange-500' : 'bg-gradient-to-r from-cyan-400 to-cyan-500'}
+                  ${child.theme === 'bria' ? 'bg-gradient-to-r from-rose-400 to-pink-500' : 'bg-gradient-to-r from-cyan-400 to-cyan-500'}
                   shadow-xl active:scale-98 transition-transform
                 `}
                 onClick={() => navigate(`/checklist/${routine.id}`)}

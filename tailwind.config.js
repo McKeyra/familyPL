@@ -62,17 +62,17 @@ export default {
         // ========================================
         // Legacy child themes (kept for compatibility)
         // ========================================
-        // Bria's Theme - Warm Sunset
+        // Bria's Theme - Rose Pink
         bria: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          glow: 'rgba(249, 115, 22, 0.4)',
+          50: '#fff1f2',
+          100: '#ffe4e6',
+          200: '#fecdd3',
+          300: '#fda4af',
+          400: '#fb7185',
+          500: '#f43f5e',
+          600: '#e11d48',
+          700: '#be123c',
+          glow: 'rgba(244, 63, 94, 0.4)',
         },
         // Naya's Theme - Ocean Dream
         naya: {
@@ -110,7 +110,7 @@ export default {
         'glass-lg': '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
         'neumorphic': '20px 20px 60px #d1d9e6, -20px -20px 60px #ffffff',
         'neumorphic-inset': 'inset 8px 8px 16px #d1d9e6, inset -8px -8px 16px #ffffff',
-        'glow-bria': '0 0 40px rgba(249, 115, 22, 0.3)',
+        'glow-bria': '0 0 40px rgba(244, 63, 94, 0.3)',
         'glow-naya': '0 0 40px rgba(6, 182, 212, 0.3)',
         'glow-parent': '0 0 40px rgba(168, 85, 247, 0.3)',
         // Earth tone shadows

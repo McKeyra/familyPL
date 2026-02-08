@@ -186,7 +186,7 @@ export default function Timer() {
     const duration = 3000
     const end = Date.now() + duration
     const colors = child?.theme === 'bria'
-      ? ['#f97316', '#fb923c', '#fcd34d', '#fef3c7']
+      ? ['#f43f5e', '#fb7185', '#fda4af', '#ffe4e6']
       : ['#06b6d4', '#22d3ee', '#67e8f9', '#cffafe']
 
     const frame = () => {

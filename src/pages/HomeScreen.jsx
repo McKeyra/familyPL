@@ -146,32 +146,32 @@ export default function HomeScreen() {
                   onClick={() => handleChildClick('bria')}
                   className={`
                     relative overflow-hidden p-5 sm:p-6
-                    bg-gradient-to-br from-amber-50 to-orange-50
-                    border border-amber-100/50
+                    bg-gradient-to-br from-rose-50 to-pink-50
+                    border border-rose-100/50
                     rounded-2xl sm:rounded-3xl
                     text-left transition-all duration-300
-                    hover:shadow-lg hover:shadow-amber-100/50
-                    ${selectedChild === 'bria' ? 'ring-2 ring-amber-300 scale-[0.98]' : ''}
+                    hover:shadow-lg hover:shadow-rose-100/50
+                    ${selectedChild === 'bria' ? 'ring-2 ring-rose-300 scale-[0.98]' : ''}
                   `}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/30 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-rose-200/30 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
                   <div className="relative">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-200/50">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-lg shadow-rose-200/50">
                         <span className="text-xl sm:text-2xl font-semibold text-white">B</span>
                       </div>
                       <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/60 rounded-full">
-                        <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                        <Star className="w-4 h-4 text-rose-500 fill-rose-500" />
                         <span className="text-sm font-semibold text-gray-700">{children.bria?.stars || 0}</span>
                       </div>
                     </div>
                     <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-1">Bria</h3>
                     <p className="text-sm text-gray-500 mb-3">{briaProgress.completed} of {briaProgress.total} tasks</p>
-                    <div className="h-1.5 bg-amber-100 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-rose-100 rounded-full overflow-hidden">
                       <motion.div
-                        className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full"
+                        className="h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full"
                         initial={{ width: 0 }}
                         animate={{ width: `${briaProgress.percentage}%` }}
                         transition={{ duration: 0.8, delay: 0.3 }}
@@ -252,12 +252,12 @@ export default function HomeScreen() {
 
                 {/* Bria Tasks */}
                 <div
-                  className="p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl cursor-pointer hover:border-amber-200 hover:shadow-sm transition-all"
+                  className="p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl cursor-pointer hover:border-rose-200 hover:shadow-sm transition-all"
                   onClick={() => handleChildClick('bria')}
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center">
-                      <span className="text-xs font-semibold text-amber-600">B</span>
+                    <div className="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center">
+                      <span className="text-xs font-semibold text-rose-600">B</span>
                     </div>
                     <span className="text-sm font-medium text-gray-700">Bria</span>
                   </div>
@@ -350,7 +350,7 @@ export default function HomeScreen() {
                             <span>{day}</span>
                             {(hasBriaEvent || hasNayaEvent) && (
                               <div className="flex gap-0.5 absolute bottom-1">
-                                {hasBriaEvent && <div className="w-1 h-1 rounded-full bg-amber-400" />}
+                                {hasBriaEvent && <div className="w-1 h-1 rounded-full bg-rose-400" />}
                                 {hasNayaEvent && <div className="w-1 h-1 rounded-full bg-cyan-400" />}
                               </div>
                             )}
@@ -364,7 +364,7 @@ export default function HomeScreen() {
                 {/* Legend */}
                 <div className="flex items-center justify-center gap-6 mt-5 pt-4 border-t border-gray-50">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-amber-400" />
+                    <div className="w-2 h-2 rounded-full bg-rose-400" />
                     <span className="text-xs text-gray-500">Bria</span>
                   </div>
                   <div className="flex items-center gap-2">

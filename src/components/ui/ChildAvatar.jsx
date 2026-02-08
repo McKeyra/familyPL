@@ -16,7 +16,7 @@ export default function ChildAvatar({
   }
 
   const themeGradients = {
-    bria: 'bg-gradient-to-br from-amber-400 to-orange-500',
+    bria: 'bg-gradient-to-br from-rose-400 to-pink-500',
     naya: 'bg-gradient-to-br from-cyan-400 to-teal-500',
   }
 
