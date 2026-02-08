@@ -17,6 +17,7 @@ import {
   Cake,
   Plane,
   Heart,
+  LayoutGrid,
 } from 'lucide-react'
 import useStore from '../store/useStore'
 import { getTorontoDate } from '../lib/timezone'
@@ -172,6 +173,15 @@ export default function Landing() {
             >
               <ShoppingCart className="w-4 h-4 text-green-600" strokeWidth={1.5} />
               <span className="text-sm font-medium text-slate-700">{groceryCount}</span>
+            </motion.button>
+            {/* Layout Toggle */}
+            <motion.button
+              onClick={() => navigate('/home-alt')}
+              className="p-2 bg-white rounded-full border border-slate-200 shadow-sm"
+              whileTap={{ scale: 0.95 }}
+              title="Switch to grid layout"
+            >
+              <LayoutGrid className="w-4 h-4 text-slate-500" strokeWidth={1.5} />
             </motion.button>
           </div>
         </div>

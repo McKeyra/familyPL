@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Star, Clock, CheckCircle2, Calendar, Gift, FileText, TrendingUp, Settings, Sun, Moon, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Star, Clock, CheckCircle2, Calendar, Gift, FileText, TrendingUp, Settings, Sun, Moon, Sparkles, LayoutList } from 'lucide-react'
 import useStore from '../store/useStore'
 import { getTorontoDate, getTorontoTime, TIMEZONE } from '../lib/timezone'
 
@@ -120,11 +120,23 @@ export default function HomeScreen() {
                 {MONTHS[today.getMonth()]} {today.getDate()}
               </h1>
             </div>
-            <div className="text-right">
-              <p className="text-3xl sm:text-4xl md:text-5xl font-extralight text-gray-800 tabular-nums">
-                {displayHours}:{minutes}
-              </p>
-              <p className="text-sm text-gray-400 font-medium">{amPm}</p>
+            <div className="flex items-start gap-3">
+              <div className="text-right">
+                <p className="text-3xl sm:text-4xl md:text-5xl font-extralight text-gray-800 tabular-nums">
+                  {displayHours}:{minutes}
+                </p>
+                <p className="text-sm text-gray-400 font-medium">{amPm}</p>
+              </div>
+              {/* Layout Toggle */}
+              <motion.button
+                onClick={() => navigate('/')}
+                className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-sm mt-1"
+                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.05 }}
+                title="Switch to list layout"
+              >
+                <LayoutList className="w-5 h-5 text-slate-500" strokeWidth={1.5} />
+              </motion.button>
             </div>
           </div>
           <div className="mt-4 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
