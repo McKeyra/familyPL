@@ -154,7 +154,7 @@ export default function Landing() {
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {/* Bria Card */}
             <motion.button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigateToChild(navigate, setCurrentChild, 'bria')}
               className="p-4 sm:p-5 bg-white rounded-2xl border border-rose-100 shadow-sm hover:shadow-md transition-all text-left"
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
@@ -179,7 +179,7 @@ export default function Landing() {
 
             {/* Naya Card */}
             <motion.button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigateToChild(navigate, setCurrentChild, 'naya')}
               className="p-4 sm:p-5 bg-white rounded-2xl border border-cyan-100 shadow-sm hover:shadow-md transition-all text-left"
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
