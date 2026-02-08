@@ -17,6 +17,9 @@ import {
   PenLine,
   MoreHorizontal,
   RotateCcw,
+  ShoppingCart,
+  Users,
+  CalendarDays,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
@@ -27,9 +30,10 @@ import { eventCategories, eventCategoryList } from '../data/eventCategories'
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'tasks', label: 'Tasks', icon: CheckSquare },
   { id: 'challenges', label: 'Challenges', icon: Trophy },
+  { id: 'tasks', label: 'Tasks', icon: CheckSquare },
   { id: 'calendar', label: 'Calendar', icon: Calendar },
+  { id: 'grocery', label: 'Grocery', icon: ShoppingCart },
 ]
 
 const activityTypes = [
@@ -48,6 +52,7 @@ export default function ParentPortal() {
     starLog,
     timeLimits,
     challenges,
+    groceryList,
     addChore,
     removeChore,
     addEvent,
@@ -60,6 +65,8 @@ export default function ParentPortal() {
     toggleChallengeActive,
     getChallengeProgress,
     completeChallenge,
+    toggleGroceryItem,
+    removeGroceryItem,
   } = useStore()
 
   const [activeTab, setActiveTab] = useState('overview')
@@ -259,6 +266,40 @@ export default function ParentPortal() {
                     </div>
                   )
                 })}
+              </div>
+
+              {/* Quick Stats Row */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <ShoppingCart className="w-4 h-4 text-orange-500" strokeWidth={1.5} />
+                    <span className="text-xs text-slate-500">Grocery</span>
+                  </div>
+                  <p className="text-xl font-bold text-slate-800 tabular-nums">
+                    {groceryList?.filter(item => !item.checked).length || 0}
+                  </p>
+                  <p className="text-[10px] text-slate-400">items needed</p>
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CalendarDays className="w-4 h-4 text-blue-500" strokeWidth={1.5} />
+                    <span className="text-xs text-slate-500">Events</span>
+                  </div>
+                  <p className="text-xl font-bold text-slate-800 tabular-nums">
+                    {events?.length || 0}
+                  </p>
+                  <p className="text-[10px] text-slate-400">upcoming</p>
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Users className="w-4 h-4 text-purple-500" strokeWidth={1.5} />
+                    <span className="text-xs text-slate-500">Family</span>
+                  </div>
+                  <p className="text-xl font-bold text-slate-800 tabular-nums">
+                    {Object.keys(children).length}
+                  </p>
+                  <p className="text-[10px] text-slate-400">members</p>
+                </div>
               </div>
 
               {/* Recent Activity - PRIMARY SECTION */}
@@ -597,6 +638,86 @@ export default function ParentPortal() {
                   )}
                 </div>
               </GlassCard>
+            </motion.div>
+          )}
+
+          {/* Grocery Tab */}
+          {activeTab === 'grocery' && (
+            <motion.div
+              key="grocery"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-slate-800">Shopping List</h2>
+                <button
+                  onClick={() => navigate('/grocery')}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-xl text-sm font-medium hover:bg-slate-700 transition-colors"
+                >
+                  <ShoppingCart className="w-4 h-4" strokeWidth={1.5} />
+                  Open Full List
+                </button>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="divide-y divide-slate-100">
+                  {groceryList?.filter(item => !item.checked).slice(0, 10).map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between p-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => toggleGroceryItem(item.id)}
+                          className="w-5 h-5 rounded border-2 border-slate-300 flex items-center justify-center hover:border-slate-400 transition-colors"
+                        />
+                        <span className="text-sm text-slate-700">{item.name}</span>
+                        {item.quantity > 1 && (
+                          <span className="text-xs text-slate-400">x{item.quantity}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400 capitalize">{item.category}</span>
+                        <button
+                          onClick={() => removeGroceryItem(item.id)}
+                          className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {(!groceryList || groceryList.filter(item => !item.checked).length === 0) && (
+                    <div className="p-8 text-center text-slate-400">
+                      <ShoppingCart className="w-10 h-10 mx-auto mb-2 opacity-30" strokeWidth={1.5} />
+                      <p className="text-sm">Shopping list is empty</p>
+                    </div>
+                  )}
+                </div>
+                {groceryList?.filter(item => !item.checked).length > 10 && (
+                  <div className="p-3 bg-slate-50 text-center">
+                    <button
+                      onClick={() => navigate('/grocery')}
+                      className="text-sm text-slate-600 hover:text-slate-800 font-medium"
+                    >
+                      View all {groceryList.filter(item => !item.checked).length} items
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Checked Items Summary */}
+              {groceryList?.filter(item => item.checked).length > 0 && (
+                <div className="mt-4 p-4 bg-green-50 rounded-xl border border-green-200">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <CheckSquare className="w-4 h-4" strokeWidth={1.5} />
+                    <span className="text-sm font-medium">
+                      {groceryList.filter(item => item.checked).length} items completed
+                    </span>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 

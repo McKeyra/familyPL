@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Sun,
   Moon,
@@ -18,6 +18,7 @@ import useStore from '../store/useStore'
 import ChildAvatar from '../components/ui/ChildAvatar'
 import AvatarCustomizer from '../components/ui/AvatarCustomizer'
 import { getTorontoDate } from '../lib/timezone'
+import { format } from 'date-fns'
 
 // Routine definitions with icons (no emoji)
 const routines = [
@@ -111,6 +112,15 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { currentChild, children, chores, getChildEvents, sendHeart, setCurrentChild } = useStore()
   const [showAvatarCustomizer, setShowAvatarCustomizer] = useState(false)
+  const [currentTime, setCurrentTime] = useState(getTorontoDate())
+
+  // Update time every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(getTorontoDate())
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Default to bria if no child selected
   const activeChild = currentChild || 'bria'
@@ -151,36 +161,54 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 sm:p-6 max-w-lg mx-auto">
-      {/* Compact Header - F-pattern */}
-      <motion.header
-        className="flex items-center justify-between mb-6"
+      {/* Top Bar - Profile Switcher + Time */}
+      <motion.div
+        className="flex items-center justify-between mb-4"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        {/* Left: Avatar + Name */}
-        <div className="flex items-center gap-3">
-          <motion.div
-            className="relative"
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowAvatarCustomizer(true)}
-          >
-            <ChildAvatar child={child} size="md" />
-            <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-r ${theme.gradient} flex items-center justify-center`}>
-              <Star className="w-3 h-3 text-white fill-white" strokeWidth={1.5} />
-            </div>
-          </motion.div>
-          <div>
-            <h1 className="text-lg font-semibold text-slate-800">Hi {child?.name}</h1>
-            <p className="text-xs text-slate-500 tabular-nums">{child?.stars || 0} stars</p>
-          </div>
-        </div>
-
-        {/* Right: Profile Switcher */}
+        {/* Left: Profile Switcher Pills */}
         <ProfileSwitcher
           children={children}
           currentChild={activeChild}
           onSelect={setCurrentChild}
         />
+
+        {/* Right: Time + Date */}
+        <div className="text-right">
+          <p className="text-sm font-semibold text-slate-800 tabular-nums">
+            {format(currentTime, 'h:mm a')}
+          </p>
+          <p className="text-xs text-slate-500">
+            {format(currentTime, 'EEE, MMM d')}
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Child Info Row */}
+      <motion.header
+        className="flex items-center gap-3 mb-5"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.05 }}
+      >
+        <motion.div
+          className="relative"
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowAvatarCustomizer(true)}
+        >
+          <ChildAvatar child={child} size="md" />
+          <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-r ${theme.gradient} flex items-center justify-center shadow-sm`}>
+            <span className="text-[10px] font-bold text-white">{child?.stars || 0}</span>
+          </div>
+        </motion.div>
+        <div>
+          <h1 className="text-lg font-semibold text-slate-800">Hi {child?.name}!</h1>
+          <div className="flex items-center gap-1 text-xs text-slate-500">
+            <Star className={`w-3 h-3 ${theme.text} fill-current`} strokeWidth={1.5} />
+            <span className="tabular-nums">{child?.stars || 0} stars</span>
+          </div>
+        </div>
       </motion.header>
 
       {/* Hero Routine Card - Contextual */}
