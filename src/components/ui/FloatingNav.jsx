@@ -13,12 +13,12 @@ const tabs = [
 export default function FloatingNav() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { currentChild, children } = useStore()
+  const { currentChild, children, isParentMode } = useStore()
 
   const child = currentChild ? children[currentChild] : null
   const theme = child?.theme || 'bria'
 
-  // Theme colors
+  // Theme colors - includes parent/slate theme
   const themeColors = {
     bria: {
       primary: '#F43F5E',
@@ -28,14 +28,20 @@ export default function FloatingNav() {
       primary: '#14B8A6',
       bg: 'rgba(20, 184, 166, 0.12)',
     },
+    parent: {
+      primary: '#475569',
+      bg: 'rgba(71, 85, 105, 0.12)',
+    },
   }
 
-  const activeTheme = themeColors[theme] || themeColors.bria
+  // Use parent theme when in parent mode or on parent page
+  const effectiveTheme = isParentMode || location.pathname === '/parent' ? 'parent' : theme
+  const activeTheme = themeColors[effectiveTheme] || themeColors.bria
 
   // Determine active tab
   const getActiveTab = () => {
     const path = location.pathname
-    if (path === '/') return 'home'
+    if (path === '/' || path === '/home-alt') return 'home'
     if (path === '/parent') return 'parent'
     if (path === '/rewards') return 'rewards'
     // Tasks includes dashboard, checklists, timer, calendar, notes
@@ -53,22 +59,23 @@ export default function FloatingNav() {
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className="fixed z-50"
+      className="fixed z-50 left-0 right-0 flex justify-center pointer-events-none"
       style={{
-        bottom: 'max(24px, env(safe-area-inset-bottom))',
-        left: '50%',
-        transform: 'translateX(-50%)',
+        bottom: 0,
+        paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
+        paddingLeft: 'env(safe-area-inset-left, 0px)',
+        paddingRight: 'env(safe-area-inset-right, 0px)',
       }}
     >
       <div
-        className="flex items-center gap-1 px-2 py-1.5"
+        className="flex items-center gap-1 px-3 py-2 pointer-events-auto"
         style={{
-          background: 'rgba(255, 255, 255, 0.92)',
+          background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: '9999px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
-          border: '1px solid rgba(255,255,255,0.6)',
+          borderRadius: '24px',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.06)',
+          border: '1px solid rgba(255,255,255,0.8)',
         }}
       >
         {tabs.map((tab) => {
@@ -80,10 +87,11 @@ export default function FloatingNav() {
               key={tab.id}
               onClick={() => navigate(tab.path)}
               whileTap={{ scale: 0.92 }}
-              className="relative flex flex-col items-center gap-0.5 transition-all duration-200 outline-none"
+              className="relative flex flex-col items-center justify-center transition-all duration-200 outline-none"
               style={{
-                padding: isActive ? '10px 20px' : '10px 14px',
-                borderRadius: '9999px',
+                width: isActive ? 72 : 56,
+                height: 48,
+                borderRadius: '16px',
                 background: isActive ? activeTheme.bg : 'transparent',
                 border: 'none',
                 cursor: 'pointer',
@@ -91,7 +99,7 @@ export default function FloatingNav() {
             >
               <Icon
                 size={20}
-                strokeWidth={isActive ? 2.5 : 1.5}
+                strokeWidth={isActive ? 2 : 1.5}
                 style={{
                   color: isActive ? activeTheme.primary : '#94A3B8',
                   transition: 'color 0.2s ease',
@@ -100,9 +108,10 @@ export default function FloatingNav() {
               <span
                 style={{
                   fontSize: '10px',
-                  fontWeight: isActive ? 600 : 400,
+                  fontWeight: isActive ? 600 : 500,
                   color: isActive ? activeTheme.primary : '#94A3B8',
                   transition: 'all 0.2s ease',
+                  marginTop: '2px',
                 }}
               >
                 {tab.label}

@@ -20,6 +20,8 @@ import {
   ShoppingCart,
   Users,
   CalendarDays,
+  Layout,
+  ExternalLink,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
@@ -301,6 +303,25 @@ export default function ParentPortal() {
                   <p className="text-[10px] text-slate-400">members</p>
                 </div>
               </div>
+
+              {/* Alternate Home Screen Preview */}
+              <motion.button
+                onClick={() => navigate('/home-alt')}
+                className="w-full p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100 flex items-center justify-between group hover:shadow-md transition-shadow"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    <Layout className="w-5 h-5 text-white" strokeWidth={1.5} />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-semibold text-slate-800">Alternate Home Screen</h3>
+                    <p className="text-xs text-slate-500">Preview the desktop-style layout</p>
+                  </div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors" strokeWidth={1.5} />
+              </motion.button>
 
               {/* Recent Activity - PRIMARY SECTION */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

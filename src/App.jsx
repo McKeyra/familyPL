@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { lazy, Suspense } from 'react'
 import Welcome from './pages/Welcome'
 import Landing from './pages/Landing'
+import HomeScreen from './pages/HomeScreen'
 import Dashboard from './pages/Dashboard'
 import Checklist from './pages/Checklist'
 import Timer from './pages/Timer'
@@ -85,6 +86,7 @@ function AnimatedRoutes() {
         {/* All main app pages wrapped in Layout with FloatingNav */}
         <Route element={<Layout />}>
           <Route path="/" element={<Landing />} />
+          <Route path="/home-alt" element={<HomeScreen />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/checklist/:routine" element={<Checklist />} />
           <Route path="/timer" element={<Timer />} />
