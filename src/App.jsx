@@ -76,24 +76,16 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
-        {/* Landing page is the home/overview */}
-        <Route path="/" element={
-          <AnimatedPage>
-            <Landing />
-          </AnimatedPage>
-        } />
+        {/* Welcome/onboarding page - no nav */}
         <Route path="/welcome" element={
           <AnimatedPage>
             <Welcome />
           </AnimatedPage>
         } />
-        {/* Dashboard for kids section */}
-        <Route path="/dashboard" element={
-          <AnimatedPage>
-            <Dashboard />
-          </AnimatedPage>
-        } />
+        {/* All main app pages wrapped in Layout with FloatingNav */}
         <Route element={<Layout />}>
+          <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/checklist/:routine" element={<Checklist />} />
           <Route path="/timer" element={<Timer />} />
           <Route path="/calendar" element={<Calendar />} />
