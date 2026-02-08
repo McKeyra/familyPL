@@ -6,14 +6,17 @@ import {
   Star,
   Plus,
   Trash2,
-  ArrowLeft,
   LayoutDashboard,
   Clock,
   Trophy,
-  ShoppingCart,
-  Home,
   BarChart3,
   Bell,
+  Monitor,
+  BookOpen,
+  Gamepad2,
+  PenLine,
+  MoreHorizontal,
+  RotateCcw,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
@@ -24,18 +27,16 @@ import { eventCategories, eventCategoryList } from '../data/eventCategories'
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'timeLimits', label: 'Time', icon: Clock },
-  { id: 'challenges', label: 'Challenges', icon: Trophy },
   { id: 'tasks', label: 'Tasks', icon: CheckSquare },
+  { id: 'challenges', label: 'Challenges', icon: Trophy },
   { id: 'calendar', label: 'Calendar', icon: Calendar },
-  { id: 'grocery', label: 'Grocery', icon: ShoppingCart },
 ]
 
 const activityTypes = [
-  { id: 'screen', label: 'Screen Time', emoji: '📺' },
-  { id: 'reading', label: 'Reading', emoji: '📚' },
-  { id: 'play', label: 'Play Time', emoji: '🎮' },
-  { id: 'homework', label: 'Homework', emoji: '✏️' },
+  { id: 'screen', label: 'Screen Time', icon: Monitor },
+  { id: 'reading', label: 'Reading', icon: BookOpen },
+  { id: 'play', label: 'Play Time', icon: Gamepad2 },
+  { id: 'homework', label: 'Homework', icon: PenLine },
 ]
 
 export default function ParentPortal() {
@@ -157,37 +158,14 @@ export default function ParentPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-amber-50 to-stone-50 p-3 sm:p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <motion.div
-          className="flex items-center justify-between mb-4 sm:mb-6"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleExit}
-              className="p-2 rounded-xl bg-white/60 hover:bg-white/80 transition-colors"
-            >
-              <Home className="w-5 h-5 text-stone-600" strokeWidth={1.5} />
-            </button>
-            <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-stone-800">
-                Parent Portal
-              </h1>
-              <p className="text-stone-500 font-display text-sm">Manage family</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Tabs - horizontal scroll on mobile */}
-        <motion.div
-          className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-        >
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
+      {/* Segmented Control - Pill Style */}
+      <motion.div
+        className="mb-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <div className="flex p-1 bg-slate-100 rounded-2xl">
           {tabs.map((tab) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
@@ -196,10 +174,10 @@ export default function ParentPortal() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex items-center gap-1.5 px-3 py-2 rounded-xl font-display text-sm whitespace-nowrap transition-all
+                  flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
                   ${isActive
-                    ? 'bg-stone-600 text-white shadow-md'
-                    : 'bg-white/60 text-stone-600 hover:bg-white/80'}
+                    ? 'bg-white text-slate-800 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'}
                 `}
               >
                 <Icon className="w-4 h-4" strokeWidth={1.5} />
@@ -207,10 +185,11 @@ export default function ParentPortal() {
               </button>
             )
           })}
-        </motion.div>
+        </div>
+      </motion.div>
 
-        {/* Tab Content */}
-        <AnimatePresence mode="wait">
+      {/* Tab Content */}
+      <AnimatePresence mode="wait">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <motion.div
@@ -218,200 +197,115 @@ export default function ParentPortal() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="grid md:grid-cols-2 gap-6"
+              className="space-y-4"
             >
-              {Object.values(children).map((child) => (
-                <GlassCard key={child.id} variant={child.theme} glow={child.theme}>
-                  <div className="flex items-center gap-4 mb-4">
-                    <span className="text-5xl">{child.avatar}</span>
-                    <div>
-                      <h3 className="text-2xl font-display font-bold text-white">
-                        {child.name}
-                      </h3>
-                      <p className="text-white/80">Age {child.age}</p>
-                    </div>
-                  </div>
+              {/* Family Summary - Compact */}
+              <div className="grid grid-cols-2 gap-3">
+                {Object.values(children).map((child) => {
+                  const themeColors = child.theme === 'bria'
+                    ? { gradient: 'from-rose-400 to-pink-500', border: 'border-rose-200' }
+                    : { gradient: 'from-teal-400 to-cyan-500', border: 'border-teal-200' }
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center bg-white/20 rounded-xl p-3">
-                      <Star className="w-6 h-6 text-yellow-300 mx-auto mb-1" />
-                      <p className="text-2xl font-bold text-white">{child.stars}</p>
-                      <p className="text-xs text-white/70">Current Stars</p>
-                    </div>
-                    <div className="text-center bg-white/20 rounded-xl p-3">
-                      <BarChart3 className="w-6 h-6 text-green-300 mx-auto mb-1" />
-                      <p className="text-2xl font-bold text-white">{getTotalStarsEarned(child.id)}</p>
-                      <p className="text-xs text-white/70">Total Earned</p>
-                    </div>
-                    <div className="text-center bg-white/20 rounded-xl p-3">
-                      <CheckSquare className="w-6 h-6 text-blue-300 mx-auto mb-1" />
-                      <p className="text-2xl font-bold text-white">{getCompletedTasksToday(child.id)}</p>
-                      <p className="text-xs text-white/70">Tasks Today</p>
-                    </div>
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="mt-4 flex gap-2">
-                    <Button
-                      variant="glass"
-                      size="sm"
-                      onClick={() => resetRoutine(child.id, 'morning')}
+                  return (
+                    <div
+                      key={child.id}
+                      className={`p-4 bg-white rounded-2xl border ${themeColors.border} shadow-sm`}
                     >
-                      Reset Morning
-                    </Button>
-                    <Button
-                      variant="glass"
-                      size="sm"
-                      onClick={() => resetRoutine(child.id, 'bedtime')}
-                    >
-                      Reset Bedtime
-                    </Button>
-                  </div>
-                </GlassCard>
-              ))}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${themeColors.gradient} flex items-center justify-center`}>
+                          <span className="text-white font-bold">{child.name[0]}</span>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-slate-800">{child.name}</h3>
+                          <p className="text-xs text-slate-500">Age {child.age}</p>
+                        </div>
+                      </div>
 
-              {/* Quick Stats */}
-              <GlassCard variant="default" className="md:col-span-2">
-                <h3 className="font-display font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-purple-500" />
-                  Recent Activity
-                </h3>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {starLog.slice(0, 10).map((log) => {
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="bg-slate-50 rounded-lg p-2">
+                          <p className="text-lg font-bold text-slate-800 tabular-nums">{child.stars}</p>
+                          <p className="text-[10px] text-slate-500">Stars</p>
+                        </div>
+                        <div className="bg-slate-50 rounded-lg p-2">
+                          <p className="text-lg font-bold text-slate-800 tabular-nums">{getTotalStarsEarned(child.id)}</p>
+                          <p className="text-[10px] text-slate-500">Earned</p>
+                        </div>
+                        <div className="bg-slate-50 rounded-lg p-2">
+                          <p className="text-lg font-bold text-slate-800 tabular-nums">{getCompletedTasksToday(child.id)}</p>
+                          <p className="text-[10px] text-slate-500">Today</p>
+                        </div>
+                      </div>
+
+                      {/* Reset Actions - Collapsed */}
+                      <details className="mt-3">
+                        <summary className="text-xs text-slate-400 cursor-pointer flex items-center gap-1">
+                          <MoreHorizontal className="w-3 h-3" /> Admin actions
+                        </summary>
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={() => resetRoutine(child.id, 'morning')}
+                            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200"
+                          >
+                            <RotateCcw className="w-3 h-3" /> Morning
+                          </button>
+                          <button
+                            onClick={() => resetRoutine(child.id, 'bedtime')}
+                            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200"
+                          >
+                            <RotateCcw className="w-3 h-3" /> Bedtime
+                          </button>
+                        </div>
+                      </details>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Recent Activity - PRIMARY SECTION */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="flex items-center gap-2 p-4 border-b border-slate-100">
+                  <Bell className="w-4 h-4 text-purple-500" strokeWidth={1.5} />
+                  <h3 className="font-semibold text-slate-800">Recent Activity</h3>
+                </div>
+                <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+                  {starLog.slice(0, 15).map((log) => {
                     const child = children[log.childId]
+                    const themeColor = child?.theme === 'bria' ? 'bg-rose-100 text-rose-600' : 'bg-teal-100 text-teal-600'
+
                     return (
                       <div
                         key={log.id}
-                        className="flex items-center justify-between p-3 bg-white/30 rounded-xl"
+                        className="flex items-center justify-between p-3"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">{child?.avatar}</span>
+                          <div className={`w-8 h-8 rounded-full ${themeColor} flex items-center justify-center text-sm font-bold`}>
+                            {child?.name?.[0]}
+                          </div>
                           <div>
-                            <p className="font-display font-semibold text-gray-800">
-                              {child?.name}: {log.reason}
-                            </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm font-medium text-slate-800">{log.reason}</p>
+                            <p className="text-xs text-slate-400">
                               {format(new Date(log.timestamp), 'MMM d, h:mm a')}
                             </p>
                           </div>
                         </div>
-                        <span
-                          className={`font-bold ${log.amount > 0 ? 'text-green-600' : 'text-red-600'}`}
-                        >
-                          {log.amount > 0 ? '+' : ''}
-                          {log.amount} ⭐
+                        <span className={`text-sm font-bold tabular-nums ${log.amount > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                          {log.amount > 0 ? '+' : ''}{log.amount}
+                          <Star className="w-3 h-3 inline ml-0.5 fill-current" />
                         </span>
                       </div>
                     )
                   })}
-                </div>
-              </GlassCard>
-            </motion.div>
-          )}
-
-          {/* Time Limits Tab */}
-          {activeTab === 'timeLimits' && (
-            <motion.div
-              key="timeLimits"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="grid md:grid-cols-2 gap-6"
-            >
-              {Object.values(children).map((child) => (
-                <GlassCard key={child.id} variant={child.theme} glow={child.theme}>
-                  <div className="flex items-center gap-4 mb-6">
-                    <span className="text-5xl">{child.avatar}</span>
-                    <div>
-                      <h3 className="text-2xl font-display font-bold text-white">
-                        {child.name}'s Time Limits
-                      </h3>
-                      <p className="text-white/80">Daily limits that reset each day</p>
+                  {starLog.length === 0 && (
+                    <div className="p-8 text-center text-slate-400">
+                      <Bell className="w-8 h-8 mx-auto mb-2 opacity-30" strokeWidth={1.5} />
+                      <p className="text-sm">No activity yet</p>
                     </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    {activityTypes.map((activity) => {
-                      const limit = timeLimits[child.id]?.[activity.id] || { limit: 60, enabled: false }
-                      return (
-                        <div
-                          key={activity.id}
-                          className="bg-white/20 rounded-xl p-4"
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <span className="text-2xl">{activity.emoji}</span>
-                              <span className="font-display font-semibold text-white">
-                                {activity.label}
-                              </span>
-                            </div>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <span className="text-sm text-white/70">
-                                {limit.enabled ? 'On' : 'Off'}
-                              </span>
-                              <div
-                                className={`
-                                  w-12 h-6 rounded-full transition-colors
-                                  ${limit.enabled ? 'bg-green-400' : 'bg-gray-400'}
-                                  relative cursor-pointer
-                                `}
-                                onClick={() => handleTimeLimitChange(child.id, activity.id, 'enabled', !limit.enabled)}
-                              >
-                                <div
-                                  className={`
-                                    absolute top-1 w-4 h-4 rounded-full bg-white
-                                    transition-transform
-                                    ${limit.enabled ? 'translate-x-7' : 'translate-x-1'}
-                                  `}
-                                />
-                              </div>
-                            </label>
-                          </div>
-
-                          {limit.enabled && (
-                            <div className="flex items-center gap-4">
-                              <input
-                                type="range"
-                                min="15"
-                                max="180"
-                                step="15"
-                                value={limit.limit}
-                                onChange={(e) => handleTimeLimitChange(child.id, activity.id, 'limit', e.target.value)}
-                                className="flex-1 h-2 bg-white/30 rounded-lg appearance-none cursor-pointer"
-                              />
-                              <div className="bg-white/30 px-3 py-1 rounded-lg min-w-[80px] text-center">
-                                <span className="font-display font-bold text-white">
-                                  {limit.limit} min
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </GlassCard>
-              ))}
-
-              {/* Info Card */}
-              <GlassCard variant="default" className="md:col-span-2">
-                <div className="flex items-start gap-4">
-                  <Clock className="w-8 h-8 text-purple-500 flex-shrink-0" />
-                  <div>
-                    <h3 className="font-display font-bold text-gray-800 text-lg mb-2">
-                      How Time Limits Work
-                    </h3>
-                    <ul className="text-gray-600 font-display space-y-2">
-                      <li>• Time limits reset automatically each day at midnight</li>
-                      <li>• When enabled, children will see their remaining time in the Timer</li>
-                      <li>• The Timer will prevent starting new sessions that exceed the limit</li>
-                      <li>• Children can still track activities without limits when disabled</li>
-                    </ul>
-                  </div>
+                  )}
                 </div>
-              </GlassCard>
+              </div>
             </motion.div>
           )}
+
 
           {/* Challenges Tab */}
           {activeTab === 'challenges' && (
@@ -706,31 +600,6 @@ export default function ParentPortal() {
             </motion.div>
           )}
 
-          {/* Grocery Tab */}
-          {activeTab === 'grocery' && (
-            <motion.div
-              key="grocery"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              <div className="text-center py-8">
-                <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-stone-400" strokeWidth={1} />
-                <h3 className="font-display font-bold text-stone-800 text-xl mb-2">
-                  Grocery List
-                </h3>
-                <p className="text-stone-500 mb-6">
-                  Manage your family shopping list
-                </p>
-                <button
-                  onClick={() => navigate('/grocery')}
-                  className="px-6 py-3 bg-stone-600 text-white rounded-xl font-display hover:bg-stone-700 transition-colors"
-                >
-                  Open Grocery List
-                </button>
-              </div>
-            </motion.div>
-          )}
         </AnimatePresence>
 
         {/* Add Task Modal */}
@@ -1089,8 +958,7 @@ export default function ParentPortal() {
               </motion.div>
             </motion.div>
           )}
-        </AnimatePresence>
-      </div>
+      </AnimatePresence>
     </div>
   )
 }
