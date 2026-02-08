@@ -35,11 +35,10 @@ const pageTitles = {
   '/parent': 'Parent',
 }
 
-// Main nav items - consistent across all views
+// Main nav items - consistent across all views (without kids - they have custom buttons)
 const mainNavItems = [
   { path: '/', icon: Home, label: 'Home' },
   { path: '/grocery', icon: ShoppingCart, label: 'Grocery' },
-  { path: '/dashboard', icon: Users, label: 'Kids' },
   { path: '/parent', icon: Settings, label: 'Parent' },
 ]
 
@@ -62,7 +61,7 @@ const navItemsYoung = [
 export default function Layout() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { currentChild, children, isParentMode } = useStore()
+  const { currentChild, children, isParentMode, setCurrentChild } = useStore()
 
   // Check for daily reset on app load
   useDailyReset()
@@ -226,42 +225,124 @@ export default function Layout() {
         <div className={`flex justify-around items-center max-w-3xl mx-auto
           ${isYoungChild ? 'py-2 px-2 sm:py-3 sm:px-4' : 'py-1.5 px-1 sm:py-2 sm:px-2'}`}
         >
-          {navItems.map((item) => {
-            const Icon = item.icon
-            const isActive = location.pathname === item.path ||
-              (item.path === '/checklist/morning' && location.pathname.startsWith('/checklist'))
-
-            return (
+          {/* Render main nav items with B and N buttons inserted */}
+          {isParentMode || !currentChild ? (
+            <>
+              {/* Home */}
               <button
-                key={item.path}
-                onClick={() => navigate(item.path)}
+                onClick={() => navigate('/')}
                 className={`
                   relative flex flex-col items-center rounded-xl
                   transition-all duration-150 active:scale-95
-                  ${isActive ? 'bg-gray-100' : 'hover:bg-gray-50'}
-                  ${isYoungChild ? 'p-2 sm:p-3 min-w-[60px] sm:min-w-[80px]' : 'p-1.5 sm:p-2 min-w-[48px] sm:min-w-[60px]'}
+                  ${location.pathname === '/' ? 'bg-gray-100' : 'hover:bg-gray-50'}
+                  p-1.5 sm:p-2 min-w-[48px] sm:min-w-[56px]
                 `}
               >
-                <Icon className={`
-                  ${isYoungChild ? 'w-6 h-6 sm:w-7 sm:h-7' : 'w-5 h-5 sm:w-6 sm:h-6'}
-                  ${isActive ? (theme === 'bria' ? 'text-rose-500' : theme === 'naya' ? 'text-sky-500' : 'text-stone-600') : 'text-gray-400'}
-                  stroke-[1.5]
-                `} />
-                <span className={`
-                  font-display mt-0.5 sm:mt-1
-                  ${isActive ? 'font-semibold text-gray-800' : 'text-gray-500'}
-                  ${isYoungChild ? 'text-xs sm:text-sm' : 'text-[10px] sm:text-xs'}
-                `}>
-                  {item.label}
+                <Home className={`w-5 h-5 sm:w-6 sm:h-6 stroke-[1.5] ${location.pathname === '/' ? 'text-stone-600' : 'text-gray-400'}`} />
+                <span className={`font-display mt-0.5 sm:mt-1 text-[10px] sm:text-xs ${location.pathname === '/' ? 'font-semibold text-gray-800' : 'text-gray-500'}`}>
+                  Home
                 </span>
-                {isActive && (
-                  <div className={`absolute -bottom-0.5 sm:-bottom-1 rounded-full ${accentColors[theme]}
-                    ${isYoungChild ? 'w-8 sm:w-10 h-1' : 'w-6 sm:w-8 h-0.5 sm:h-1'}`}
-                  />
-                )}
               </button>
-            )
-          })}
+
+              {/* Grocery */}
+              <button
+                onClick={() => navigate('/grocery')}
+                className={`
+                  relative flex flex-col items-center rounded-xl
+                  transition-all duration-150 active:scale-95
+                  ${location.pathname === '/grocery' ? 'bg-gray-100' : 'hover:bg-gray-50'}
+                  p-1.5 sm:p-2 min-w-[48px] sm:min-w-[56px]
+                `}
+              >
+                <ShoppingCart className={`w-5 h-5 sm:w-6 sm:h-6 stroke-[1.5] ${location.pathname === '/grocery' ? 'text-stone-600' : 'text-gray-400'}`} />
+                <span className={`font-display mt-0.5 sm:mt-1 text-[10px] sm:text-xs ${location.pathname === '/grocery' ? 'font-semibold text-gray-800' : 'text-gray-500'}`}>
+                  Grocery
+                </span>
+              </button>
+
+              {/* Bria */}
+              <button
+                onClick={() => {
+                  setCurrentChild('bria')
+                  navigate('/dashboard')
+                }}
+                className="flex flex-col items-center p-1.5 sm:p-2 rounded-xl hover:bg-rose-50 transition-colors min-w-[48px] sm:min-w-[56px]"
+              >
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-sm">
+                  <span className="text-white font-bold text-xs sm:text-sm">B</span>
+                </div>
+                <span className="text-[10px] sm:text-xs font-medium text-rose-600 mt-0.5 sm:mt-1">Bria</span>
+              </button>
+
+              {/* Naya */}
+              <button
+                onClick={() => {
+                  setCurrentChild('naya')
+                  navigate('/dashboard')
+                }}
+                className="flex flex-col items-center p-1.5 sm:p-2 rounded-xl hover:bg-cyan-50 transition-colors min-w-[48px] sm:min-w-[56px]"
+              >
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-sm">
+                  <span className="text-white font-bold text-xs sm:text-sm">N</span>
+                </div>
+                <span className="text-[10px] sm:text-xs font-medium text-cyan-600 mt-0.5 sm:mt-1">Naya</span>
+              </button>
+
+              {/* Parent */}
+              <button
+                onClick={() => navigate('/parent')}
+                className={`
+                  relative flex flex-col items-center rounded-xl
+                  transition-all duration-150 active:scale-95
+                  ${location.pathname === '/parent' ? 'bg-gray-100' : 'hover:bg-gray-50'}
+                  p-1.5 sm:p-2 min-w-[48px] sm:min-w-[56px]
+                `}
+              >
+                <Settings className={`w-5 h-5 sm:w-6 sm:h-6 stroke-[1.5] ${location.pathname === '/parent' ? 'text-stone-600' : 'text-gray-400'}`} />
+                <span className={`font-display mt-0.5 sm:mt-1 text-[10px] sm:text-xs ${location.pathname === '/parent' ? 'font-semibold text-gray-800' : 'text-gray-500'}`}>
+                  Parent
+                </span>
+              </button>
+            </>
+          ) : (
+            /* Kid-specific navigation */
+            navItems.map((item) => {
+              const Icon = item.icon
+              const isActive = location.pathname === item.path ||
+                (item.path === '/checklist/morning' && location.pathname.startsWith('/checklist'))
+
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className={`
+                    relative flex flex-col items-center rounded-xl
+                    transition-all duration-150 active:scale-95
+                    ${isActive ? 'bg-gray-100' : 'hover:bg-gray-50'}
+                    ${isYoungChild ? 'p-2 sm:p-3 min-w-[60px] sm:min-w-[80px]' : 'p-1.5 sm:p-2 min-w-[48px] sm:min-w-[60px]'}
+                  `}
+                >
+                  <Icon className={`
+                    ${isYoungChild ? 'w-6 h-6 sm:w-7 sm:h-7' : 'w-5 h-5 sm:w-6 sm:h-6'}
+                    ${isActive ? (theme === 'bria' ? 'text-rose-500' : theme === 'naya' ? 'text-sky-500' : 'text-stone-600') : 'text-gray-400'}
+                    stroke-[1.5]
+                  `} />
+                  <span className={`
+                    font-display mt-0.5 sm:mt-1
+                    ${isActive ? 'font-semibold text-gray-800' : 'text-gray-500'}
+                    ${isYoungChild ? 'text-xs sm:text-sm' : 'text-[10px] sm:text-xs'}
+                  `}>
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <div className={`absolute -bottom-0.5 sm:-bottom-1 rounded-full ${accentColors[theme]}
+                      ${isYoungChild ? 'w-8 sm:w-10 h-1' : 'w-6 sm:w-8 h-0.5 sm:h-1'}`}
+                    />
+                  )}
+                </button>
+              )
+            })
+          )}
         </div>
       </motion.nav>
     </div>

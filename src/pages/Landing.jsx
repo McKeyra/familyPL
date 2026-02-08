@@ -12,6 +12,12 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import useStore from '../store/useStore'
+
+// Helper to navigate to child's dashboard
+const navigateToChild = (navigate, setCurrentChild, childId) => {
+  setCurrentChild(childId)
+  navigate('/dashboard')
+}
 import { getTorontoDate } from '../lib/timezone'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -40,7 +46,7 @@ const itemVariants = {
 
 export default function Landing() {
   const navigate = useNavigate()
-  const { children, events, chores, groceryList } = useStore()
+  const { children, events, chores, groceryList, setCurrentChild } = useStore()
   const [currentTime, setCurrentTime] = useState(getTorontoDate())
 
   useEffect(() => {
@@ -311,23 +317,37 @@ export default function Landing() {
         <div className="flex justify-around items-center py-2 px-4 max-w-lg mx-auto">
           <button
             onClick={() => navigate('/grocery')}
-            className="flex flex-col items-center p-2 rounded-xl hover:bg-stone-100 transition-colors min-w-[64px]"
+            className="flex flex-col items-center p-2 rounded-xl hover:bg-stone-100 transition-colors min-w-[56px]"
           >
             <ShoppingCart className="w-6 h-6 text-stone-600" strokeWidth={1.5} />
             <span className="text-xs font-medium text-stone-600 mt-1">Grocery</span>
           </button>
 
+          {/* Bria Button */}
           <button
-            onClick={() => navigate('/dashboard')}
-            className="flex flex-col items-center p-2 rounded-xl hover:bg-stone-100 transition-colors min-w-[64px]"
+            onClick={() => navigateToChild(navigate, setCurrentChild, 'bria')}
+            className="flex flex-col items-center p-2 rounded-xl hover:bg-rose-50 transition-colors min-w-[56px]"
           >
-            <Users className="w-6 h-6 text-stone-600" strokeWidth={1.5} />
-            <span className="text-xs font-medium text-stone-600 mt-1">Kids</span>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-sm">B</span>
+            </div>
+            <span className="text-xs font-medium text-rose-600 mt-1">Bria</span>
+          </button>
+
+          {/* Naya Button */}
+          <button
+            onClick={() => navigateToChild(navigate, setCurrentChild, 'naya')}
+            className="flex flex-col items-center p-2 rounded-xl hover:bg-cyan-50 transition-colors min-w-[56px]"
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-sm">N</span>
+            </div>
+            <span className="text-xs font-medium text-cyan-600 mt-1">Naya</span>
           </button>
 
           <button
             onClick={() => navigate('/parent')}
-            className="flex flex-col items-center p-2 rounded-xl hover:bg-stone-100 transition-colors min-w-[64px]"
+            className="flex flex-col items-center p-2 rounded-xl hover:bg-stone-100 transition-colors min-w-[56px]"
           >
             <Settings className="w-6 h-6 text-stone-600" strokeWidth={1.5} />
             <span className="text-xs font-medium text-stone-600 mt-1">Parent</span>
