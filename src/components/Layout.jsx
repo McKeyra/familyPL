@@ -8,21 +8,8 @@ import useStarSync from '../hooks/useStarSync'
 import useNetworkStatus from '../hooks/useNetworkStatus'
 import FloatingNav from './ui/FloatingNav'
 
-// Page title mapping for context-aware header
-const pageTitles = {
-  '/': 'Home',
-  '/dashboard': 'Tasks',
-  '/checklist/morning': 'Morning',
-  '/checklist/bedtime': 'Bedtime',
-  '/checklist/chores': 'Chores',
-  '/timer': 'Timer',
-  '/calendar': 'Calendar',
-  '/notes': 'Notes',
-  '/rewards': 'Rewards',
-  '/grocery': 'Grocery',
-  '/progress': 'Progress',
-  '/parent': 'Settings',
-}
+// Pages that should not show the back button
+const noBackButtonPages = ['/', '/home-alt', '/dashboard', '/rewards', '/parent']
 
 export default function Layout() {
   const navigate = useNavigate()
@@ -45,34 +32,30 @@ export default function Layout() {
   const child = currentChild ? children[currentChild] : null
   const isYoungChild = child && child.age <= 5
 
-  // Get current page title
-  const currentPageTitle = pageTitles[location.pathname] ||
-    (location.pathname.startsWith('/checklist/') ? 'Tasks' : 'UR1IFE')
-
-  // Theme colors
+  // Theme colors - simplified for backgrounds only
   const themeColors = {
     bria: {
-      headerBg: 'bg-rose-500/90',
       accent: 'bg-rose-400',
       gradient: 'from-rose-50 via-pink-50 to-rose-100',
+      backBtn: 'bg-rose-500 hover:bg-rose-600',
     },
     naya: {
-      headerBg: 'bg-teal-500/90',
       accent: 'bg-teal-400',
       gradient: 'from-teal-50 via-cyan-50 to-teal-100',
+      backBtn: 'bg-teal-500 hover:bg-teal-600',
     },
     parent: {
-      headerBg: 'bg-slate-600/90',
       accent: 'bg-slate-500',
       gradient: 'from-slate-50 via-gray-50 to-slate-100',
+      backBtn: 'bg-slate-500 hover:bg-slate-600',
     },
   }
 
   const theme = isParentMode ? 'parent' : (child?.theme || 'bria')
   const colors = themeColors[theme] || themeColors.bria
 
-  // Hide header on landing page and alternate home
-  const showHeader = location.pathname !== '/' && location.pathname !== '/home-alt'
+  // Show floating back button on sub-pages
+  const showBackButton = !noBackButtonPages.includes(location.pathname)
 
   return (
     <div className={`min-h-screen min-h-[100dvh] bg-gradient-to-br ${colors.gradient} transition-colors duration-300`}>
@@ -88,62 +71,47 @@ export default function Layout() {
         />
       </div>
 
-      {/* Compact header */}
-      {showHeader && (
-        <motion.header
-          className={`sticky top-0 z-40 ${colors.headerBg} backdrop-blur-lg shadow-sm safe-top safe-left safe-right`}
-          initial={{ y: -60 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <div className="flex items-center justify-between px-3 py-2 sm:px-4">
-            {/* Back button */}
-            <motion.button
-              onClick={() => {
-                if (window.history.length > 2) {
-                  navigate(-1)
-                } else {
-                  navigate('/')
-                }
-              }}
-              className="p-2 rounded-xl bg-white/20 hover:bg-white/30 active:bg-white/40 transition-colors"
-              whileTap={{ scale: 0.95 }}
-            >
-              <ArrowLeft className="w-5 h-5 text-white" strokeWidth={2} />
-            </motion.button>
+      {/* Floating back button - minimal, only on sub-pages */}
+      <AnimatePresence>
+        {showBackButton && (
+          <motion.button
+            onClick={() => {
+              if (window.history.length > 2) {
+                navigate(-1)
+              } else {
+                navigate('/')
+              }
+            }}
+            className={`fixed top-4 left-4 z-50 p-2.5 rounded-full ${colors.backBtn} text-white shadow-lg safe-top safe-left`}
+            initial={{ opacity: 0, scale: 0.8, x: -20 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.8, x: -20 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <ArrowLeft className="w-5 h-5" strokeWidth={2} />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
-            {/* Page Title - Compact */}
-            <div className="flex items-center gap-2">
-              {!isOnline && (
-                <motion.div
-                  className="flex items-center gap-1 bg-amber-500 text-white px-2 py-1 rounded-full text-xs font-medium"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                >
-                  <WifiOff className="w-3 h-3" />
-                  {pendingCount > 0 && <span>{pendingCount}</span>}
-                </motion.div>
-              )}
-              <motion.div
-                key={currentPageTitle}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <span className="font-semibold text-white text-sm">
-                  {currentPageTitle}
-                </span>
-              </motion.div>
-            </div>
-
-            {/* Spacer for balance */}
-            <div className="w-9" />
-          </div>
-        </motion.header>
-      )}
+      {/* Offline indicator - floating */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div
+            className="fixed top-4 right-4 z-50 flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1.5 rounded-full text-xs font-medium shadow-lg safe-top safe-right"
+            initial={{ opacity: 0, scale: 0.8, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -10 }}
+          >
+            <WifiOff className="w-3.5 h-3.5" />
+            <span>Offline</span>
+            {pendingCount > 0 && <span className="bg-white/20 px-1.5 rounded-full">{pendingCount}</span>}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main content with bottom padding for floating nav */}
-      <main className={`relative z-10 safe-left safe-right pb-28 ${isYoungChild ? 'pb-32' : 'pb-28'}`}>
+      <main className={`relative z-10 safe-left safe-right ${isYoungChild ? 'pb-32' : 'pb-28'}`}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location.pathname}

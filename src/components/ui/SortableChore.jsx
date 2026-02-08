@@ -31,22 +31,31 @@ export default function SortableChore({
     zIndex: isDragging ? 1000 : 1,
   }
 
+  // Clean theme colors
   const themeColors = {
     bria: {
-      bg: 'from-bria-300 to-bria-500',
-      border: 'border-bria-400',
-      glow: 'shadow-glow-bria',
-      text: 'text-bria-700',
+      accent: '#F43F5E',
+      border: 'border-rose-200',
+      borderHover: 'hover:border-rose-300',
+      check: 'bg-rose-500',
+      ring: 'ring-rose-100',
+      star: 'text-rose-300',
+      starFill: 'text-amber-400 fill-amber-400',
+      confetti: ['#f43f5e', '#fb7185', '#fda4af'],
     },
     naya: {
-      bg: 'from-naya-300 to-naya-500',
-      border: 'border-naya-400',
-      glow: 'shadow-glow-naya',
-      text: 'text-naya-700',
+      accent: '#14B8A6',
+      border: 'border-teal-200',
+      borderHover: 'hover:border-teal-300',
+      check: 'bg-teal-500',
+      ring: 'ring-teal-100',
+      star: 'text-teal-300',
+      starFill: 'text-amber-400 fill-amber-400',
+      confetti: ['#14b8a6', '#2dd4bf', '#5eead4'],
     },
   }
 
-  const colors = themeColors[theme]
+  const colors = themeColors[theme] || themeColors.bria
 
   const handlePop = () => {
     if (chore.completed || isPopping || isDraggingEnabled) return
@@ -54,24 +63,22 @@ export default function SortableChore({
     setIsPopping(true)
     setShowStars(true)
 
-    // Trigger confetti at the click location
+    // Trigger confetti
     confetti({
-      particleCount: 30,
-      spread: 60,
+      particleCount: 25,
+      spread: 50,
       origin: { y: 0.6 },
-      colors: theme === 'bria'
-        ? ['#f97316', '#fb923c', '#fdba74']
-        : ['#06b6d4', '#22d3ee', '#67e8f9'],
+      colors: colors.confetti,
     })
 
     setTimeout(() => {
       onComplete(chore.id)
       setIsPopping(false)
-    }, 300)
+    }, 200)
 
     setTimeout(() => {
       setShowStars(false)
-    }, 1000)
+    }, 800)
   }
 
   return (
@@ -80,41 +87,35 @@ export default function SortableChore({
       style={style}
       className="relative"
       layout
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20 }}
       transition={{
         type: 'spring',
         stiffness: 400,
         damping: 30,
-        delay: index * 0.05,
+        delay: index * 0.03,
         layout: { type: 'spring', stiffness: 400, damping: 30 },
       }}
     >
       <motion.div
         className={`
           relative w-full
-          flex items-center gap-3 p-3 sm:p-4
-          bg-gradient-to-r ${colors.bg}
-          border-2 ${colors.border}
-          rounded-full
+          flex items-center gap-3 p-4
+          bg-white
+          border ${colors.border} ${colors.borderHover}
+          rounded-2xl
           ${chore.completed ? 'opacity-60' : 'cursor-pointer'}
-          ${isDragging ? 'shadow-2xl' : ''}
-          transition-all duration-300
-          overflow-hidden
+          ${isDragging ? 'shadow-xl ring-2 ' + colors.ring : 'shadow-sm'}
+          transition-all duration-200
         `}
         onClick={handlePop}
         whileHover={!chore.completed && !isDraggingEnabled ? {
-          scale: 1.02,
-          boxShadow: theme === 'bria'
-            ? '0 0 30px rgba(249, 115, 22, 0.4)'
-            : '0 0 30px rgba(6, 182, 212, 0.4)',
+          y: -2,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
         } : {}}
         whileTap={!chore.completed && !isDraggingEnabled ? { scale: 0.98 } : {}}
-        animate={isPopping ? {
-          scale: [1, 1.2, 0.9, 1],
-          opacity: [1, 1, 0.8, 1],
-        } : {}}
+        animate={isPopping ? { scale: [1, 0.95, 1.02, 1] } : {}}
       >
         {/* Drag handle */}
         {isDraggingEnabled && (
@@ -123,62 +124,77 @@ export default function SortableChore({
             {...listeners}
             className="cursor-grab active:cursor-grabbing p-1 -ml-1 touch-none"
           >
-            <GripVertical className="w-5 h-5 text-white/70" />
+            <GripVertical className="w-5 h-5 text-slate-300" />
           </div>
         )}
 
-        {/* Bubble shine effect */}
+        {/* Checkbox circle with emoji or checkmark */}
         <motion.div
-          className="absolute top-2 left-4 w-6 h-6 bg-white/40 rounded-full blur-sm"
-          animate={{ opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-
-        {/* Emoji */}
-        <motion.span
-          className="text-3xl sm:text-4xl"
-          animate={!chore.completed && !isDraggingEnabled ? {
-            y: [0, -3, 0],
-          } : {}}
-          transition={{ duration: 2, repeat: Infinity }}
+          className={`
+            relative flex-shrink-0 w-12 h-12 rounded-xl
+            flex items-center justify-center
+            ${chore.completed
+              ? colors.check
+              : 'bg-slate-50 border border-slate-200'}
+            transition-colors duration-200
+          `}
+          whileHover={!chore.completed ? { scale: 1.05 } : {}}
         >
-          {chore.emoji}
-        </motion.span>
+          {chore.completed ? (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+            >
+              <Check className="w-6 h-6 text-white" strokeWidth={3} />
+            </motion.div>
+          ) : (
+            <motion.span
+              className="text-2xl"
+              animate={{ y: [0, -2, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              {chore.emoji}
+            </motion.span>
+          )}
+        </motion.div>
 
-        {/* Task text */}
-        <span className={`
-          flex-1 text-left text-lg sm:text-xl font-display font-semibold text-white
-          ${chore.completed ? 'line-through opacity-70' : ''}
-        `}>
-          {chore.text}
-        </span>
-
-        {/* Bonus indicator */}
-        {chore.hasBonus && (
-          <span className="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full font-bold">
-            2x
+        {/* Task text and bonus */}
+        <div className="flex-1 min-w-0">
+          <span className={`
+            block text-base font-medium
+            ${chore.completed ? 'line-through text-slate-400' : 'text-slate-800'}
+          `}>
+            {chore.text}
           </span>
-        )}
+          {chore.hasBonus && !chore.completed && (
+            <span className="text-xs text-amber-600 font-medium">
+              ⚡ 2x bonus available
+            </span>
+          )}
+        </div>
 
         {/* Stars indicator */}
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 flex-shrink-0">
           {[...Array(chore.stars)].map((_, i) => (
             <Star
               key={i}
-              className={`w-4 h-4 sm:w-5 sm:h-5 ${chore.completed ? 'text-yellow-500 fill-yellow-500' : 'text-white/70'}`}
+              className={`w-4 h-4 ${chore.completed ? colors.starFill : colors.star}`}
+              strokeWidth={1.5}
+              fill={chore.completed ? 'currentColor' : 'none'}
             />
           ))}
         </div>
 
-        {/* Completion check */}
+        {/* Completed emoji floating badge */}
         {chore.completed && (
           <motion.div
-            className="absolute right-3 sm:right-4 bg-green-500 rounded-full p-1.5 sm:p-2"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 500 }}
+            className="absolute -top-2 -right-2 text-xl bg-white rounded-full p-1 shadow-sm border border-slate-100"
+            initial={{ scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 500, delay: 0.1 }}
           >
-            <Check className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            {chore.emoji}
           </motion.div>
         )}
       </motion.div>
@@ -193,15 +209,15 @@ export default function SortableChore({
                 className="absolute top-1/2 left-1/2 pointer-events-none"
                 initial={{ scale: 0, x: 0, y: 0 }}
                 animate={{
-                  scale: [0, 1.5, 1],
-                  x: (i - 1) * 60,
-                  y: -80 - i * 20,
+                  scale: [0, 1.2, 1],
+                  x: (i - 1) * 50,
+                  y: -60 - i * 15,
                   opacity: [1, 1, 0],
                 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.8, delay: i * 0.1 }}
+                transition={{ duration: 0.6, delay: i * 0.08 }}
               >
-                <span className="text-4xl">⭐</span>
+                <span className="text-2xl">⭐</span>
               </motion.div>
             ))}
           </>
