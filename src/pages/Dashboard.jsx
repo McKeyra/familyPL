@@ -34,21 +34,37 @@ const olderRoutineCards = [
 
 // Simplified actions for young children
 const youngQuickActions = [
-  { id: 'timer', path: '/timer', emoji: '⏰', label: 'Timer', color: 'bg-cyan-400' },
-  { id: 'calendar', path: '/calendar', emoji: '📅', label: 'Days', color: 'bg-pink-400' },
-  { id: 'notes', path: '/notes', emoji: '📝', label: 'Notes', color: 'bg-amber-400' },
-  { id: 'rewards', path: '/rewards', emoji: '🎁', label: 'Prizes', color: 'bg-purple-400' },
-  { id: 'grocery', path: '/grocery', emoji: '🛒', label: 'Shop', color: 'bg-green-400' },
+  { id: 'timer', path: '/timer', emoji: '⏰', label: 'Timer' },
+  { id: 'calendar', path: '/calendar', emoji: '📅', label: 'Days' },
+  { id: 'notes', path: '/notes', emoji: '📝', label: 'Notes' },
+  { id: 'rewards', path: '/rewards', emoji: '🎁', label: 'Prizes' },
+  { id: 'grocery', path: '/grocery', emoji: '🛒', label: 'Shop' },
 ]
 
 // Full labels for older children
 const olderQuickActions = [
-  { id: 'timer', path: '/timer', emoji: '⏰', label: 'Timer', color: 'bg-cyan-400' },
-  { id: 'calendar', path: '/calendar', emoji: '📅', label: 'Calendar', color: 'bg-pink-400' },
-  { id: 'notes', path: '/notes', emoji: '📝', label: 'Notes', color: 'bg-amber-400' },
-  { id: 'rewards', path: '/rewards', emoji: '🎁', label: 'Rewards', color: 'bg-purple-400' },
-  { id: 'grocery', path: '/grocery', emoji: '🛒', label: 'Shopping', color: 'bg-green-400' },
+  { id: 'timer', path: '/timer', emoji: '⏰', label: 'Timer' },
+  { id: 'calendar', path: '/calendar', emoji: '📅', label: 'Calendar' },
+  { id: 'notes', path: '/notes', emoji: '📝', label: 'Notes' },
+  { id: 'rewards', path: '/rewards', emoji: '🎁', label: 'Rewards' },
+  { id: 'grocery', path: '/grocery', emoji: '🛒', label: 'Shopping' },
 ]
+
+// Theme-based colors for buttons
+const themeColors = {
+  bria: {
+    gradient: 'bg-gradient-to-br from-rose-400 to-pink-500',
+    light: 'bg-rose-100 hover:bg-rose-200',
+    border: 'border-rose-200',
+    text: 'text-rose-600',
+  },
+  naya: {
+    gradient: 'bg-gradient-to-br from-cyan-400 to-teal-500',
+    light: 'bg-cyan-100 hover:bg-cyan-200',
+    border: 'border-cyan-200',
+    text: 'text-cyan-600',
+  },
+}
 
 // Tab bar for switching between children
 function ChildTabs({ children, currentChild, onSelect, onParentAccess, onTimerAccess }) {
@@ -247,15 +263,17 @@ export default function Dashboard() {
           })}
         </div>
 
-        {/* Big Quick Action Buttons */}
+        {/* Big Quick Action Buttons - Theme colored */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
-          {quickActions.slice(0, 3).map((action) => (
+          {quickActions.slice(0, 3).map((action, index) => (
             <motion.button
               key={action.id}
               className={`
-                ${action.color} p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl
+                ${themeColors[child.theme]?.gradient || themeColors.bria.gradient}
+                p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl
                 flex flex-col items-center justify-center
                 shadow-lg active:scale-95 transition-transform
+                ${index % 2 === 1 ? 'opacity-90' : ''}
               `}
               onClick={() => navigate(action.path)}
               initial={{ opacity: 0 }}
@@ -272,13 +290,15 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 sm:gap-3">
-          {quickActions.slice(3).map((action) => (
+          {quickActions.slice(3).map((action, index) => (
             <motion.button
               key={action.id}
               className={`
-                ${action.color} p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl
+                ${themeColors[child.theme]?.gradient || themeColors.bria.gradient}
+                p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl
                 flex flex-col items-center justify-center
                 shadow-lg active:scale-95 transition-transform
+                ${index % 2 === 0 ? 'opacity-95' : 'opacity-85'}
               `}
               onClick={() => navigate(action.path)}
               initial={{ opacity: 0 }}
@@ -402,20 +422,22 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Quick Actions Grid */}
+      {/* Quick Actions Grid - Theme colored */}
       <motion.div
         className="grid grid-cols-5 gap-1.5 sm:gap-2 md:gap-4 mb-4 sm:mb-6 md:mb-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        {quickActions.map((action) => (
+        {quickActions.map((action, index) => (
           <button
             key={action.id}
             className={`
-              ${action.color} p-2 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl
+              ${themeColors[child.theme]?.gradient || themeColors.bria.gradient}
+              p-2 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl
               flex flex-col items-center justify-center
               shadow-lg hover:shadow-xl transition-all active:scale-95
+              ${index % 2 === 1 ? 'opacity-90' : ''}
             `}
             onClick={() => navigate(action.path)}
           >
@@ -437,7 +459,7 @@ export default function Dashboard() {
         >
           <GlassCard variant="default" className="h-full">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
-              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
+              <Calendar className={`w-4 h-4 sm:w-5 sm:h-5 ${child.theme === 'bria' ? 'text-rose-500' : 'text-cyan-500'}`} />
               <h3 className="font-display font-bold text-gray-800 text-sm sm:text-base">Coming Up</h3>
             </div>
             {upcomingEvents.length > 0 ? (
