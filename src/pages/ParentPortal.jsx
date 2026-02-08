@@ -12,6 +12,8 @@ import {
   Trophy,
   ShoppingCart,
   Home,
+  BarChart3,
+  Bell,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
@@ -945,8 +947,6 @@ export default function ParentPortal() {
                     Cancel
                   </button>
                   <button
-                    variant="ghost"
-                    className="flex-1"
                     onClick={handleAddEvent}
                     disabled={!newEvent.title.trim() || !newEvent.date}
                     className="flex-1 px-4 py-2.5 bg-stone-600 text-white rounded-xl font-display hover:bg-stone-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
