@@ -355,148 +355,217 @@ export default function ParentPortal() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
+              className="pb-20"
             >
-              <div className="mb-6">
-                <Button
-                  variant="parent"
-                  icon={<Plus className="w-5 h-5" />}
-                  onClick={() => setShowAddChallenge(true)}
-                >
-                  Create New Challenge
-                </Button>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-4">
                 {challenges.map((challenge) => {
                   const progress = getChallengeProgress(challenge.id)
+                  const percentage = progress?.percentage || 0
+                  const circumference = 2 * Math.PI * 40
+                  const strokeDashoffset = circumference - (percentage / 100) * circumference
+
                   return (
-                    <GlassCard
+                    <motion.div
                       key={challenge.id}
-                      variant={challenge.active ? 'parent' : 'default'}
+                      className={`relative overflow-hidden rounded-2xl border shadow-sm ${
+                        challenge.active
+                          ? 'bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700 border-purple-400'
+                          : 'bg-white border-slate-200'
+                      }`}
+                      whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
                     >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <span className="text-4xl">{challenge.emoji}</span>
-                          <div>
-                            <h3 className={`font-display font-bold text-lg ${challenge.active ? 'text-white' : 'text-gray-800'}`}>
-                              {challenge.title}
-                            </h3>
-                            <p className={`text-sm ${challenge.active ? 'text-white/80' : 'text-gray-600'}`}>
-                              {challenge.description}
-                            </p>
+                      {/* Quest Card Header */}
+                      <div className="p-4">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
+                              challenge.active ? 'bg-white/20' : 'bg-purple-100'
+                            }`}>
+                              {challenge.emoji}
+                            </div>
+                            <div>
+                              <h3 className={`font-semibold text-lg ${challenge.active ? 'text-white' : 'text-slate-800'}`}>
+                                {challenge.title}
+                              </h3>
+                              <p className={`text-sm ${challenge.active ? 'text-white/70' : 'text-slate-500'}`}>
+                                {challenge.description || 'Family challenge'}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="glass"
-                            size="sm"
-                            onClick={() => toggleChallengeActive(challenge.id)}
-                          >
-                            {challenge.active ? 'Pause' : 'Resume'}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          <button
                             onClick={() => removeChallenge(challenge.id)}
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              challenge.active ? 'hover:bg-white/20 text-white/60' : 'hover:bg-slate-100 text-slate-400'
+                            }`}
                           >
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </Button>
+                            <Trash2 className="w-4 h-4" strokeWidth={1.5} />
+                          </button>
                         </div>
-                      </div>
 
-                      {/* Progress */}
-                      <div className="mb-4">
-                        <div className={`rounded-full h-4 overflow-hidden ${challenge.active ? 'bg-white/30' : 'bg-gray-200'}`}>
-                          <motion.div
-                            className="h-full bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${progress?.percentage || 0}%` }}
-                            transition={{ duration: 0.5 }}
-                          />
-                        </div>
-                        <div className="flex justify-between mt-1">
-                          <span className={`text-sm ${challenge.active ? 'text-white/70' : 'text-gray-500'}`}>
-                            {progress?.total || 0} / {challenge.target}
-                          </span>
-                          <span className={`text-sm font-bold ${challenge.active ? 'text-white' : 'text-purple-600'}`}>
-                            {Math.round(progress?.percentage || 0)}%
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Individual Progress */}
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div className={`rounded-xl p-3 ${challenge.active ? 'bg-white/20' : 'bg-gray-100'}`}>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span>👧</span>
-                            <span className={challenge.active ? 'text-white' : 'text-gray-700'}>Bria</span>
+                        {/* Circular Progress Ring + Child Contributions */}
+                        <div className="flex items-center gap-6">
+                          {/* Progress Ring */}
+                          <div className="relative w-24 h-24 shrink-0">
+                            <svg className="w-24 h-24 transform -rotate-90">
+                              <circle
+                                cx="48"
+                                cy="48"
+                                r="40"
+                                stroke={challenge.active ? 'rgba(255,255,255,0.2)' : '#E2E8F0'}
+                                strokeWidth="8"
+                                fill="none"
+                              />
+                              <motion.circle
+                                cx="48"
+                                cy="48"
+                                r="40"
+                                stroke={challenge.active ? '#FCD34D' : '#8B5CF6'}
+                                strokeWidth="8"
+                                fill="none"
+                                strokeLinecap="round"
+                                strokeDasharray={circumference}
+                                initial={{ strokeDashoffset: circumference }}
+                                animate={{ strokeDashoffset }}
+                                transition={{ duration: 1, ease: 'easeOut' }}
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <span className={`text-xl font-bold ${challenge.active ? 'text-white' : 'text-slate-800'}`}>
+                                {Math.round(percentage)}%
+                              </span>
+                              <span className={`text-[10px] ${challenge.active ? 'text-white/60' : 'text-slate-400'}`}>
+                                {progress?.total || 0}/{challenge.target}
+                              </span>
+                            </div>
                           </div>
-                          <p className={`text-2xl font-bold ${challenge.active ? 'text-white' : 'text-gray-800'}`}>
-                            {challenge.progress.bria || 0}
-                          </p>
-                        </div>
-                        <div className={`rounded-xl p-3 ${challenge.active ? 'bg-white/20' : 'bg-gray-100'}`}>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span>👶</span>
-                            <span className={challenge.active ? 'text-white' : 'text-gray-700'}>Naya</span>
-                          </div>
-                          <p className={`text-2xl font-bold ${challenge.active ? 'text-white' : 'text-gray-800'}`}>
-                            {challenge.progress.naya || 0}
-                          </p>
-                        </div>
-                      </div>
 
-                      {/* Reward */}
-                      <div className={`rounded-xl p-3 ${challenge.active ? 'bg-white/20' : 'bg-gray-100'}`}>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className={`text-sm ${challenge.active ? 'text-white/70' : 'text-gray-500'}`}>Reward</p>
-                            <p className={`font-display font-bold ${challenge.active ? 'text-white' : 'text-gray-800'}`}>
-                              {challenge.reward}
+                          {/* Child Contributions */}
+                          <div className="flex-1 space-y-2">
+                            {/* Bria */}
+                            <div className={`flex items-center gap-3 p-2 rounded-xl ${
+                              challenge.active ? 'bg-white/10' : 'bg-rose-50'
+                            }`}>
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">B</span>
+                              </div>
+                              <div className="flex-1">
+                                <p className={`text-xs ${challenge.active ? 'text-white/70' : 'text-slate-500'}`}>Bria</p>
+                                <p className={`text-lg font-bold tabular-nums ${challenge.active ? 'text-white' : 'text-rose-600'}`}>
+                                  {challenge.progress.bria || 0}
+                                </p>
+                              </div>
+                            </div>
+                            {/* Naya */}
+                            <div className={`flex items-center gap-3 p-2 rounded-xl ${
+                              challenge.active ? 'bg-white/10' : 'bg-teal-50'
+                            }`}>
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">N</span>
+                              </div>
+                              <div className="flex-1">
+                                <p className={`text-xs ${challenge.active ? 'text-white/70' : 'text-slate-500'}`}>Naya</p>
+                                <p className={`text-lg font-bold tabular-nums ${challenge.active ? 'text-white' : 'text-teal-600'}`}>
+                                  {challenge.progress.naya || 0}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Empty Progress Encouragement */}
+                        {percentage === 0 && challenge.active && (
+                          <div className="mt-3 p-3 bg-white/10 rounded-xl text-center">
+                            <p className="text-sm text-white/80">
+                              Ready to start? Complete your first task to begin!
                             </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Reward Section - Golden Strip */}
+                      <div className={`p-3 ${
+                        challenge.active
+                          ? 'bg-gradient-to-r from-amber-400 to-yellow-500'
+                          : 'bg-gradient-to-r from-amber-50 to-yellow-50 border-t border-amber-100'
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Trophy className={`w-4 h-4 ${challenge.active ? 'text-amber-900' : 'text-amber-600'}`} strokeWidth={1.5} />
+                            <span className={`text-sm font-medium ${challenge.active ? 'text-amber-900' : 'text-amber-700'}`}>
+                              {challenge.reward}
+                            </span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                            <span className={`font-bold ${challenge.active ? 'text-white' : 'text-gray-800'}`}>
-                              {challenge.rewardStars}
+                            <Star className="w-4 h-4 text-amber-500 fill-amber-500" strokeWidth={1.5} />
+                            <span className={`font-bold tabular-nums ${challenge.active ? 'text-amber-900' : 'text-amber-700'}`}>
+                              +{challenge.rewardStars}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Complete Button */}
-                      {progress?.isComplete && challenge.active && (
-                        <Button
-                          variant="success"
-                          className="w-full mt-4"
-                          onClick={() => completeChallenge(challenge.id)}
+                      {/* Action Buttons */}
+                      <div className={`flex gap-2 p-3 ${challenge.active ? 'bg-purple-700/50' : 'bg-slate-50'}`}>
+                        <button
+                          onClick={() => toggleChallengeActive(challenge.id)}
+                          className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
+                            challenge.active
+                              ? 'bg-white/20 text-white hover:bg-white/30'
+                              : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                          }`}
                         >
-                          🎉 Award Challenge Reward!
-                        </Button>
-                      )}
-                    </GlassCard>
+                          {challenge.active ? 'Pause' : 'Resume'}
+                        </button>
+                        {progress?.isComplete && challenge.active && (
+                          <button
+                            onClick={() => completeChallenge(challenge.id)}
+                            className="flex-1 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-sm"
+                          >
+                            Award Reward!
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
                   )
                 })}
 
+                {/* Empty State */}
                 {challenges.length === 0 && (
-                  <GlassCard variant="default" className="md:col-span-2 text-center py-12">
-                    <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="font-display font-bold text-gray-600 text-xl mb-2">
-                      No Challenges Yet
+                  <div className="md:col-span-2 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl border border-purple-100 p-8 text-center">
+                    <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center shadow-lg">
+                      <Trophy className="w-10 h-10 text-white" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="font-semibold text-xl text-slate-800 mb-2">
+                      Start a Family Quest!
                     </h3>
-                    <p className="text-gray-500 mb-4">
-                      Create a challenge to encourage teamwork between siblings!
+                    <p className="text-slate-500 mb-6 max-w-sm mx-auto">
+                      Create challenges to encourage teamwork and celebrate achievements together.
                     </p>
-                    <Button
-                      variant="parent"
-                      icon={<Plus className="w-5 h-5" />}
+                    <button
                       onClick={() => setShowAddChallenge(true)}
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-shadow"
                     >
+                      <Plus className="w-5 h-5" strokeWidth={1.5} />
                       Create First Challenge
-                    </Button>
-                  </GlassCard>
+                    </button>
+                  </div>
                 )}
               </div>
+
+              {/* FAB - Create Challenge Button */}
+              {challenges.length > 0 && (
+                <motion.button
+                  onClick={() => setShowAddChallenge(true)}
+                  className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg flex items-center justify-center z-40"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                >
+                  <Plus className="w-6 h-6" strokeWidth={2} />
+                </motion.button>
+              )}
             </motion.div>
           )}
 
