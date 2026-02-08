@@ -917,7 +917,7 @@ const useStore = create(
       },
     }),
     {
-      name: 'happy-day-helper-storage',
+      name: 'ur1ife-storage',
     }
   )
 )

@@ -12,8 +12,8 @@ import { getTodayString, formatDateString, getTorontoDate } from './timezone'
 
 // Schema version for local storage migrations
 const SCHEMA_VERSION = 1
-const STORAGE_KEY = 'happy-day-helper-stars-v1'
-const QUEUE_KEY = 'happy-day-helper-star-queue'
+const STORAGE_KEY = 'ur1ife-stars-v1'
+const QUEUE_KEY = 'ur1ife-star-queue'
 
 // Star area IDs (routine types + bonuses)
 export const STAR_AREAS = {

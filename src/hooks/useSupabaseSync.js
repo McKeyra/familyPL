@@ -29,7 +29,7 @@ import {
 } from '../lib/supabase'
 
 // Offline queue storage key
-const SYNC_QUEUE_KEY = 'happy-day-helper-sync-queue'
+const SYNC_QUEUE_KEY = 'ur1ife-sync-queue'
 
 // Get pending sync operations
 function getSyncQueue() {

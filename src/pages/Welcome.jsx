@@ -51,7 +51,7 @@ export default function Welcome() {
           transition={{ duration: 0.3 }}
         >
           <h1 className="text-3xl sm:text-5xl md:text-7xl font-display font-bold text-white mb-2 sm:mb-4 drop-shadow-lg">
-            Happy Day Helper
+            UR1IFE
           </h1>
           <p className="text-base sm:text-xl md:text-2xl text-white/90 font-display">
             Who's having a great day today? 🌟
