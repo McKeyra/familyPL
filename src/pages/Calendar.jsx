@@ -35,20 +35,23 @@ export default function Calendar() {
       text: 'text-rose-600',
       gradient: 'from-rose-400 to-pink-500',
       border: 'border-rose-300',
+      dot: 'bg-rose-500',
     },
     naya: {
-      accent: 'bg-sky-500',
-      light: 'bg-sky-100',
-      text: 'text-sky-600',
-      gradient: 'from-sky-400 to-cyan-500',
-      border: 'border-sky-300',
+      accent: 'bg-teal-500',
+      light: 'bg-teal-100',
+      text: 'text-teal-600',
+      gradient: 'from-teal-400 to-cyan-500',
+      border: 'border-teal-300',
+      dot: 'bg-teal-500',
     },
     parent: {
-      accent: 'bg-stone-600',
-      light: 'bg-stone-100',
-      text: 'text-stone-600',
-      gradient: 'from-stone-500 to-amber-600',
-      border: 'border-stone-300',
+      accent: 'bg-slate-600',
+      light: 'bg-slate-100',
+      text: 'text-slate-600',
+      gradient: 'from-slate-500 to-slate-600',
+      border: 'border-slate-300',
+      dot: 'bg-slate-500',
     },
   }
 
@@ -92,21 +95,9 @@ export default function Calendar() {
   if (!child && !isParentMode) return null
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <motion.div
-        className="text-center mb-4 sm:mb-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        <CalendarIcon className={`w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2 ${colors.text}`} strokeWidth={1.5} />
-        <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-800">
-          Calendar
-        </h1>
-      </motion.div>
-
-      {/* Month Navigation */}
-      <div className="flex items-center justify-between mb-4 bg-white/60 rounded-xl p-3 backdrop-blur">
+    <div className="p-4 sm:p-6 max-w-lg mx-auto">
+      {/* Month Navigation - Compact */}
+      <div className="flex items-center justify-between mb-4 bg-white rounded-xl p-3 border border-slate-200 shadow-sm">
         <button
           onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -131,17 +122,16 @@ export default function Calendar() {
         </button>
       </div>
 
-      {/* Calendar Grid */}
-      <div className={`bg-gradient-to-br ${colors.gradient} rounded-2xl p-3 sm:p-4 mb-4 shadow-lg`}>
+      {/* Calendar Grid - Neutral with theme accents */}
+      <div className="bg-white rounded-2xl p-3 sm:p-4 mb-4 border border-slate-200 shadow-sm">
         {/* Day headers */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
             <div
               key={i}
-              className="text-center text-white/70 font-display font-medium py-1 text-xs sm:text-sm"
+              className="text-center text-slate-400 font-medium py-1 text-xs"
             >
-              <span className="hidden sm:inline">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</span>
-              <span className="sm:hidden">{day}</span>
+              {day}
             </div>
           ))}
         </div>
@@ -160,42 +150,33 @@ export default function Calendar() {
               <motion.button
                 key={day.toISOString()}
                 className={`
-                  aspect-square rounded-lg sm:rounded-xl p-0.5 sm:p-1 flex flex-col items-center justify-start
-                  transition-all relative overflow-hidden
-                  ${isToday ? 'bg-white/40 ring-2 ring-white' : 'bg-white/20'}
-                  ${isSelected ? 'ring-2 ring-yellow-400 bg-white/40' : ''}
-                  hover:bg-white/30
+                  aspect-square rounded-lg flex flex-col items-center justify-start p-1
+                  transition-all relative
+                  ${isToday ? `${colors.accent} text-white` : 'hover:bg-slate-100'}
+                  ${isSelected && !isToday ? 'bg-slate-100 ring-2 ring-slate-300' : ''}
                 `}
                 onClick={() => setSelectedDate(day)}
                 whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.008 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: index * 0.005 }}
               >
                 <span className={`
-                  text-xs sm:text-sm font-display font-semibold
-                  ${isToday ? 'text-white' : 'text-white/80'}
+                  text-sm font-medium tabular-nums
+                  ${isToday ? 'text-white' : 'text-slate-700'}
                 `}>
                   {format(day, 'd')}
                 </span>
 
-                {/* Event indicators */}
+                {/* Event dot indicators */}
                 {dayEvents.length > 0 && (
-                  <div className="flex flex-wrap gap-0 justify-center mt-0.5">
-                    {dayEvents.slice(0, 2).map((event) => {
-                      const cat = eventCategories[event.category]
-                      return (
-                        <span
-                          key={event.id}
-                          className="text-xs sm:text-base"
-                        >
-                          {cat?.icon || event.emoji}
-                        </span>
-                      )
-                    })}
-                    {dayEvents.length > 2 && (
-                      <span className="text-[9px] sm:text-xs text-white/70">+{dayEvents.length - 2}</span>
-                    )}
+                  <div className="flex gap-0.5 mt-0.5">
+                    {dayEvents.slice(0, 3).map((event, i) => (
+                      <div
+                        key={event.id}
+                        className={`w-1 h-1 rounded-full ${isToday ? 'bg-white' : colors.dot}`}
+                      />
+                    ))}
                   </div>
                 )}
               </motion.button>
