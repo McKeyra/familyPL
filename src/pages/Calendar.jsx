@@ -1,14 +1,20 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  X,
+  Calendar as CalendarIcon,
+} from 'lucide-react'
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from 'date-fns'
 import useStore from '../store/useStore'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
-import StickerEvent, { stickers } from '../components/ui/StickerEvent'
+import { eventCategories, eventCategoryList } from '../data/eventCategories'
 
 export default function Calendar() {
-  const { currentChild, children, events, addEvent, removeEvent, getChildEvents } = useStore()
+  const { currentChild, children, events, addEvent, removeEvent, getChildEvents, isParentMode } = useStore()
   const child = currentChild ? children[currentChild] : null
 
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -16,9 +22,38 @@ export default function Calendar() {
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [newEvent, setNewEvent] = useState({
     title: '',
-    sticker: 'birthday',
+    category: 'other',
     notes: '',
+    time: '',
   })
+
+  // Theme colors
+  const themeColors = {
+    bria: {
+      accent: 'bg-rose-500',
+      light: 'bg-rose-100',
+      text: 'text-rose-600',
+      gradient: 'from-rose-400 to-pink-500',
+      border: 'border-rose-300',
+    },
+    naya: {
+      accent: 'bg-sky-500',
+      light: 'bg-sky-100',
+      text: 'text-sky-600',
+      gradient: 'from-sky-400 to-cyan-500',
+      border: 'border-sky-300',
+    },
+    parent: {
+      accent: 'bg-stone-600',
+      light: 'bg-stone-100',
+      text: 'text-stone-600',
+      gradient: 'from-stone-500 to-amber-600',
+      border: 'border-stone-300',
+    },
+  }
+
+  const theme = isParentMode ? 'parent' : (child?.theme || 'bria')
+  const colors = themeColors[theme]
 
   const childEvents = getChildEvents(currentChild)
 
@@ -27,7 +62,6 @@ export default function Calendar() {
     end: endOfMonth(currentMonth),
   })
 
-  // Add padding days for calendar grid
   const startDay = startOfMonth(currentMonth).getDay()
   const paddingDays = [...Array(startDay)].map((_, i) => null)
 
@@ -40,22 +74,22 @@ export default function Calendar() {
   const handleAddEvent = () => {
     if (!newEvent.title || !selectedDate) return
 
+    const category = eventCategories[newEvent.category]
     addEvent({
-      ...newEvent,
-      emoji: stickers[newEvent.sticker]?.emoji || '📅',
+      title: newEvent.title,
+      category: newEvent.category,
+      emoji: category?.icon || '📅',
       date: format(selectedDate, 'yyyy-MM-dd'),
+      time: newEvent.time,
+      notes: newEvent.notes,
       child: currentChild,
     })
 
-    setNewEvent({ title: '', sticker: 'birthday', notes: '' })
+    setNewEvent({ title: '', category: 'other', notes: '', time: '' })
     setShowAddEvent(false)
   }
 
-  const handleDeleteEvent = (eventId) => {
-    removeEvent(eventId)
-  }
-
-  if (!child) return null
+  if (!child && !isParentMode) return null
 
   return (
     <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto">
@@ -65,50 +99,46 @@ export default function Calendar() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <span className="text-4xl sm:text-5xl block mb-1.5 sm:mb-2">📅</span>
+        <CalendarIcon className={`w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2 ${colors.text}`} strokeWidth={1.5} />
         <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-800">
-          {child.name}'s Calendar
+          Calendar
         </h1>
       </motion.div>
 
       {/* Month Navigation */}
-      <GlassCard variant="default" className="mb-4 sm:mb-6">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="glass"
-            size="icon"
-            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          >
-            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-          </Button>
+      <div className="flex items-center justify-between mb-4 bg-white/60 rounded-xl p-3 backdrop-blur">
+        <button
+          onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5 text-gray-600" strokeWidth={1.5} />
+        </button>
 
-          <motion.h2
-            key={format(currentMonth, 'MMMM yyyy')}
-            className="text-lg sm:text-2xl font-display font-bold text-gray-800"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            {format(currentMonth, 'MMMM yyyy')}
-          </motion.h2>
+        <motion.h2
+          key={format(currentMonth, 'MMMM yyyy')}
+          className="text-lg sm:text-xl font-display font-bold text-gray-800"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          {format(currentMonth, 'MMMM yyyy')}
+        </motion.h2>
 
-          <Button
-            variant="glass"
-            size="icon"
-            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          >
-            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-          </Button>
-        </div>
-      </GlassCard>
+        <button
+          onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <ChevronRight className="w-5 h-5 text-gray-600" strokeWidth={1.5} />
+        </button>
+      </div>
 
       {/* Calendar Grid */}
-      <GlassCard variant={child.theme} className="mb-4 sm:mb-6">
+      <div className={`bg-gradient-to-br ${colors.gradient} rounded-2xl p-3 sm:p-4 mb-4 shadow-lg`}>
         {/* Day headers */}
-        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1.5 sm:mb-2">
+        <div className="grid grid-cols-7 gap-1 mb-2">
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
             <div
               key={i}
-              className="text-center text-white/80 font-display font-semibold py-1 sm:py-2 text-xs sm:text-base"
+              className="text-center text-white/70 font-display font-medium py-1 text-xs sm:text-sm"
             >
               <span className="hidden sm:inline">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</span>
               <span className="sm:hidden">{day}</span>
@@ -117,7 +147,7 @@ export default function Calendar() {
         </div>
 
         {/* Days */}
-        <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
+        <div className="grid grid-cols-7 gap-1">
           {paddingDays.map((_, i) => (
             <div key={`pad-${i}`} className="aspect-square" />
           ))}
@@ -133,15 +163,14 @@ export default function Calendar() {
                   aspect-square rounded-lg sm:rounded-xl p-0.5 sm:p-1 flex flex-col items-center justify-start
                   transition-all relative overflow-hidden
                   ${isToday ? 'bg-white/40 ring-2 ring-white' : 'bg-white/20'}
-                  ${isSelected ? 'ring-2 ring-yellow-400' : ''}
+                  ${isSelected ? 'ring-2 ring-yellow-400 bg-white/40' : ''}
                   hover:bg-white/30
                 `}
                 onClick={() => setSelectedDate(day)}
-                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.01 }}
+                transition={{ delay: index * 0.008 }}
               >
                 <span className={`
                   text-xs sm:text-sm font-display font-semibold
@@ -150,16 +179,22 @@ export default function Calendar() {
                   {format(day, 'd')}
                 </span>
 
-                {/* Event stickers */}
+                {/* Event indicators */}
                 {dayEvents.length > 0 && (
-                  <div className="flex flex-wrap gap-0 sm:gap-0.5 justify-center mt-0.5 sm:mt-1">
-                    {dayEvents.slice(0, 2).map((event) => (
-                      <span key={event.id} className="text-sm sm:text-lg">
-                        {event.emoji}
-                      </span>
-                    ))}
+                  <div className="flex flex-wrap gap-0 justify-center mt-0.5">
+                    {dayEvents.slice(0, 2).map((event) => {
+                      const cat = eventCategories[event.category]
+                      return (
+                        <span
+                          key={event.id}
+                          className="text-xs sm:text-base"
+                        >
+                          {cat?.icon || event.emoji}
+                        </span>
+                      )
+                    })}
                     {dayEvents.length > 2 && (
-                      <span className="text-[10px] sm:text-xs text-white">+{dayEvents.length - 2}</span>
+                      <span className="text-[9px] sm:text-xs text-white/70">+{dayEvents.length - 2}</span>
                     )}
                   </div>
                 )}
@@ -167,7 +202,7 @@ export default function Calendar() {
             )
           })}
         </div>
-      </GlassCard>
+      </div>
 
       {/* Selected Date Events */}
       <AnimatePresence>
@@ -178,14 +213,14 @@ export default function Calendar() {
             exit={{ opacity: 0, y: 20 }}
           >
             <GlassCard variant="default">
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <h3 className="font-display font-bold text-gray-800 text-base sm:text-lg">
-                  {format(selectedDate, 'EEE, MMM d')}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display font-bold text-gray-800">
+                  {format(selectedDate, 'EEEE, MMM d')}
                 </h3>
                 <Button
-                  variant={child.theme}
+                  variant="glass"
                   size="sm"
-                  icon={<Plus className="w-3 h-3 sm:w-4 sm:h-4" />}
+                  icon={<Plus className="w-4 h-4" strokeWidth={1.5} />}
                   onClick={() => setShowAddEvent(true)}
                 >
                   Add
@@ -193,38 +228,42 @@ export default function Calendar() {
               </div>
 
               {getEventsForDate(selectedDate).length > 0 ? (
-                <div className="space-y-2 sm:space-y-3">
-                  {getEventsForDate(selectedDate).map((event) => (
-                    <motion.div
-                      key={event.id}
-                      className="flex items-center gap-2 sm:gap-4 p-2 sm:p-3 bg-white/30 rounded-lg sm:rounded-xl"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      whileHover={{ scale: 1.02 }}
-                    >
-                      <StickerEvent event={event} size="sm" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-display font-bold text-gray-800 text-sm sm:text-base truncate">
-                          {event.title}
-                        </p>
-                        {event.notes && (
-                          <p className="text-xs sm:text-sm text-gray-600 truncate">{event.notes}</p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteEvent(event.id)}
+                <div className="space-y-2">
+                  {getEventsForDate(selectedDate).map((event) => {
+                    const cat = eventCategories[event.category] || eventCategories.other
+                    return (
+                      <motion.div
+                        key={event.id}
+                        className={`flex items-center gap-3 p-3 rounded-xl ${cat.color} border`}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
                       >
-                        <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
-                      </Button>
-                    </motion.div>
-                  ))}
+                        <span className="text-2xl">{cat.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-display font-semibold text-gray-800 truncate">
+                            {event.title}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <span>{cat.name}</span>
+                            {event.time && <span>• {event.time}</span>}
+                            {event.notes && <span>• {event.notes}</span>}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => removeEvent(event.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <X className="w-4 h-4" strokeWidth={1.5} />
+                        </button>
+                      </motion.div>
+                    )
+                  })}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-3 sm:py-4 font-display text-sm sm:text-base">
-                  No events scheduled 📝
-                </p>
+                <div className="text-center py-6 text-gray-400">
+                  <CalendarIcon className="w-10 h-10 mx-auto mb-2 opacity-30" strokeWidth={1} />
+                  <p className="font-display text-sm">No events</p>
+                </div>
               )}
             </GlassCard>
           </motion.div>
@@ -235,63 +274,80 @@ export default function Calendar() {
       <AnimatePresence>
         {showAddEvent && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowAddEvent(false)}
           >
             <motion.div
-              className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
-              initial={{ scale: 0.8, y: 50 }}
+              className="bg-white rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+              initial={{ scale: 0.9, y: 30 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.8, y: 50 }}
+              exit={{ scale: 0.9, y: 30 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-800 mb-3 sm:mb-4 text-center">
-                Add Event 📅
+              <h2 className="text-xl font-display font-bold text-gray-800 mb-4 text-center">
+                Add Event
               </h2>
 
               {/* Event Title */}
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-display font-semibold text-gray-700 mb-1.5 sm:mb-2">
-                  What's happening?
+              <div className="mb-4">
+                <label className="block text-sm font-display font-medium text-gray-600 mb-2">
+                  Event Title
                 </label>
                 <input
                   type="text"
                   value={newEvent.title}
                   onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                   placeholder="e.g., Soccer Practice"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display text-sm sm:text-base"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:outline-none font-display"
+                  autoFocus
                 />
               </div>
 
-              {/* Sticker Selection */}
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-display font-semibold text-gray-700 mb-1.5 sm:mb-2">
-                  Pick a sticker
+              {/* Category Selection */}
+              <div className="mb-4">
+                <label className="block text-sm font-display font-medium text-gray-600 mb-2">
+                  Category
                 </label>
-                <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
-                  {Object.entries(stickers).map(([key, sticker]) => (
-                    <motion.button
-                      key={key}
+                <div className="grid grid-cols-4 gap-2">
+                  {eventCategoryList.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setNewEvent({ ...newEvent, category: cat.id })}
                       className={`
-                        p-1.5 sm:p-2 rounded-lg sm:rounded-xl ${sticker.bg}
-                        ${newEvent.sticker === key ? 'ring-2 ring-purple-500 scale-110' : ''}
+                        p-2 rounded-xl flex flex-col items-center gap-1 transition-all border
+                        ${newEvent.category === cat.id
+                          ? `${cat.color} border-2`
+                          : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}
                       `}
-                      onClick={() => setNewEvent({ ...newEvent, sticker: key })}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
                     >
-                      <span className="text-xl sm:text-2xl">{sticker.emoji}</span>
-                    </motion.button>
+                      <span className="text-xl">{cat.icon}</span>
+                      <span className="text-[10px] font-display text-gray-600 truncate w-full text-center">
+                        {cat.name}
+                      </span>
+                    </button>
                   ))}
                 </div>
               </div>
 
+              {/* Time (Optional) */}
+              <div className="mb-4">
+                <label className="block text-sm font-display font-medium text-gray-600 mb-2">
+                  Time (optional)
+                </label>
+                <input
+                  type="time"
+                  value={newEvent.time}
+                  onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:outline-none font-display"
+                />
+              </div>
+
               {/* Notes */}
-              <div className="mb-4 sm:mb-6">
-                <label className="block text-xs sm:text-sm font-display font-semibold text-gray-700 mb-1.5 sm:mb-2">
+              <div className="mb-6">
+                <label className="block text-sm font-display font-medium text-gray-600 mb-2">
                   Notes (optional)
                 </label>
                 <input
@@ -299,12 +355,12 @@ export default function Calendar() {
                   value={newEvent.notes}
                   onChange={(e) => setNewEvent({ ...newEvent, notes: e.target.value })}
                   placeholder="e.g., Bring jersey"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display text-sm sm:text-base"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-gray-400 focus:outline-none font-display"
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 sm:gap-3">
+              <div className="flex gap-3">
                 <Button
                   variant="ghost"
                   className="flex-1"
@@ -313,8 +369,8 @@ export default function Calendar() {
                   Cancel
                 </Button>
                 <Button
-                  variant={child.theme}
-                  className="flex-1"
+                  variant="primary"
+                  className={`flex-1 bg-gradient-to-r ${colors.gradient} text-white`}
                   onClick={handleAddEvent}
                   disabled={!newEvent.title}
                 >

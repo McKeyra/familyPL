@@ -1,33 +1,32 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import {
-  Settings,
-  Users,
   CheckSquare,
   Calendar,
   Star,
   Plus,
   Trash2,
   ArrowLeft,
-  BarChart3,
-  Bell,
-  Shield,
+  LayoutDashboard,
   Clock,
   Trophy,
-  Target,
+  ShoppingCart,
+  Home,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import useStore from '../store/useStore'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
+import { eventCategories, eventCategoryList } from '../data/eventCategories'
 
 const tabs = [
-  { id: 'overview', label: 'Overview', icon: BarChart3 },
-  { id: 'timeLimits', label: 'Time Limits', icon: Clock },
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'timeLimits', label: 'Time', icon: Clock },
   { id: 'challenges', label: 'Challenges', icon: Trophy },
   { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-  { id: 'events', label: 'Events', icon: Calendar },
+  { id: 'calendar', label: 'Calendar', icon: Calendar },
+  { id: 'grocery', label: 'Grocery', icon: ShoppingCart },
 ]
 
 const activityTypes = [
@@ -66,7 +65,7 @@ export default function ParentPortal() {
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [showAddChallenge, setShowAddChallenge] = useState(false)
   const [newTask, setNewTask] = useState({ text: '', emoji: '✨', stars: 1, routine: 'chores' })
-  const [newEvent, setNewEvent] = useState({ title: '', sticker: 'birthday', date: '', notes: '', child: 'both' })
+  const [newEvent, setNewEvent] = useState({ title: '', category: 'other', date: '', notes: '', child: 'both' })
   const [newChallenge, setNewChallenge] = useState({
     title: '',
     description: '',
@@ -91,15 +90,16 @@ export default function ParentPortal() {
 
   const handleAddEvent = () => {
     if (!newEvent.title.trim() || !newEvent.date) return
+    const category = eventCategories[newEvent.category] || eventCategories.other
     addEvent({
       title: newEvent.title,
-      sticker: newEvent.sticker,
-      emoji: '📅',
+      category: newEvent.category,
+      emoji: category.icon,
       date: newEvent.date,
       notes: newEvent.notes,
       child: newEvent.child,
     })
-    setNewEvent({ title: '', sticker: 'birthday', date: '', notes: '', child: 'both' })
+    setNewEvent({ title: '', category: 'other', date: '', notes: '', child: 'both' })
     setShowAddEvent(false)
   }
 
@@ -155,46 +155,54 @@ export default function ParentPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-indigo-50 to-violet-100 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-amber-50 to-stone-50 p-3 sm:p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
-          className="flex items-center justify-between mb-6"
+          className="flex items-center justify-between mb-4 sm:mb-6"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="flex items-center gap-4">
-            <Button variant="glass" size="icon" onClick={handleExit}>
-              <ArrowLeft className="w-6 h-6" />
-            </Button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExit}
+              className="p-2 rounded-xl bg-white/60 hover:bg-white/80 transition-colors"
+            >
+              <Home className="w-5 h-5 text-stone-600" strokeWidth={1.5} />
+            </button>
             <div>
-              <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-800 flex items-center gap-2">
-                <Shield className="w-8 h-8 text-purple-500" />
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-stone-800">
                 Parent Portal
               </h1>
-              <p className="text-gray-600 font-display">Manage your family's activities</p>
+              <p className="text-stone-500 font-display text-sm">Manage family</p>
             </div>
           </div>
         </motion.div>
 
-        {/* Tabs */}
+        {/* Tabs - horizontal scroll on mobile */}
         <motion.div
-          className="flex gap-2 mb-6 overflow-x-auto pb-2"
+          className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
           {tabs.map((tab) => {
             const Icon = tab.icon
+            const isActive = activeTab === tab.id
             return (
-              <Button
+              <button
                 key={tab.id}
-                variant={activeTab === tab.id ? 'parent' : 'glass'}
                 onClick={() => setActiveTab(tab.id)}
-                icon={<Icon className="w-5 h-5" />}
+                className={`
+                  flex items-center gap-1.5 px-3 py-2 rounded-xl font-display text-sm whitespace-nowrap transition-all
+                  ${isActive
+                    ? 'bg-stone-600 text-white shadow-md'
+                    : 'bg-white/60 text-stone-600 hover:bg-white/80'}
+                `}
               >
-                {tab.label}
-              </Button>
+                <Icon className="w-4 h-4" strokeWidth={1.5} />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
             )
           })}
         </motion.div>
@@ -624,71 +632,101 @@ export default function ParentPortal() {
             </motion.div>
           )}
 
-          {/* Events Tab */}
-          {activeTab === 'events' && (
+          {/* Calendar Tab */}
+          {activeTab === 'calendar' && (
             <motion.div
-              key="events"
+              key="calendar"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
-              <div className="mb-6">
-                <Button
-                  variant="parent"
-                  icon={<Plus className="w-5 h-5" />}
+              <div className="mb-4 sm:mb-6">
+                <button
                   onClick={() => setShowAddEvent(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-stone-600 text-white rounded-xl font-display text-sm hover:bg-stone-700 transition-colors"
                 >
-                  Add New Event
-                </Button>
+                  <Plus className="w-4 h-4" strokeWidth={1.5} />
+                  Add Event
+                </button>
               </div>
 
               <GlassCard variant="default">
-                <h3 className="font-display font-bold text-gray-800 text-lg mb-4">
+                <h3 className="font-display font-bold text-stone-800 mb-4 flex items-center gap-2">
+                  <Calendar className="w-5 h-5" strokeWidth={1.5} />
                   Upcoming Events
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {events
                     .sort((a, b) => new Date(a.date) - new Date(b.date))
-                    .map((event) => (
-                      <div
-                        key={event.id}
-                        className="flex items-center justify-between p-3 bg-white/30 rounded-xl"
-                      >
-                        <div className="flex items-center gap-4">
-                          <span className="text-3xl">{event.emoji}</span>
-                          <div>
-                            <p className="font-display font-bold text-gray-800">
-                              {event.title}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {format(new Date(event.date), 'EEEE, MMMM d')}
-                              {event.notes && ` • ${event.notes}`}
-                            </p>
+                    .map((event) => {
+                      const cat = eventCategories[event.category] || eventCategories.other
+                      return (
+                        <div
+                          key={event.id}
+                          className={`flex items-center justify-between p-3 rounded-xl ${cat.color} border`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{cat.icon}</span>
+                            <div>
+                              <p className="font-display font-semibold text-gray-800">
+                                {event.title}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <span>{format(new Date(event.date), 'EEE, MMM d')}</span>
+                                <span>•</span>
+                                <span>{cat.name}</span>
+                                {event.notes && <span>• {event.notes}</span>}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs bg-stone-100 text-stone-600 px-2 py-1 rounded-full">
+                              {event.child === 'both' ? 'All' : children[event.child]?.name}
+                            </span>
+                            <button
+                              onClick={() => removeEvent(event.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" strokeWidth={1.5} />
+                            </button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
-                            {event.child === 'both'
-                              ? 'Everyone'
-                              : children[event.child]?.name}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeEvent(event.id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   {events.length === 0 && (
-                    <p className="text-center text-gray-500 py-8 font-display">
-                      No events scheduled
-                    </p>
+                    <div className="text-center py-8 text-gray-400">
+                      <Calendar className="w-12 h-12 mx-auto mb-2 opacity-30" strokeWidth={1} />
+                      <p className="font-display">No events scheduled</p>
+                    </div>
                   )}
                 </div>
               </GlassCard>
+            </motion.div>
+          )}
+
+          {/* Grocery Tab */}
+          {activeTab === 'grocery' && (
+            <motion.div
+              key="grocery"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <div className="text-center py-8">
+                <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-stone-400" strokeWidth={1} />
+                <h3 className="font-display font-bold text-stone-800 text-xl mb-2">
+                  Grocery List
+                </h3>
+                <p className="text-stone-500 mb-6">
+                  Manage your family shopping list
+                </p>
+                <button
+                  onClick={() => navigate('/grocery')}
+                  className="px-6 py-3 bg-stone-600 text-white rounded-xl font-display hover:bg-stone-700 transition-colors"
+                >
+                  Open Grocery List
+                </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -801,26 +839,26 @@ export default function ParentPortal() {
         <AnimatePresence>
           {showAddEvent && (
             <motion.div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowAddEvent(false)}
             >
               <motion.div
-                className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl"
-                initial={{ scale: 0.8, y: 50 }}
+                className="bg-white rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.9, y: 30 }}
                 animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.8, y: 50 }}
+                exit={{ scale: 0.9, y: 30 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <h2 className="text-2xl font-display font-bold text-gray-800 mb-4">
-                  Add New Event
+                <h2 className="text-xl font-display font-bold text-gray-800 mb-4 text-center">
+                  Add Event
                 </h2>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-display font-medium text-gray-600 mb-2">
                       Event Title
                     </label>
                     <input
@@ -828,30 +866,56 @@ export default function ParentPortal() {
                       value={newEvent.title}
                       onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                       placeholder="e.g., Soccer Practice"
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-stone-400 focus:outline-none font-display"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-display font-medium text-gray-600 mb-2">
+                      Category
+                    </label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {eventCategoryList.map((cat) => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setNewEvent({ ...newEvent, category: cat.id })}
+                          className={`
+                            p-2 rounded-xl flex flex-col items-center gap-1 transition-all border
+                            ${newEvent.category === cat.id
+                              ? `${cat.color} border-2`
+                              : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}
+                          `}
+                        >
+                          <span className="text-lg">{cat.icon}</span>
+                          <span className="text-[9px] font-display text-gray-600 truncate w-full text-center">
+                            {cat.name}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-display font-medium text-gray-600 mb-2">
                       Date
                     </label>
                     <input
                       type="date"
                       value={newEvent.date}
                       onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-stone-400 focus:outline-none font-display"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-display font-medium text-gray-600 mb-2">
                       For
                     </label>
                     <select
                       value={newEvent.child}
                       onChange={(e) => setNewEvent({ ...newEvent, child: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-stone-400 focus:outline-none font-display"
                     >
                       <option value="both">Everyone</option>
                       <option value="bria">Bria</option>
@@ -860,7 +924,7 @@ export default function ParentPortal() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-display font-medium text-gray-600 mb-2">
                       Notes (optional)
                     </label>
                     <input
@@ -868,27 +932,27 @@ export default function ParentPortal() {
                       value={newEvent.notes}
                       onChange={(e) => setNewEvent({ ...newEvent, notes: e.target.value })}
                       placeholder="e.g., Bring jersey"
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-stone-400 focus:outline-none font-display"
                     />
                   </div>
                 </div>
 
                 <div className="flex gap-3 mt-6">
-                  <Button
-                    variant="ghost"
-                    className="flex-1"
+                  <button
                     onClick={() => setShowAddEvent(false)}
+                    className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-display hover:bg-gray-200 transition-colors"
                   >
                     Cancel
-                  </Button>
-                  <Button
-                    variant="parent"
+                  </button>
+                  <button
+                    variant="ghost"
                     className="flex-1"
                     onClick={handleAddEvent}
                     disabled={!newEvent.title.trim() || !newEvent.date}
+                    className="flex-1 px-4 py-2.5 bg-stone-600 text-white rounded-xl font-display hover:bg-stone-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add Event
-                  </Button>
+                  </button>
                 </div>
               </motion.div>
             </motion.div>

@@ -5,20 +5,34 @@ import {
   CheckSquare,
   Clock,
   Calendar,
-  StickyNote,
   Gift,
   ShoppingCart,
   Settings,
   ArrowLeft,
   Star,
   WifiOff,
-  CloudOff,
 } from 'lucide-react'
 import useStore from '../store/useStore'
 import useDailyReset from '../hooks/useDailyReset'
 import useSupabaseSync, { getSyncQueueLength } from '../hooks/useSupabaseSync'
 import useStarSync from '../hooks/useStarSync'
 import useNetworkStatus from '../hooks/useNetworkStatus'
+
+// Page title mapping for context-aware header
+const pageTitles = {
+  '/': 'Home',
+  '/dashboard': 'Dashboard',
+  '/checklist/morning': 'Morning',
+  '/checklist/bedtime': 'Bedtime',
+  '/checklist/chores': 'Chores',
+  '/timer': 'Timer',
+  '/calendar': 'Calendar',
+  '/notes': 'Notes',
+  '/rewards': 'Rewards',
+  '/grocery': 'Grocery',
+  '/progress': 'Progress',
+  '/parent': 'Parent',
+}
 
 // Full nav for older children (6+)
 const navItemsOlder = [
@@ -27,7 +41,7 @@ const navItemsOlder = [
   { path: '/timer', icon: Clock, label: 'Timer', emoji: '⏰' },
   { path: '/progress', icon: Star, label: 'Progress', emoji: '📊' },
   { path: '/rewards', icon: Gift, label: 'Rewards', emoji: '🎁' },
-  { path: '/parent', icon: Settings, label: 'Parent', emoji: '🔑' },
+  { path: '/parent', icon: Settings, label: 'Parent', emoji: '👤' },
 ]
 
 // Simplified nav for young children (5 and under)
@@ -59,37 +73,48 @@ export default function Layout() {
   const isYoungChild = child && child.age <= 5
   const navItems = isYoungChild ? navItemsYoung : navItemsOlder
 
+  // Get current page title
+  const currentPageTitle = pageTitles[location.pathname] ||
+    (location.pathname.startsWith('/checklist/') ? 'Tasks' : 'UR1IFE')
+
+  // Earth-tone gradients for consistent theming
   const bgGradients = {
-    bria: 'from-orange-100 via-pink-50 to-amber-100',
-    naya: 'from-cyan-100 via-blue-50 to-teal-100',
-    parent: 'from-purple-100 via-indigo-50 to-violet-100',
+    bria: 'from-rose-100 via-pink-50 to-rose-50',
+    naya: 'from-sky-100 via-blue-50 to-cyan-50',
+    parent: 'from-stone-100 via-amber-50 to-stone-50',
   }
 
   const accentColors = {
-    bria: 'bg-bria-500',
-    naya: 'bg-naya-500',
-    parent: 'bg-parent-500',
+    bria: 'bg-rose-400',
+    naya: 'bg-sky-400',
+    parent: 'bg-stone-500',
+  }
+
+  const headerBg = {
+    bria: 'bg-rose-400/90',
+    naya: 'bg-sky-400/90',
+    parent: 'bg-stone-500/90',
   }
 
   const theme = isParentMode ? 'parent' : (child?.theme || 'bria')
 
   return (
     <div className={`min-h-screen min-h-[100dvh] bg-gradient-to-br ${bgGradients[theme]} transition-colors duration-300`}>
-      {/* Static background elements - responsive sizing */}
+      {/* Subtle background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute ${accentColors[theme]} opacity-10 rounded-full blur-3xl
-          w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96
-          -top-10 -left-10 sm:-top-16 sm:-left-16 md:-top-20 md:-left-20`}
+        <div className={`absolute ${accentColors[theme]} opacity-5 rounded-full blur-3xl
+          w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80
+          -top-10 -left-10 sm:-top-16 sm:-left-16`}
         />
         <div className={`absolute ${accentColors[theme]} opacity-5 rounded-full blur-3xl
-          w-40 h-40 sm:w-56 sm:h-56 md:w-72 md:h-72 lg:w-80 lg:h-80
-          bottom-10 right-5 sm:bottom-16 sm:right-8 md:bottom-20 md:right-10`}
+          w-40 h-40 sm:w-56 sm:h-56 md:w-72 md:h-72
+          bottom-10 right-5 sm:bottom-16 sm:right-8`}
         />
       </div>
 
-      {/* Top header - simplified */}
+      {/* Top header with context-aware title */}
       <motion.header
-        className="sticky top-0 z-50 glass safe-top safe-left safe-right landscape-compact"
+        className={`sticky top-0 z-50 ${headerBg[theme]} backdrop-blur-lg shadow-sm safe-top safe-left safe-right`}
         initial={{ y: -60 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.2 }}
@@ -98,7 +123,6 @@ export default function Layout() {
           {/* Back button */}
           <motion.button
             onClick={() => {
-              // Check if we have history to go back to
               if (window.history.length > 2) {
                 navigate(-1)
               } else {
@@ -106,62 +130,60 @@ export default function Layout() {
               }
             }}
             className={`
-              rounded-xl sm:rounded-2xl bg-white/30 hover:bg-white/40 active:bg-white/50 transition-colors shadow-sm
-              ${isYoungChild
-                ? 'p-2.5 sm:p-3'
-                : 'p-2 sm:p-2.5'}
+              rounded-xl bg-white/20 hover:bg-white/30 active:bg-white/40 transition-colors
+              ${isYoungChild ? 'p-2.5 sm:p-3' : 'p-2 sm:p-2.5'}
             `}
             whileTap={{ scale: 0.95 }}
           >
-            <ArrowLeft className={`text-gray-700
-              ${isYoungChild
-                ? 'w-7 h-7 sm:w-8 sm:h-8 stroke-[2.5]'
-                : 'w-5 h-5 sm:w-6 sm:h-6'}`}
+            <ArrowLeft className={`text-white
+              ${isYoungChild ? 'w-6 h-6 sm:w-7 sm:h-7' : 'w-5 h-5 sm:w-6 sm:h-6'}`}
             />
           </motion.button>
 
-          {/* Offline indicator */}
-          {!isOnline && (
+          {/* Page Title - Context Aware */}
+          <div className="flex items-center gap-2">
+            {!isOnline && (
+              <motion.div
+                className="flex items-center gap-1 bg-amber-500 text-white px-2 py-1 rounded-full text-xs font-medium"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+              >
+                <WifiOff className="w-3 h-3" />
+                {pendingCount > 0 && <span>{pendingCount}</span>}
+              </motion.div>
+            )}
             <motion.div
-              className="flex items-center gap-1 bg-amber-500 text-white px-2 py-1 rounded-full text-xs font-medium"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
+              key={currentPageTitle}
+              className="flex items-center gap-2"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <WifiOff className="w-3 h-3" />
-              <span>Offline</span>
-              {pendingCount > 0 && (
-                <span className="bg-white/30 px-1.5 rounded-full">{pendingCount}</span>
+              <span className="font-display font-bold text-white text-sm sm:text-base">
+                {currentPageTitle}
+              </span>
+              {isParentMode && (
+                <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
+                  Parent
+                </span>
               )}
             </motion.div>
-          )}
-
-          {/* Page title area - minimal */}
-          {isParentMode && (
-            <motion.div
-              className="flex items-center gap-1 sm:gap-2 bg-parent-500 text-white px-2 py-0.5 sm:px-3 sm:py-1 rounded-full"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="font-display font-semibold text-xs sm:text-sm">Parent</span>
-            </motion.div>
-          )}
+          </div>
 
           {/* Home button */}
           <motion.button
             onClick={() => navigate('/')}
-            className="p-2 sm:p-2.5 rounded-xl bg-white/30 hover:bg-white/40 transition-colors"
+            className="p-2 sm:p-2.5 rounded-xl bg-white/20 hover:bg-white/30 transition-colors"
             whileTap={{ scale: 0.9 }}
           >
-            <Home className={`text-gray-700 ${isYoungChild ? 'w-6 h-6 sm:w-7 sm:h-7' : 'w-5 h-5 sm:w-6 sm:h-6'}`} />
+            <Home className={`text-white ${isYoungChild ? 'w-6 h-6 sm:w-7 sm:h-7' : 'w-5 h-5 sm:w-6 sm:h-6'}`} />
           </motion.button>
         </div>
       </motion.header>
 
-      {/* Main content - responsive padding for bottom nav */}
+      {/* Main content */}
       <main className={`relative z-10 safe-left safe-right
-        ${isYoungChild ? 'pb-28 sm:pb-32' : 'pb-20 sm:pb-24'}
-        landscape-compact`}
+        ${isYoungChild ? 'pb-28 sm:pb-32' : 'pb-20 sm:pb-24'}`}
       >
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
@@ -181,56 +203,47 @@ export default function Layout() {
         </AnimatePresence>
       </main>
 
-      {/* Bottom navigation - responsive sizing */}
+      {/* Bottom navigation */}
       <motion.nav
-        className="fixed bottom-0 left-0 right-0 glass safe-bottom safe-left safe-right z-50 landscape-compact"
+        className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-gray-200/50 safe-bottom safe-left safe-right z-50"
         initial={{ y: 80 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.2 }}
       >
         <div className={`flex justify-around items-center max-w-3xl mx-auto
-          ${isYoungChild
-            ? 'py-2 px-2 sm:py-3 sm:px-4'
-            : 'py-1.5 px-1 sm:py-2 sm:px-2'}`}
+          ${isYoungChild ? 'py-2 px-2 sm:py-3 sm:px-4' : 'py-1.5 px-1 sm:py-2 sm:px-2'}`}
         >
           {navItems.map((item) => {
-            const isActive = location.pathname.startsWith(item.path.split('/')[1] ? `/${item.path.split('/')[1]}` : item.path)
+            const Icon = item.icon
+            const isActive = location.pathname === item.path ||
+              (item.path === '/checklist/morning' && location.pathname.startsWith('/checklist'))
 
             return (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={`
-                  relative flex flex-col items-center rounded-xl sm:rounded-2xl
+                  relative flex flex-col items-center rounded-xl
                   transition-all duration-150 active:scale-95
-                  ${isActive ? 'bg-white/40' : 'hover:bg-white/20'}
-                  ${isYoungChild
-                    ? 'p-2 sm:p-3 min-w-[60px] sm:min-w-[80px]'
-                    : 'p-1.5 sm:p-2 min-w-[48px] sm:min-w-[60px]'}
+                  ${isActive ? 'bg-gray-100' : 'hover:bg-gray-50'}
+                  ${isYoungChild ? 'p-2 sm:p-3 min-w-[60px] sm:min-w-[80px]' : 'p-1.5 sm:p-2 min-w-[48px] sm:min-w-[60px]'}
                 `}
               >
-                <span className={`
-                  ${isYoungChild
-                    ? 'text-2xl sm:text-3xl md:text-4xl'
-                    : 'text-xl sm:text-2xl'}
-                `}>
-                  {item.emoji}
-                </span>
+                <Icon className={`
+                  ${isYoungChild ? 'w-6 h-6 sm:w-7 sm:h-7' : 'w-5 h-5 sm:w-6 sm:h-6'}
+                  ${isActive ? (theme === 'bria' ? 'text-rose-500' : theme === 'naya' ? 'text-sky-500' : 'text-stone-600') : 'text-gray-400'}
+                  stroke-[1.5]
+                `} />
                 <span className={`
                   font-display mt-0.5 sm:mt-1
-                  ${isActive ? 'font-bold text-gray-800' : 'text-gray-600'}
-                  ${isYoungChild
-                    ? 'text-xs sm:text-sm md:text-base'
-                    : 'text-[10px] sm:text-xs'}
+                  ${isActive ? 'font-semibold text-gray-800' : 'text-gray-500'}
+                  ${isYoungChild ? 'text-xs sm:text-sm' : 'text-[10px] sm:text-xs'}
                 `}>
                   {item.label}
                 </span>
                 {isActive && (
-                  <div
-                    className={`absolute -bottom-0.5 sm:-bottom-1 rounded-full ${accentColors[theme]}
-                      ${isYoungChild
-                        ? 'w-8 sm:w-10 md:w-12 h-1 sm:h-1.5'
-                        : 'w-6 sm:w-8 h-0.5 sm:h-1'}`}
+                  <div className={`absolute -bottom-0.5 sm:-bottom-1 rounded-full ${accentColors[theme]}
+                    ${isYoungChild ? 'w-8 sm:w-10 h-1' : 'w-6 sm:w-8 h-0.5 sm:h-1'}`}
                   />
                 )}
               </button>
