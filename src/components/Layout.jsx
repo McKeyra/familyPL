@@ -82,7 +82,7 @@ export default function Layout() {
                 navigate('/')
               }
             }}
-            className={`fixed top-4 left-4 z-50 p-2.5 rounded-full ${colors.backBtn} text-white shadow-lg safe-top safe-left`}
+            className={`fixed top-4 left-4 z-50 w-11 h-11 rounded-full ${colors.backBtn} text-white shadow-lg safe-top safe-left flex items-center justify-center`}
             initial={{ opacity: 0, scale: 0.8, x: -20 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.8, x: -20 }}
