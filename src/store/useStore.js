@@ -37,6 +37,13 @@ const initialChores = {
       { id: 'm4', text: 'Eat breakfast', emoji: '🥣', completed: false, stars: 1 },
       { id: 'm5', text: 'Pack backpack', emoji: '🎒', completed: false, stars: 2 },
     ],
+    afterSchool: [
+      { id: 'as1', text: 'Unpack your bag', emoji: '🎒', completed: false, stars: 1 },
+      { id: 'as2', text: 'Bring lunchbox to sink', emoji: '🍱', completed: false, stars: 1 },
+      { id: 'as3', text: 'Put away shoes', emoji: '👟', completed: false, stars: 1 },
+      { id: 'as4', text: 'Hang up coat', emoji: '🧥', completed: false, stars: 1 },
+      { id: 'as5', text: 'Wash hands', emoji: '🧼', completed: false, stars: 1 },
+    ],
     bedtime: [
       { id: 'b1', text: 'Take a bath', emoji: '🛁', completed: false, stars: 1 },
       { id: 'b2', text: 'Put on PJs', emoji: '👚', completed: false, stars: 1 },
@@ -57,6 +64,12 @@ const initialChores = {
       { id: 'm2', text: 'Brush teeth', emoji: '🦷', completed: false, stars: 1 },
       { id: 'm3', text: 'Get dressed', emoji: '👗', completed: false, stars: 1 },
       { id: 'm4', text: 'Eat breakfast', emoji: '🥣', completed: false, stars: 1 },
+    ],
+    afterSchool: [
+      { id: 'as1', text: 'Unpack your bag', emoji: '🎒', completed: false, stars: 1 },
+      { id: 'as2', text: 'Bring lunchbox to sink', emoji: '🍱', completed: false, stars: 1 },
+      { id: 'as3', text: 'Put away shoes', emoji: '👟', completed: false, stars: 1 },
+      { id: 'as4', text: 'Wash hands', emoji: '🧼', completed: false, stars: 1 },
     ],
     bedtime: [
       { id: 'b1', text: 'Bath time', emoji: '🛁', completed: false, stars: 1 },

@@ -20,6 +20,8 @@ import {
   ShoppingCart,
   Users,
   CalendarDays,
+  Edit3,
+  X,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
@@ -55,6 +57,7 @@ export default function ParentPortal() {
     groceryList,
     addChore,
     removeChore,
+    updateChore,
     addEvent,
     removeEvent,
     resetRoutine,
@@ -84,6 +87,8 @@ export default function ParentPortal() {
     reward: '',
     rewardStars: 20,
   })
+  const [editingTask, setEditingTask] = useState(null) // { routine, task }
+  const [editTaskForm, setEditTaskForm] = useState({ text: '', emoji: '', stars: 1 })
 
   const handleAddTask = () => {
     if (!newTask.text.trim()) return
@@ -131,6 +136,22 @@ export default function ParentPortal() {
       rewardStars: 20,
     })
     setShowAddChallenge(false)
+  }
+
+  const handleEditTask = (routine, task) => {
+    setEditingTask({ routine, task })
+    setEditTaskForm({ text: task.text, emoji: task.emoji, stars: task.stars })
+  }
+
+  const handleSaveTask = () => {
+    if (!editingTask || !editTaskForm.text.trim()) return
+    updateChore(selectedChild, editingTask.routine, editingTask.task.id, {
+      text: editTaskForm.text,
+      emoji: editTaskForm.emoji,
+      stars: editTaskForm.stars,
+    })
+    setEditingTask(null)
+    setEditTaskForm({ text: '', emoji: '', stars: 1 })
   }
 
   const handleExit = () => {
@@ -603,37 +624,57 @@ export default function ParentPortal() {
               </div>
 
               {/* Tasks by Routine */}
-              <div className="grid md:grid-cols-3 gap-6">
-                {['morning', 'bedtime', 'chores'].map((routine) => (
-                  <GlassCard key={routine} variant="default">
-                    <h3 className="font-display font-bold text-gray-800 text-lg mb-4 capitalize">
-                      {routine} {routine === 'chores' ? '' : 'Routine'}
-                    </h3>
-                    <div className="space-y-2">
-                      {chores[selectedChild]?.[routine]?.map((task) => (
-                        <div
-                          key={task.id}
-                          className="flex items-center justify-between p-2 bg-white/30 rounded-xl"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl">{task.emoji}</span>
-                            <span className="font-display text-gray-700">{task.text}</span>
+              <div className="grid md:grid-cols-2 gap-4">
+                {['morning', 'afterSchool', 'bedtime', 'chores'].map((routine) => {
+                  const routineLabels = {
+                    morning: 'Morning Routine',
+                    afterSchool: 'After School',
+                    bedtime: 'Bedtime Routine',
+                    chores: 'Chores',
+                  }
+                  return (
+                    <div key={routine} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <div className="p-3 border-b border-slate-100 bg-slate-50">
+                        <h3 className="font-semibold text-slate-800">
+                          {routineLabels[routine]}
+                        </h3>
+                      </div>
+                      <div className="divide-y divide-slate-100">
+                        {chores[selectedChild]?.[routine]?.map((task) => (
+                          <div
+                            key={task.id}
+                            className="flex items-center justify-between p-3 hover:bg-slate-50 transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl">{task.emoji}</span>
+                              <span className="text-sm text-slate-700">{task.text}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-slate-400 mr-2">{task.stars}⭐</span>
+                              <button
+                                onClick={() => handleEditTask(routine, task)}
+                                className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                              >
+                                <Edit3 className="w-4 h-4" strokeWidth={1.5} />
+                              </button>
+                              <button
+                                onClick={() => removeChore(selectedChild, routine, task.id)}
+                                className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" strokeWidth={1.5} />
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">{task.stars}⭐</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeChore(selectedChild, routine, task.id)}
-                            >
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </Button>
+                        ))}
+                        {(!chores[selectedChild]?.[routine] || chores[selectedChild]?.[routine]?.length === 0) && (
+                          <div className="p-4 text-center text-slate-400 text-sm">
+                            No tasks yet
                           </div>
-                        </div>
-                      ))}
+                        )}
+                      </div>
                     </div>
-                  </GlassCard>
-                ))}
+                  )
+                })}
               </div>
             </motion.div>
           )}
@@ -837,6 +878,7 @@ export default function ParentPortal() {
                       className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
                     >
                       <option value="morning">Morning</option>
+                      <option value="afterSchool">After School</option>
                       <option value="bedtime">Bedtime</option>
                       <option value="chores">Chores</option>
                     </select>
@@ -1148,6 +1190,104 @@ export default function ParentPortal() {
               </motion.div>
             </motion.div>
           )}
+      </AnimatePresence>
+
+      {/* Edit Task Modal */}
+      <AnimatePresence>
+        {editingTask && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setEditingTask(null)}
+          >
+            <motion.div
+              className="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl"
+              initial={{ scale: 0.9, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 30 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-slate-800">
+                  Edit Task
+                </h2>
+                <button
+                  onClick={() => setEditingTask(null)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"
+                >
+                  <X className="w-5 h-5" strokeWidth={1.5} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                    Task Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editTaskForm.text}
+                    onChange={(e) => setEditTaskForm({ ...editTaskForm, text: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-slate-400 focus:outline-none text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                    Emoji
+                  </label>
+                  <input
+                    type="text"
+                    value={editTaskForm.emoji}
+                    onChange={(e) => setEditTaskForm({ ...editTaskForm, emoji: e.target.value })}
+                    className="w-24 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-slate-400 focus:outline-none text-center text-2xl"
+                    maxLength={2}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">
+                    Stars Reward
+                  </label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((num) => (
+                      <button
+                        key={num}
+                        onClick={() => setEditTaskForm({ ...editTaskForm, stars: num })}
+                        className={`
+                          flex-1 py-2 rounded-lg text-sm font-medium transition-colors
+                          ${editTaskForm.stars === num
+                            ? 'bg-slate-800 text-white'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}
+                        `}
+                      >
+                        {num}⭐
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setEditingTask(null)}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-sm font-medium hover:bg-slate-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveTask}
+                  disabled={!editTaskForm.text.trim()}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-medium hover:bg-slate-700 transition-colors disabled:opacity-50"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   )

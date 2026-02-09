@@ -14,6 +14,7 @@ import ParentPortal from './pages/ParentPortal'
 import Grocery from './pages/Grocery'
 import Progress from './pages/Progress'
 import Layout from './components/Layout'
+import FloatingTimer from './components/FloatingTimer'
 
 // Page transition variants - smooth and fast
 const pageVariants = {
@@ -107,6 +108,7 @@ function App() {
     <Router>
       <Suspense fallback={<PageLoader />}>
         <AnimatedRoutes />
+        <FloatingTimer />
       </Suspense>
     </Router>
   )

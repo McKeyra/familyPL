@@ -13,6 +13,7 @@ import {
   Heart,
   Star,
   ChevronRight,
+  Backpack,
 } from 'lucide-react'
 import useStore from '../store/useStore'
 import ChildAvatar from '../components/ui/ChildAvatar'
@@ -23,6 +24,7 @@ import { format } from 'date-fns'
 // Routine definitions with icons (no emoji)
 const routines = [
   { id: 'morning', title: 'Morning', icon: Sun, description: 'Start your day right' },
+  { id: 'afterSchool', title: 'After School', icon: Backpack, description: 'Home from school' },
   { id: 'bedtime', title: 'Bedtime', icon: Moon, description: 'Wind down time' },
   { id: 'chores', title: 'Chores', icon: Sparkles, description: 'Earn extra stars' },
 ]
@@ -64,6 +66,7 @@ const themeConfig = {
 function getHeroRoutine() {
   const hour = getTorontoDate().getHours()
   if (hour >= 5 && hour < 10) return 'morning'
+  if (hour >= 14 && hour < 17) return 'afterSchool'
   if (hour >= 19 || hour < 5) return 'bedtime'
   return 'chores'
 }
