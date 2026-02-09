@@ -7,6 +7,12 @@ const variants = {
   bria: 'bg-gradient-to-br from-bria-400/30 to-bria-600/20 backdrop-blur-xl border border-bria-300/30',
   naya: 'bg-gradient-to-br from-naya-400/30 to-naya-600/20 backdrop-blur-xl border border-naya-300/30',
   parent: 'bg-gradient-to-br from-parent-400/30 to-parent-600/20 backdrop-blur-xl border border-parent-300/30',
+  // Clean variants - white background with subtle styling
+  clean: 'bg-white border border-gray-200 shadow-sm',
+  'clean-bria': 'bg-white border border-bria-200 shadow-sm',
+  'clean-naya': 'bg-white border border-naya-200 shadow-sm',
+  'clean-parent': 'bg-white border border-parent-200 shadow-sm',
+  'clean-elevated': 'bg-white border border-gray-100 shadow-md',
 }
 
 const glowVariants = {

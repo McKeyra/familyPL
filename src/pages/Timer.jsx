@@ -7,12 +7,13 @@ import useStore from '../store/useStore'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
 import TimerSlider from '../components/ui/TimerSlider'
+import { ModalOverlay } from '../components/ui/Modal'
 
 const activities = [
-  { id: 'screen', label: 'Screen Time', emoji: '📺', icon: Tv, color: 'from-blue-400 to-blue-600', stars: 1 },
-  { id: 'reading', label: 'Reading', emoji: '📚', icon: BookOpen, color: 'from-amber-400 to-orange-500', stars: 2 },
-  { id: 'play', label: 'Play Time', emoji: '🎮', icon: Gamepad2, color: 'from-green-400 to-emerald-500', stars: 1 },
-  { id: 'homework', label: 'Homework', emoji: '✏️', icon: Pencil, color: 'from-purple-400 to-purple-600', stars: 3 },
+  { id: 'screen', label: 'Screen Time', emoji: '📺', icon: Tv, color: 'blue', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-600', stars: 1 },
+  { id: 'reading', label: 'Reading', emoji: '📚', icon: BookOpen, color: 'amber', bgColor: 'bg-amber-50', borderColor: 'border-amber-200', textColor: 'text-amber-600', stars: 2 },
+  { id: 'play', label: 'Play Time', emoji: '🎮', icon: Gamepad2, color: 'green', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-600', stars: 1 },
+  { id: 'homework', label: 'Homework', emoji: '✏️', icon: Pencil, color: 'purple', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', textColor: 'text-purple-600', stars: 3 },
 ]
 
 // Funny celebration messages for starting the timer
@@ -393,32 +394,36 @@ export default function Timer() {
           <h2 className="text-base sm:text-lg font-display font-semibold text-gray-700 mb-3 sm:mb-4 text-center">
             {isParentMode ? 'Select activity for your child:' : 'What are you doing?'}
           </h2>
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {activities.map((activity, index) => (
               <motion.button
                 key={activity.id}
                 className={`
-                  p-3 sm:p-4 rounded-xl sm:rounded-2xl text-white
-                  bg-gradient-to-br ${activity.color}
-                  ${selectedActivity === activity.id ? 'ring-4 ring-white shadow-xl' : 'shadow-lg'}
-                  transition-all
+                  p-4 sm:p-5 rounded-2xl sm:rounded-3xl
+                  bg-white border-2 shadow-sm
+                  ${selectedActivity === activity.id
+                    ? `${activity.borderColor} ${activity.bgColor} ring-2 ring-offset-2 ring-${activity.color}-400 shadow-md`
+                    : 'border-gray-200 hover:border-gray-300'}
+                  transition-all min-h-[100px] sm:min-h-[120px]
                 `}
                 onClick={() => setSelectedActivity(activity.id)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index }}
               >
                 <motion.span
-                  className="text-3xl sm:text-4xl block mb-1.5 sm:mb-2"
+                  className="text-4xl sm:text-5xl block mb-2 sm:mb-3"
                   animate={selectedActivity === activity.id ? { y: [0, -5, 0] } : {}}
                   transition={{ duration: 1, repeat: Infinity }}
                 >
                   {activity.emoji}
                 </motion.span>
-                <span className="font-display font-bold block text-sm sm:text-base">{activity.label}</span>
-                <span className="text-xs sm:text-sm text-white/80">
+                <span className={`font-display font-bold block text-sm sm:text-base ${selectedActivity === activity.id ? activity.textColor : 'text-gray-700'}`}>
+                  {activity.label}
+                </span>
+                <span className={`text-xs sm:text-sm ${selectedActivity === activity.id ? activity.textColor + '/70' : 'text-gray-500'}`}>
                   {activity.stars} ⭐ earned
                 </span>
               </motion.button>
@@ -434,8 +439,8 @@ export default function Timer() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <GlassCard variant={child.theme}>
-            <h2 className="text-base sm:text-lg font-display font-semibold text-white mb-3 sm:mb-4 text-center">
+          <GlassCard variant="clean-elevated">
+            <h2 className="text-base sm:text-lg font-display font-semibold text-gray-700 mb-3 sm:mb-4 text-center">
               How long?
             </h2>
             <TimerSlider
@@ -586,134 +591,107 @@ export default function Timer() {
       )}
 
       {/* Start Celebration Modal */}
-      <AnimatePresence>
-        {showStartCelebration && startCelebration && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+      <ModalOverlay isOpen={showStartCelebration && !!startCelebration} closeOnBackdrop={false}>
+        <motion.div
+          className="text-center p-6"
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          exit={{ scale: 0, rotate: 180 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+        >
+          <motion.span
+            className="text-8xl sm:text-9xl block"
+            animate={{
+              scale: [1, 1.3, 1],
+              rotate: [0, -10, 10, 0],
+            }}
+            transition={{ duration: 0.5, repeat: 2 }}
           >
-            <motion.div
-              className="text-center"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              exit={{ scale: 0, rotate: 180 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-            >
-              <motion.span
-                className="text-9xl block"
-                animate={{
-                  scale: [1, 1.3, 1],
-                  rotate: [0, -10, 10, 0],
-                }}
-                transition={{ duration: 0.5, repeat: 2 }}
-              >
-                {startCelebration.emoji}
-              </motion.span>
-              <motion.p
-                className="text-3xl font-display font-bold text-white mt-4 drop-shadow-lg"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                {startCelebration.text}
-              </motion.p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {startCelebration?.emoji}
+          </motion.span>
+          <motion.p
+            className="text-2xl sm:text-3xl font-display font-bold text-white mt-4 drop-shadow-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            {startCelebration?.text}
+          </motion.p>
+        </motion.div>
+      </ModalOverlay>
 
       {/* One Minute Warning */}
-      <AnimatePresence>
-        {showOneMinuteWarning && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-yellow-400 text-yellow-900 px-8 py-4 rounded-2xl shadow-2xl"
-              initial={{ scale: 0, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0, y: -50 }}
+      <ModalOverlay isOpen={showOneMinuteWarning} closeOnBackdrop={false} className="pointer-events-none">
+        <motion.div
+          className="bg-yellow-400 text-yellow-900 px-6 sm:px-8 py-4 rounded-2xl shadow-2xl"
+          initial={{ scale: 0, y: 50 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0, y: -50 }}
+        >
+          <div className="flex items-center gap-3">
+            <motion.span
+              className="text-3xl sm:text-4xl"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 0.5, repeat: 3 }}
             >
-              <div className="flex items-center gap-3">
-                <motion.span
-                  className="text-4xl"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 0.5, repeat: 3 }}
-                >
-                  ⚡
-                </motion.span>
-                <span className="text-xl font-display font-bold">1 Minute Left!</span>
-                <motion.span
-                  className="text-4xl"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 0.5, repeat: 3 }}
-                >
-                  ⚡
-                </motion.span>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              ⚡
+            </motion.span>
+            <span className="text-lg sm:text-xl font-display font-bold">1 Minute Left!</span>
+            <motion.span
+              className="text-3xl sm:text-4xl"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 0.5, repeat: 3 }}
+            >
+              ⚡
+            </motion.span>
+          </div>
+        </motion.div>
+      </ModalOverlay>
 
       {/* Completion Modal */}
-      <AnimatePresence>
-        {showComplete && (
+      <ModalOverlay isOpen={showComplete} onClose={handleReset}>
+        <motion.div
+          className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-sm w-full text-center shadow-2xl mx-4"
+          initial={{ scale: 0.8, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.8, y: 20 }}
+        >
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            className="text-6xl sm:text-8xl mb-3 sm:mb-4"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 0.5, repeat: 3 }}
           >
-            <motion.div
-              className="bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-sm w-full text-center text-white shadow-2xl"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0 }}
-            >
-              <motion.div
-                className="text-6xl sm:text-8xl mb-3 sm:mb-4"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 0.5, repeat: 3 }}
-              >
-                🎉
-              </motion.div>
-              <h2 className="text-2xl sm:text-3xl font-display font-bold mb-1.5 sm:mb-2">
-                Great Job!
-              </h2>
-              <p className="text-lg sm:text-xl mb-3 sm:mb-4 font-display">
-                You completed your {activities.find(a => a.id === selectedActivity)?.label}!
-              </p>
-              <div className="flex justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-6">
-                {[...Array(activities.find(a => a.id === selectedActivity)?.stars || 1)].map((_, i) => (
-                  <motion.span
-                    key={i}
-                    className="text-3xl sm:text-4xl"
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                  >
-                    ⭐
-                  </motion.span>
-                ))}
-              </div>
-              <div className="flex gap-2 sm:gap-3">
-                <Button variant="glass" size="lg" onClick={handleReset}>
-                  Start Another
-                </Button>
-                <Button variant="glass" size="lg" onClick={() => navigate('/')}>
-                  Dashboard
-                </Button>
-              </div>
-            </motion.div>
+            🎉
           </motion.div>
-        )}
-      </AnimatePresence>
+          <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-800 mb-1.5 sm:mb-2">
+            Great Job!
+          </h2>
+          <p className="text-lg sm:text-xl mb-3 sm:mb-4 font-display text-gray-600">
+            You completed your {activities.find(a => a.id === selectedActivity)?.label}!
+          </p>
+          <div className="flex justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-6">
+            {[...Array(activities.find(a => a.id === selectedActivity)?.stars || 1)].map((_, i) => (
+              <motion.span
+                key={i}
+                className="text-3xl sm:text-4xl"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                ⭐
+              </motion.span>
+            ))}
+          </div>
+          <div className="flex gap-2 sm:gap-3">
+            <Button variant="clean" size="lg" onClick={handleReset} className="flex-1">
+              Start Another
+            </Button>
+            <Button variant={child.theme} size="lg" onClick={() => navigate('/')} className="flex-1">
+              Dashboard
+            </Button>
+          </div>
+        </motion.div>
+      </ModalOverlay>
     </div>
   )
 }

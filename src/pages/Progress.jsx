@@ -51,25 +51,25 @@ export default function Progress() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
       >
-        <GlassCard variant={child.theme} glow={child.theme} size="lg">
+        <GlassCard variant="clean-elevated" size="lg">
           <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="text-5xl sm:text-6xl">
                 🔥
               </div>
               <div className="text-center sm:text-left">
-                <h2 className="text-2xl sm:text-4xl font-display font-bold text-white">
+                <h2 className={`text-2xl sm:text-4xl font-display font-bold ${child.theme === 'bria' ? 'text-bria-600' : 'text-naya-600'}`}>
                   {streak.currentStreak} Day Streak!
                 </h2>
-                <p className="text-white/80 font-display text-sm sm:text-base">
+                <p className="text-gray-600 font-display text-sm sm:text-base">
                   Keep it going, superstar!
                 </p>
               </div>
             </div>
             <div className="text-center sm:text-right">
-              <p className="text-white/70 font-display text-xs sm:text-sm">Best Streak</p>
-              <p className="text-xl sm:text-2xl font-bold text-white flex items-center justify-center sm:justify-end gap-1">
-                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
+              <p className="text-gray-500 font-display text-xs sm:text-sm">Best Streak</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center justify-center sm:justify-end gap-1">
+                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" />
                 {streak.longestStreak} days
               </p>
             </div>
@@ -99,8 +99,10 @@ export default function Progress() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <GlassCard variant="default" className="text-center">
-            <Star className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-500 mx-auto mb-1.5 sm:mb-2" />
+          <GlassCard variant="clean" className="text-center">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2 rounded-full bg-yellow-50 flex items-center justify-center">
+              <Star className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" />
+            </div>
             <p className="text-2xl sm:text-3xl font-display font-bold text-gray-800">
               {report.totalStars}
             </p>
@@ -113,8 +115,10 @@ export default function Progress() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <GlassCard variant="default" className="text-center">
-            <Trophy className="w-8 h-8 sm:w-10 sm:h-10 text-purple-500 mx-auto mb-1.5 sm:mb-2" />
+          <GlassCard variant="clean" className="text-center">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2 rounded-full bg-purple-50 flex items-center justify-center">
+              <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
+            </div>
             <p className="text-2xl sm:text-3xl font-display font-bold text-gray-800">
               {report.totalTasks}
             </p>
@@ -127,8 +131,10 @@ export default function Progress() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <GlassCard variant="default" className="text-center">
-            <Calendar className="w-8 h-8 sm:w-10 sm:h-10 text-green-500 mx-auto mb-1.5 sm:mb-2" />
+          <GlassCard variant="clean" className="text-center">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-2 rounded-full bg-green-50 flex items-center justify-center">
+              <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
+            </div>
             <p className="text-2xl sm:text-3xl font-display font-bold text-gray-800">
               {report.daysActive}/7
             </p>
@@ -143,22 +149,24 @@ export default function Progress() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <GlassCard variant="default" size="lg">
+        <GlassCard variant="clean-elevated" size="lg">
           <div className="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
-            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+            <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+            </div>
             <h3 className="font-display font-bold text-gray-800 text-base sm:text-lg">
               This Week's Progress
             </h3>
           </div>
 
           {/* Bar Chart */}
-          <div className="flex items-end justify-between gap-1 sm:gap-2 h-32 sm:h-40">
+          <div className="flex items-end justify-between gap-1.5 sm:gap-3 h-32 sm:h-40 px-1">
             {last7Days.map((day, index) => (
               <div key={day.fullDate} className="flex-1 flex flex-col items-center">
                 <motion.div
                   className={`
-                    w-full rounded-t-md sm:rounded-t-lg
-                    ${child.theme === 'bria' ? 'bg-gradient-to-t from-bria-400 to-bria-300' : 'bg-gradient-to-t from-naya-400 to-naya-300'}
+                    w-full rounded-lg
+                    ${child.theme === 'bria' ? 'bg-bria-400' : 'bg-naya-400'}
                   `}
                   initial={{ height: 0 }}
                   animate={{ height: `${(day.stars / maxStars) * 100}%` }}
@@ -184,7 +192,7 @@ export default function Progress() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <GlassCard variant="default">
+        <GlassCard variant="clean-elevated">
           <div className="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
             <span className="text-xl sm:text-2xl">🤝</span>
             <h3 className="font-display font-bold text-gray-800 text-base sm:text-lg">
@@ -196,7 +204,7 @@ export default function Progress() {
             {challenges.filter(c => c.active).map((challenge) => {
               const progress = getChallengeProgress(challenge.id)
               return (
-                <div key={challenge.id} className="bg-white/30 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                <div key={challenge.id} className="bg-gray-50 border border-gray-100 rounded-xl sm:rounded-2xl p-3 sm:p-4">
                   <div className="flex items-start justify-between mb-2 gap-2">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <span className="text-2xl sm:text-3xl">{challenge.emoji}</span>
@@ -216,7 +224,7 @@ export default function Progress() {
                   {/* Progress bar */}
                   <div className="bg-gray-200 rounded-full h-3 sm:h-4 overflow-hidden">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"
+                      className={`h-full rounded-full ${child.theme === 'bria' ? 'bg-bria-400' : 'bg-naya-400'}`}
                       initial={{ width: 0 }}
                       animate={{ width: `${progress.percentage}%` }}
                       transition={{ duration: 0.5 }}
@@ -226,7 +234,7 @@ export default function Progress() {
                     <span className="text-xs sm:text-sm text-gray-600">
                       {progress.total} / {challenge.target}
                     </span>
-                    <span className="text-xs sm:text-sm font-bold text-purple-600">
+                    <span className={`text-xs sm:text-sm font-bold ${child.theme === 'bria' ? 'text-bria-600' : 'text-naya-600'}`}>
                       {Math.round(progress.percentage)}%
                     </span>
                   </div>
@@ -262,8 +270,8 @@ export default function Progress() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.7 }}
       >
-        <GlassCard variant={child.theme} size="sm">
-          <p className="font-display font-semibold text-white text-base sm:text-lg">
+        <GlassCard variant={`clean-${child.theme}`} size="sm" className={`${child.theme === 'bria' ? 'bg-bria-50' : 'bg-naya-50'}`}>
+          <p className={`font-display font-semibold text-base sm:text-lg ${child.theme === 'bria' ? 'text-bria-600' : 'text-naya-600'}`}>
             {streak.currentStreak >= 7
               ? "🌟 INCREDIBLE! You're on fire!"
               : streak.currentStreak >= 3
