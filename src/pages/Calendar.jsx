@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -36,6 +36,35 @@ export default function Calendar() {
     notes: '',
     time: '',
   })
+  const [keyboardHeight, setKeyboardHeight] = useState(0)
+
+  // Handle virtual keyboard for mobile
+  useEffect(() => {
+    if (!showAddEvent) return
+
+    const handleResize = () => {
+      if (window.visualViewport) {
+        const viewportHeight = window.visualViewport.height
+        const windowHeight = window.innerHeight
+        const keyboardH = windowHeight - viewportHeight
+        setKeyboardHeight(keyboardH > 50 ? keyboardH : 0)
+      }
+    }
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize)
+      window.visualViewport.addEventListener('scroll', handleResize)
+      handleResize()
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize)
+        window.visualViewport.removeEventListener('scroll', handleResize)
+      }
+      setKeyboardHeight(0)
+    }
+  }, [showAddEvent])
 
   // Theme colors
   const themeColors = {
@@ -264,7 +293,7 @@ export default function Calendar() {
         )}
       </AnimatePresence>
 
-      {/* Add Event Modal - Bottom Sheet */}
+      {/* Add Event Modal - Bottom Sheet with Keyboard Awareness */}
       <AnimatePresence>
         {showAddEvent && (
           <motion.div
@@ -273,9 +302,11 @@ export default function Calendar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowAddEvent(false)}
+            style={{ paddingBottom: keyboardHeight }}
           >
             <motion.div
-              className="bg-white rounded-t-3xl p-5 w-full max-w-lg shadow-2xl max-h-[85vh] overflow-y-auto"
+              className="bg-white rounded-t-3xl p-5 w-full max-w-lg shadow-2xl overflow-y-auto"
+              style={{ maxHeight: keyboardHeight > 0 ? `calc(100vh - ${keyboardHeight}px - 20px)` : '85vh' }}
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
