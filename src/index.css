@@ -83,10 +83,31 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Improve touch responsiveness */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #root {
   min-height: 100%;
+}
+
+/* Improve touch responsiveness on interactive elements */
+button, a, [role="button"], input, select, textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Remove iOS tap delay */
+* {
+  -webkit-touch-callout: none;
+}
+
+/* Ensure fast taps on all interactive elements */
+@media (hover: none) and (pointer: coarse) {
+  button, a, [role="button"] {
+    cursor: pointer;
+  }
 }
 
 /* Custom scrollbar for modern browsers */

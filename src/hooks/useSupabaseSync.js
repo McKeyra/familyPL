@@ -274,12 +274,19 @@ export default function useSupabaseSync() {
   }, [])
 
   // Set up real-time subscriptions (only if online)
+  // Defer initial load to not block first paint
   useEffect(() => {
-    loadFromSupabase()
+    // Use requestIdleCallback if available, otherwise setTimeout
+    const scheduleLoad = window.requestIdleCallback || ((cb) => setTimeout(cb, 100))
+    const handle = scheduleLoad(() => {
+      loadFromSupabase()
+    })
 
     if (!checkOnline()) {
       console.log('[Sync] Offline - skipping subscriptions')
-      return
+      return () => {
+        if (window.cancelIdleCallback) window.cancelIdleCallback(handle)
+      }
     }
 
     try {
@@ -331,6 +338,7 @@ export default function useSupabaseSync() {
     window.addEventListener('online', handleOnline)
 
     return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(handle)
       window.removeEventListener('online', handleOnline)
       if (subscriptionsRef.current.children) {
         subscriptionsRef.current.children.unsubscribe()

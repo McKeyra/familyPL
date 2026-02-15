@@ -64,9 +64,25 @@ export default function Timer() {
   // Get pending timer set by parent
   const pendingTimer = currentChild ? getPendingTimer(currentChild) : null
 
-  // Initialize audio context
+  // Lazy initialize audio context only when needed
+  const getAudioContext = useCallback(() => {
+    if (!audioContextRef.current) {
+      try {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)()
+      } catch (e) {
+        console.log('Audio not available')
+        return null
+      }
+    }
+    // Resume if suspended (iOS requirement)
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume()
+    }
+    return audioContextRef.current
+  }, [])
+
+  // Cleanup audio context on unmount
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)()
     return () => {
       if (audioContextRef.current) {
         audioContextRef.current.close()
@@ -74,29 +90,32 @@ export default function Timer() {
     }
   }, [])
 
-  // Play a beep sound
+  // Play a beep sound - lazily creates audio context
   const playBeep = useCallback((frequency = 440, duration = 200, type = 'sine') => {
-    if (!audioEnabled || !audioContextRef.current) return
+    if (!audioEnabled) return
+
+    const ctx = getAudioContext()
+    if (!ctx) return
 
     try {
-      const oscillator = audioContextRef.current.createOscillator()
-      const gainNode = audioContextRef.current.createGain()
+      const oscillator = ctx.createOscillator()
+      const gainNode = ctx.createGain()
 
       oscillator.connect(gainNode)
-      gainNode.connect(audioContextRef.current.destination)
+      gainNode.connect(ctx.destination)
 
       oscillator.frequency.value = frequency
       oscillator.type = type
 
-      gainNode.gain.setValueAtTime(0.3, audioContextRef.current.currentTime)
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + duration / 1000)
+      gainNode.gain.setValueAtTime(0.3, ctx.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration / 1000)
 
-      oscillator.start(audioContextRef.current.currentTime)
-      oscillator.stop(audioContextRef.current.currentTime + duration / 1000)
+      oscillator.start(ctx.currentTime)
+      oscillator.stop(ctx.currentTime + duration / 1000)
     } catch (e) {
       console.log('Audio not available')
     }
-  }, [audioEnabled])
+  }, [audioEnabled, getAudioContext])
 
   // Play warning sound (multiple beeps)
   const playWarningSound = useCallback(() => {

@@ -49,9 +49,25 @@ export default function FloatingTimer() {
   // Don't show on timer page
   const isOnTimerPage = location.pathname === '/timer'
 
-  // Initialize audio context
+  // Lazy initialize audio context only when needed
+  const getAudioContext = useCallback(() => {
+    if (!audioContextRef.current) {
+      try {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)()
+      } catch (e) {
+        console.log('Audio not available')
+        return null
+      }
+    }
+    // Resume if suspended (iOS requirement)
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume()
+    }
+    return audioContextRef.current
+  }, [])
+
+  // Cleanup audio context on unmount
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)()
     return () => {
       if (audioContextRef.current) {
         audioContextRef.current.close()
@@ -59,28 +75,29 @@ export default function FloatingTimer() {
     }
   }, [])
 
-  // Play sound
+  // Play sound - lazily creates audio context
   const playSound = useCallback((frequencies) => {
-    if (!audioContextRef.current) return
+    const ctx = getAudioContext()
+    if (!ctx) return
     try {
       frequencies.forEach(({ freq, delay, duration }) => {
         setTimeout(() => {
-          const oscillator = audioContextRef.current.createOscillator()
-          const gainNode = audioContextRef.current.createGain()
+          const oscillator = ctx.createOscillator()
+          const gainNode = ctx.createGain()
           oscillator.connect(gainNode)
-          gainNode.connect(audioContextRef.current.destination)
+          gainNode.connect(ctx.destination)
           oscillator.frequency.value = freq
           oscillator.type = 'sine'
-          gainNode.gain.setValueAtTime(0.3, audioContextRef.current.currentTime)
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current.currentTime + duration / 1000)
-          oscillator.start(audioContextRef.current.currentTime)
-          oscillator.stop(audioContextRef.current.currentTime + duration / 1000)
+          gainNode.gain.setValueAtTime(0.3, ctx.currentTime)
+          gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration / 1000)
+          oscillator.start(ctx.currentTime)
+          oscillator.stop(ctx.currentTime + duration / 1000)
         }, delay)
       })
     } catch (e) {
       console.log('Audio not available')
     }
-  }, [])
+  }, [getAudioContext])
 
   const playCompletionSound = useCallback(() => {
     playSound([
