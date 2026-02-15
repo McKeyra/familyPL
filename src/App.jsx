@@ -15,6 +15,7 @@ import Grocery from './pages/Grocery'
 import Progress from './pages/Progress'
 import Layout from './components/Layout'
 import FloatingTimer from './components/FloatingTimer'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 // Page transition variants - smooth and fast
 const pageVariants = {
@@ -110,6 +111,7 @@ function App() {
         <AnimatedRoutes />
         <FloatingTimer />
       </Suspense>
+      <SpeedInsights />
     </Router>
   )
 }
