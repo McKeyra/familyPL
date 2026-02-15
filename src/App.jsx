@@ -1,21 +1,27 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { lazy, Suspense } from 'react'
-import Welcome from './pages/Welcome'
-import Landing from './pages/Landing'
-import HomeScreen from './pages/HomeScreen'
-import Dashboard from './pages/Dashboard'
-import Checklist from './pages/Checklist'
-import Timer from './pages/Timer'
-import Calendar from './pages/Calendar'
-import NoteBoard from './pages/NoteBoard'
-import Rewards from './pages/Rewards'
-import ParentPortal from './pages/ParentPortal'
-import Grocery from './pages/Grocery'
-import Progress from './pages/Progress'
-import Layout from './components/Layout'
-import FloatingTimer from './components/FloatingTimer'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+
+// Eagerly load the home screen for instant first paint
+import HomeScreen from './pages/HomeScreen'
+import Layout from './components/Layout'
+
+// Lazy load all other pages for faster initial bundle
+const Welcome = lazy(() => import('./pages/Welcome'))
+const Landing = lazy(() => import('./pages/Landing'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Checklist = lazy(() => import('./pages/Checklist'))
+const Timer = lazy(() => import('./pages/Timer'))
+const Calendar = lazy(() => import('./pages/Calendar'))
+const NoteBoard = lazy(() => import('./pages/NoteBoard'))
+const Rewards = lazy(() => import('./pages/Rewards'))
+const ParentPortal = lazy(() => import('./pages/ParentPortal'))
+const Grocery = lazy(() => import('./pages/Grocery'))
+const Progress = lazy(() => import('./pages/Progress'))
+
+// Lazy load FloatingTimer since it's not needed for first paint
+const FloatingTimer = lazy(() => import('./components/FloatingTimer'))
 
 // Page transition variants - smooth and fast
 const pageVariants = {

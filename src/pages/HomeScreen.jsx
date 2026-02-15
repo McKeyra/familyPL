@@ -13,14 +13,14 @@ const MONTHS = [
 ]
 
 const quickAccessItems = [
-  { id: 'timer', icon: Clock, label: 'Timer', path: '/timer' },
-  { id: 'morning', icon: Sun, label: 'Morning', path: '/checklist/morning' },
-  { id: 'bedtime', icon: Moon, label: 'Bedtime', path: '/checklist/bedtime' },
-  { id: 'chores', icon: CheckCircle2, label: 'Tasks', path: '/checklist/chores' },
-  { id: 'calendar', icon: Calendar, label: 'Calendar', path: '/calendar' },
-  { id: 'rewards', icon: Gift, label: 'Rewards', path: '/rewards' },
-  { id: 'notes', icon: FileText, label: 'Notes', path: '/notes' },
-  { id: 'progress', icon: TrendingUp, label: 'Progress', path: '/progress' },
+  { id: 'timer', icon: Clock, label: 'Timer', path: '/timer', needsChild: true },
+  { id: 'morning', icon: Sun, label: 'Morning', path: '/checklist/morning', needsChild: true },
+  { id: 'bedtime', icon: Moon, label: 'Bedtime', path: '/checklist/bedtime', needsChild: true },
+  { id: 'chores', icon: CheckCircle2, label: 'Tasks', path: '/checklist/chores', needsChild: true },
+  { id: 'calendar', icon: Calendar, label: 'Calendar', path: '/calendar', needsChild: false },
+  { id: 'rewards', icon: Gift, label: 'Rewards', path: '/rewards', needsChild: true },
+  { id: 'notes', icon: FileText, label: 'Notes', path: '/notes', needsChild: false },
+  { id: 'progress', icon: TrendingUp, label: 'Progress', path: '/progress', needsChild: false },
 ]
 
 export default function HomeScreen() {
@@ -28,6 +28,7 @@ export default function HomeScreen() {
   const { children, chores, events, setCurrentChild } = useStore()
   const [currentDate, setCurrentDate] = useState(getTorontoDate)
   const [currentTime, setCurrentTime] = useState(getTorontoDate)
+  const [childSelectPopup, setChildSelectPopup] = useState(null) // { path: string } or null
 
   // Update time every 60 seconds (not every second - reduces re-renders)
   useEffect(() => {
@@ -85,7 +86,19 @@ export default function HomeScreen() {
     navigate('/dashboard')
   }
 
-  const handleQuickAccess = (path) => navigate(path)
+  const handleQuickAccess = (item) => {
+    if (item.needsChild) {
+      setChildSelectPopup({ path: item.path, label: item.label })
+    } else {
+      navigate(item.path)
+    }
+  }
+
+  const handleChildSelect = (childId) => {
+    setCurrentChild(childId)
+    navigate(childSelectPopup.path)
+    setChildSelectPopup(null)
+  }
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 overflow-x-hidden">
@@ -197,7 +210,7 @@ export default function HomeScreen() {
                   {quickAccessItems.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => handleQuickAccess(item.path)}
+                      onClick={() => handleQuickAccess(item)}
                       className="flex flex-col items-center p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl min-w-[80px] sm:min-w-[90px] hover:border-gray-200 hover:shadow-md active:scale-95 transition-all"
                     >
                       <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 mb-2" strokeWidth={1.5} />
@@ -349,6 +362,55 @@ export default function HomeScreen() {
           </aside>
         </div>
       </div>
+
+      {/* Child Selection Popup */}
+      {childSelectPopup && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+          onClick={() => setChildSelectPopup(null)}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-gray-800 text-center mb-2">
+              {childSelectPopup.label}
+            </h3>
+            <p className="text-sm text-gray-500 text-center mb-6">Who is this for?</p>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Bria Option */}
+              <button
+                onClick={() => handleChildSelect('bria')}
+                className="p-5 bg-gradient-to-br from-rose-50 to-pink-50 border-2 border-rose-200 rounded-2xl hover:border-rose-400 hover:shadow-lg active:scale-95 transition-all"
+              >
+                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-lg shadow-rose-200/50">
+                  <span className="text-2xl font-semibold text-white">B</span>
+                </div>
+                <p className="text-base font-semibold text-gray-800">Bria</p>
+              </button>
+
+              {/* Naya Option */}
+              <button
+                onClick={() => handleChildSelect('naya')}
+                className="p-5 bg-gradient-to-br from-cyan-50 to-teal-50 border-2 border-cyan-200 rounded-2xl hover:border-cyan-400 hover:shadow-lg active:scale-95 transition-all"
+              >
+                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-200/50">
+                  <span className="text-2xl font-semibold text-white">N</span>
+                </div>
+                <p className="text-base font-semibold text-gray-800">Naya</p>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setChildSelectPopup(null)}
+              className="w-full mt-4 py-3 text-gray-500 text-sm font-medium hover:text-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
