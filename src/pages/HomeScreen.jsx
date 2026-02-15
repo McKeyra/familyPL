@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Star, Clock, CheckCircle2, Calendar, Gift, FileText, TrendingUp, Settings, Sun, Moon, Sparkles, LayoutList } from 'lucide-react'
 import useStore from '../store/useStore'
-import { getTorontoDate, getTorontoTime, TIMEZONE } from '../lib/timezone'
+import { getTorontoDate } from '../lib/timezone'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const DAYS_SHORT = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
@@ -11,24 +11,6 @@ const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ]
-
-// Elegant animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.1 }
-  }
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring", stiffness: 400, damping: 28 }
-  }
-}
 
 const quickAccessItems = [
   { id: 'timer', icon: Clock, label: 'Timer', path: '/timer' },
@@ -44,24 +26,28 @@ const quickAccessItems = [
 export default function HomeScreen() {
   const navigate = useNavigate()
   const { children, chores, events, setCurrentChild } = useStore()
-  const [currentDate, setCurrentDate] = useState(getTorontoDate())
-  const [currentTime, setCurrentTime] = useState(getTorontoDate())
-  const [selectedChild, setSelectedChild] = useState(null)
+  const [currentDate, setCurrentDate] = useState(getTorontoDate)
+  const [currentTime, setCurrentTime] = useState(getTorontoDate)
 
+  // Update time every 60 seconds (not every second - reduces re-renders)
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(getTorontoDate()), 1000)
+    const timer = setInterval(() => setCurrentTime(getTorontoDate()), 60000)
     return () => clearInterval(timer)
   }, [])
 
-  const today = getTorontoDate()
+  const today = useMemo(() => getTorontoDate(), [])
   const currentMonth = currentDate.getMonth()
   const currentYear = currentDate.getFullYear()
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay()
 
-  const calendarDays = []
-  for (let i = 0; i < firstDayOfMonth; i++) calendarDays.push(null)
-  for (let day = 1; day <= daysInMonth; day++) calendarDays.push(day)
+  // Memoize calendar days calculation
+  const calendarDays = useMemo(() => {
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay()
+    const days = []
+    for (let i = 0; i < firstDayOfMonth; i++) days.push(null)
+    for (let day = 1; day <= daysInMonth; day++) days.push(day)
+    return days
+  }, [currentYear, currentMonth])
 
   const getEventsForDay = useCallback((day) => {
     if (!day) return []
@@ -72,6 +58,7 @@ export default function HomeScreen() {
   const prevMonth = () => setCurrentDate(new Date(currentYear, currentMonth - 1, 1))
   const nextMonth = () => setCurrentDate(new Date(currentYear, currentMonth + 1, 1))
 
+  // Memoize task progress calculations
   const getTaskProgress = useCallback((childId) => {
     const childChores = chores[childId]
     if (!childChores) return { completed: 0, total: 0, percentage: 0 }
@@ -82,8 +69,8 @@ export default function HomeScreen() {
     return { completed, total, percentage: total > 0 ? (completed / total) * 100 : 0 }
   }, [chores])
 
-  const briaProgress = getTaskProgress('bria')
-  const nayaProgress = getTaskProgress('naya')
+  const briaProgress = useMemo(() => getTaskProgress('bria'), [getTaskProgress])
+  const nayaProgress = useMemo(() => getTaskProgress('naya'), [getTaskProgress])
 
   const hours = currentTime.getHours()
   const minutes = currentTime.getMinutes().toString().padStart(2, '0')
@@ -92,25 +79,20 @@ export default function HomeScreen() {
 
   const isToday = (day) => day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()
 
+  // Navigate immediately - no artificial delay
   const handleChildClick = (childId) => {
-    setSelectedChild(childId)
     setCurrentChild(childId)
-    setTimeout(() => navigate('/dashboard'), 120)
+    navigate('/dashboard')
   }
 
-  const handleQuickAccess = (item) => navigate(item.path)
+  const handleQuickAccess = (path) => navigate(path)
 
   return (
-    <motion.div
-      className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 overflow-x-hidden"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 overflow-x-hidden">
       <div className="p-5 sm:p-8 pb-10 max-w-6xl mx-auto">
 
         {/* Elegant Header */}
-        <motion.header className="mb-8 sm:mb-12" variants={itemVariants}>
+        <header className="mb-8 sm:mb-12">
           <div className="flex items-end justify-between">
             <div>
               <p className="text-sm sm:text-base text-gray-400 font-medium tracking-wide uppercase">
@@ -128,19 +110,17 @@ export default function HomeScreen() {
                 <p className="text-sm text-gray-400 font-medium">{amPm}</p>
               </div>
               {/* Layout Toggle */}
-              <motion.button
+              <button
                 onClick={() => navigate('/')}
-                className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-sm mt-1"
-                whileTap={{ scale: 0.95 }}
-                whileHover={{ scale: 1.05 }}
+                className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-sm mt-1 active:scale-95 transition-transform"
                 title="Switch to list layout"
               >
                 <LayoutList className="w-5 h-5 text-slate-500" strokeWidth={1.5} />
-              </motion.button>
+              </button>
             </div>
           </div>
           <div className="mt-4 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-        </motion.header>
+        </header>
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -149,24 +129,14 @@ export default function HomeScreen() {
           <div className="lg:col-span-2 space-y-6 sm:space-y-8">
 
             {/* Kids Cards */}
-            <motion.section variants={itemVariants}>
+            <section>
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Family</h2>
               <div className="grid grid-cols-2 gap-4 sm:gap-6">
 
                 {/* Bria */}
-                <motion.button
+                <button
                   onClick={() => handleChildClick('bria')}
-                  className={`
-                    relative overflow-hidden p-5 sm:p-6
-                    bg-gradient-to-br from-rose-50 to-pink-50
-                    border border-rose-100/50
-                    rounded-2xl sm:rounded-3xl
-                    text-left transition-all duration-300
-                    hover:shadow-lg hover:shadow-rose-100/50
-                    ${selectedChild === 'bria' ? 'ring-2 ring-rose-300 scale-[0.98]' : ''}
-                  `}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
+                  className="relative overflow-hidden p-5 sm:p-6 bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-100/50 rounded-2xl sm:rounded-3xl text-left transition-all active:scale-[0.98] hover:shadow-lg hover:shadow-rose-100/50"
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-rose-200/30 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
                   <div className="relative">
@@ -182,30 +152,18 @@ export default function HomeScreen() {
                     <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-1">Bria</h3>
                     <p className="text-sm text-gray-500 mb-3">{briaProgress.completed} of {briaProgress.total} tasks</p>
                     <div className="h-1.5 bg-rose-100 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${briaProgress.percentage}%` }}
-                        transition={{ duration: 0.8, delay: 0.3 }}
+                      <div
+                        className="h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full transition-all duration-500"
+                        style={{ width: `${briaProgress.percentage}%` }}
                       />
                     </div>
                   </div>
-                </motion.button>
+                </button>
 
                 {/* Naya */}
-                <motion.button
+                <button
                   onClick={() => handleChildClick('naya')}
-                  className={`
-                    relative overflow-hidden p-5 sm:p-6
-                    bg-gradient-to-br from-cyan-50 to-teal-50
-                    border border-cyan-100/50
-                    rounded-2xl sm:rounded-3xl
-                    text-left transition-all duration-300
-                    hover:shadow-lg hover:shadow-cyan-100/50
-                    ${selectedChild === 'naya' ? 'ring-2 ring-cyan-300 scale-[0.98]' : ''}
-                  `}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
+                  className="relative overflow-hidden p-5 sm:p-6 bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-100/50 rounded-2xl sm:rounded-3xl text-left transition-all active:scale-[0.98] hover:shadow-lg hover:shadow-cyan-100/50"
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-cyan-200/30 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
                   <div className="relative">
@@ -221,50 +179,43 @@ export default function HomeScreen() {
                     <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-1">Naya</h3>
                     <p className="text-sm text-gray-500 mb-3">{nayaProgress.completed} of {nayaProgress.total} tasks</p>
                     <div className="h-1.5 bg-cyan-100 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-gradient-to-r from-cyan-400 to-teal-500 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${nayaProgress.percentage}%` }}
-                        transition={{ duration: 0.8, delay: 0.4 }}
+                      <div
+                        className="h-full bg-gradient-to-r from-cyan-400 to-teal-500 rounded-full transition-all duration-500"
+                        style={{ width: `${nayaProgress.percentage}%` }}
                       />
                     </div>
                   </div>
-                </motion.button>
+                </button>
               </div>
-            </motion.section>
+            </section>
 
             {/* Quick Access */}
-            <motion.section variants={itemVariants}>
+            <section>
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Quick Access</h2>
               <div className="overflow-x-auto scrollbar-hide -mx-5 px-5 sm:-mx-8 sm:px-8">
                 <div className="flex gap-3 pb-2" style={{ width: 'max-content' }}>
-                  {quickAccessItems.map((item, index) => (
-                    <motion.button
+                  {quickAccessItems.map((item) => (
+                    <button
                       key={item.id}
-                      onClick={() => handleQuickAccess(item)}
-                      className="flex flex-col items-center p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl min-w-[80px] sm:min-w-[90px] hover:border-gray-200 hover:shadow-md transition-all duration-200"
-                      whileHover={{ y: -3 }}
-                      whileTap={{ scale: 0.96 }}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 + index * 0.04 }}
+                      onClick={() => handleQuickAccess(item.path)}
+                      className="flex flex-col items-center p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl min-w-[80px] sm:min-w-[90px] hover:border-gray-200 hover:shadow-md active:scale-95 transition-all"
                     >
                       <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 mb-2" strokeWidth={1.5} />
                       <span className="text-xs sm:text-sm font-medium text-gray-600">{item.label}</span>
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
               </div>
-            </motion.section>
+            </section>
 
             {/* Today's Overview */}
-            <motion.section variants={itemVariants}>
+            <section>
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Today's Tasks</h2>
               <div className="grid grid-cols-2 gap-4">
 
                 {/* Bria Tasks */}
-                <div
-                  className="p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl cursor-pointer hover:border-rose-200 hover:shadow-sm transition-all"
+                <button
+                  className="p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl text-left hover:border-rose-200 hover:shadow-sm active:scale-[0.98] transition-all"
                   onClick={() => handleChildClick('bria')}
                 >
                   <div className="flex items-center gap-2 mb-3">
@@ -285,11 +236,11 @@ export default function HomeScreen() {
                       ))
                     ).slice(0, 4)}
                   </div>
-                </div>
+                </button>
 
                 {/* Naya Tasks */}
-                <div
-                  className="p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl cursor-pointer hover:border-cyan-200 hover:shadow-sm transition-all"
+                <button
+                  className="p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl text-left hover:border-cyan-200 hover:shadow-sm active:scale-[0.98] transition-all"
                   onClick={() => handleChildClick('naya')}
                 >
                   <div className="flex items-center gap-2 mb-3">
@@ -310,26 +261,26 @@ export default function HomeScreen() {
                       ))
                     ).slice(0, 4)}
                   </div>
-                </div>
+                </button>
               </div>
-            </motion.section>
+            </section>
           </div>
 
           {/* Right Column - Calendar */}
-          <motion.aside variants={itemVariants} className="lg:col-span-1">
+          <aside className="lg:col-span-1">
             <div className="sticky top-8">
               <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Calendar</h2>
               <div className="p-5 sm:p-6 bg-white border border-gray-100 rounded-2xl sm:rounded-3xl">
 
                 {/* Month Nav */}
                 <div className="flex items-center justify-between mb-5">
-                  <button onClick={prevMonth} className="p-2 hover:bg-gray-50 rounded-full transition-colors">
+                  <button onClick={prevMonth} className="p-2 hover:bg-gray-50 rounded-full transition-colors active:scale-95">
                     <ChevronLeft className="w-4 h-4 text-gray-400" />
                   </button>
                   <h3 className="text-base font-semibold text-gray-800">
                     {MONTHS[currentMonth]} {currentYear}
                   </h3>
-                  <button onClick={nextMonth} className="p-2 hover:bg-gray-50 rounded-full transition-colors">
+                  <button onClick={nextMonth} className="p-2 hover:bg-gray-50 rounded-full transition-colors active:scale-95">
                     <ChevronRight className="w-4 h-4 text-gray-400" />
                   </button>
                 </div>
@@ -387,19 +338,17 @@ export default function HomeScreen() {
               </div>
 
               {/* Parent Access */}
-              <motion.button
+              <button
                 onClick={() => navigate('/parent')}
-                className="w-full mt-4 p-4 flex items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-2xl transition-colors"
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
+                className="w-full mt-4 p-4 flex items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-2xl transition-colors active:scale-[0.99]"
               >
                 <Settings className="w-4 h-4 text-gray-400" />
                 <span className="text-sm font-medium text-gray-500">Parent Settings</span>
-              </motion.button>
+              </button>
             </div>
-          </motion.aside>
+          </aside>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
