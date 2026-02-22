@@ -705,7 +705,7 @@ export default function Timer() {
             <Button variant="clean" size="lg" onClick={handleReset} className="flex-1">
               Start Another
             </Button>
-            <Button variant={child.theme} size="lg" onClick={() => navigate('/')} className="flex-1">
+            <Button variant={child.theme} size="lg" onClick={() => navigate('/home')} className="flex-1">
               Dashboard
             </Button>
           </div>

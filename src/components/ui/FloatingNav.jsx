@@ -4,10 +4,10 @@ import { Home, CheckSquare, Star, Settings } from 'lucide-react'
 import useStore from '../../store/useStore'
 
 const tabs = [
-  { id: 'home', path: '/', label: 'Home', icon: Home },
+  { id: 'home', path: '/home', label: 'Home', icon: Home },
   { id: 'tasks', path: '/dashboard', label: 'Tasks', icon: CheckSquare },
   { id: 'rewards', path: '/rewards', label: 'Rewards', icon: Star },
-  { id: 'parent', path: '/parent', label: 'Settings', icon: Settings },
+  { id: 'parent', path: '/', label: 'Settings', icon: Settings },
 ]
 
 export default function FloatingNav() {
@@ -35,14 +35,14 @@ export default function FloatingNav() {
   }
 
   // Use parent theme when in parent mode or on parent page
-  const effectiveTheme = isParentMode || location.pathname === '/parent' ? 'parent' : theme
+  const effectiveTheme = isParentMode || location.pathname === '/' ? 'parent' : theme
   const activeTheme = themeColors[effectiveTheme] || themeColors.bria
 
   // Determine active tab
   const getActiveTab = () => {
     const path = location.pathname
-    if (path === '/' || path === '/home-alt') return 'home'
-    if (path === '/parent') return 'parent'
+    if (path === '/home' || path === '/home-alt') return 'home'
+    if (path === '/') return 'parent'
     if (path === '/rewards') return 'rewards'
     // Tasks includes dashboard, checklists, timer, calendar, notes
     if (path.startsWith('/dashboard') || path.startsWith('/checklist') ||

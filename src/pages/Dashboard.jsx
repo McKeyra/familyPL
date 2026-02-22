@@ -18,7 +18,7 @@ import {
 import useStore from '../store/useStore'
 import ChildAvatar from '../components/ui/ChildAvatar'
 import AvatarCustomizer from '../components/ui/AvatarCustomizer'
-import { getTorontoDate } from '../lib/timezone'
+import { getTorontoDate, isWeekend as checkIsWeekend } from '../lib/timezone'
 import { format } from 'date-fns'
 
 // Routine definitions with icons (no emoji)
@@ -113,7 +113,9 @@ function ProfileSwitcher({ children, currentChild, onSelect }) {
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { currentChild, children, chores, getChildEvents, sendHeart, setCurrentChild } = useStore()
+  const { currentChild, children, chores, weekendChores, getChildEvents, sendHeart, setCurrentChild } = useStore()
+  const weekend = checkIsWeekend()
+  const activeChores = weekend ? weekendChores : chores
   const [showAvatarCustomizer, setShowAvatarCustomizer] = useState(false)
   const [currentTime, setCurrentTime] = useState(getTorontoDate())
 
@@ -130,9 +132,14 @@ export default function Dashboard() {
   const child = children[activeChild]
   const siblingId = activeChild === 'bria' ? 'naya' : 'bria'
   const sibling = children[siblingId]
-  const childChores = chores[activeChild]
+  const childChores = activeChores[activeChild]
   const upcomingEvents = getChildEvents(activeChild).slice(0, 3)
   const theme = themeConfig[child?.theme] || themeConfig.bria
+
+  // Filter routines based on weekend (no afterSchool on weekends)
+  const availableRoutines = useMemo(() => {
+    return weekend ? routines.filter(r => r.id !== 'afterSchool') : routines
+  }, [weekend])
 
   // Get hero routine based on time
   const heroRoutineId = useMemo(() => getHeroRoutine(), [])
@@ -159,8 +166,8 @@ export default function Dashboard() {
   }
 
   // Separate hero and secondary routines
-  const heroRoutine = routines.find(r => r.id === heroRoutineId)
-  const secondaryRoutines = routines.filter(r => r.id !== heroRoutineId)
+  const heroRoutine = availableRoutines.find(r => r.id === heroRoutineId) || availableRoutines[0]
+  const secondaryRoutines = availableRoutines.filter(r => r.id !== heroRoutine?.id)
 
   return (
     <div className="p-4 sm:p-6 max-w-lg mx-auto">
@@ -177,14 +184,21 @@ export default function Dashboard() {
           onSelect={setCurrentChild}
         />
 
-        {/* Right: Time + Date */}
+        {/* Right: Time + Date + Weekend indicator */}
         <div className="text-right">
           <p className="text-sm font-semibold text-slate-800 tabular-nums">
             {format(currentTime, 'h:mm a')}
           </p>
-          <p className="text-xs text-slate-500">
-            {format(currentTime, 'EEE, MMM d')}
-          </p>
+          <div className="flex items-center gap-1.5 justify-end">
+            <p className="text-xs text-slate-500">
+              {format(currentTime, 'EEE, MMM d')}
+            </p>
+            {weekend && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700">
+                Weekend
+              </span>
+            )}
+          </div>
         </div>
       </motion.div>
 

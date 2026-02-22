@@ -9,7 +9,7 @@ import useNetworkStatus from '../hooks/useNetworkStatus'
 import FloatingNav from './ui/FloatingNav'
 
 // Pages that should not show the back button
-const noBackButtonPages = ['/', '/home-alt', '/dashboard', '/rewards', '/parent']
+const noBackButtonPages = ['/', '/home', '/home-alt', '/dashboard', '/rewards']
 
 export default function Layout() {
   const navigate = useNavigate()
@@ -79,7 +79,7 @@ export default function Layout() {
               if (window.history.length > 2) {
                 navigate(-1)
               } else {
-                navigate('/')
+                navigate('/home')
               }
             }}
             className={`fixed top-4 left-4 z-50 w-11 h-11 rounded-full ${colors.backBtn} text-white shadow-lg safe-top safe-left flex items-center justify-center`}

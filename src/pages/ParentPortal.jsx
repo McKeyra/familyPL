@@ -26,6 +26,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import useStore from '../store/useStore'
+import { isWeekend as checkIsWeekend } from '../lib/timezone'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
 import { eventCategories, eventCategoryList } from '../data/eventCategories'
@@ -47,9 +48,11 @@ const activityTypes = [
 
 export default function ParentPortal() {
   const navigate = useNavigate()
+  const weekend = checkIsWeekend()
   const {
     children,
     chores,
+    weekendChores,
     events,
     starLog,
     timeLimits,
@@ -87,8 +90,10 @@ export default function ParentPortal() {
     reward: '',
     rewardStars: 20,
   })
+  const [editingWeekend, setEditingWeekend] = useState(weekend) // Toggle between weekday/weekend task editing
   const [editingTask, setEditingTask] = useState(null) // { routine, task }
   const [editTaskForm, setEditTaskForm] = useState({ text: '', emoji: '', stars: 1 })
+  const editingChores = editingWeekend ? weekendChores : chores
 
   const handleAddTask = () => {
     if (!newTask.text.trim()) return
@@ -98,7 +103,7 @@ export default function ParentPortal() {
       emoji: newTask.emoji,
       stars: newTask.stars,
       completed: false,
-    })
+    }, editingWeekend)
     setNewTask({ text: '', emoji: '✨', stars: 1, routine: 'chores' })
     setShowAddTask(false)
   }
@@ -149,14 +154,14 @@ export default function ParentPortal() {
       text: editTaskForm.text,
       emoji: editTaskForm.emoji,
       stars: editTaskForm.stars,
-    })
+    }, editingWeekend)
     setEditingTask(null)
     setEditTaskForm({ text: '', emoji: '', stars: 1 })
   }
 
   const handleExit = () => {
     setParentMode(false)
-    navigate('/')
+    navigate('/home')
   }
 
   const handleTimeLimitChange = (childId, activity, field, value) => {
@@ -187,6 +192,21 @@ export default function ParentPortal() {
 
   return (
     <div className="p-4 sm:p-6 max-w-4xl mx-auto">
+      {/* Weekend Indicator Banner */}
+      {weekend && (
+        <motion.div
+          className="mb-4 p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl flex items-center gap-3"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <span className="text-2xl">🌟</span>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">It's the Weekend!</p>
+            <p className="text-xs text-amber-600">Weekend tasks are active. No school routines today.</p>
+          </div>
+        </motion.div>
+      )}
+
       {/* Segmented Control - Pill Style */}
       <motion.div
         className="mb-6"
@@ -599,7 +619,7 @@ export default function ParentPortal() {
               exit={{ opacity: 0, y: -20 }}
             >
               {/* Child Selector */}
-              <div className="flex gap-4 mb-6">
+              <div className="flex gap-4 mb-4">
                 {Object.values(children).map((child) => (
                   <Button
                     key={child.id}
@@ -610,6 +630,39 @@ export default function ParentPortal() {
                     {child.name}
                   </Button>
                 ))}
+              </div>
+
+              {/* Weekday / Weekend Toggle */}
+              <div className="flex items-center gap-2 mb-6">
+                <div className="flex p-1 bg-slate-100 rounded-xl">
+                  <button
+                    onClick={() => setEditingWeekend(false)}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      !editingWeekend
+                        ? 'bg-white text-slate-800 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <BookOpen className="w-4 h-4" strokeWidth={1.5} />
+                    Weekday
+                  </button>
+                  <button
+                    onClick={() => setEditingWeekend(true)}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      editingWeekend
+                        ? 'bg-amber-100 text-amber-800 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <Gamepad2 className="w-4 h-4" strokeWidth={1.5} />
+                    Weekend
+                  </button>
+                </div>
+                {editingWeekend && (
+                  <span className="text-xs text-amber-600 font-medium px-2 py-1 bg-amber-50 rounded-full">
+                    Editing weekend tasks
+                  </span>
+                )}
               </div>
 
               {/* Add Task Button */}
@@ -625,7 +678,7 @@ export default function ParentPortal() {
 
               {/* Tasks by Routine */}
               <div className="grid md:grid-cols-2 gap-4">
-                {['morning', 'afterSchool', 'bedtime', 'chores'].map((routine) => {
+                {(editingWeekend ? ['morning', 'bedtime', 'chores'] : ['morning', 'afterSchool', 'bedtime', 'chores']).map((routine) => {
                   const routineLabels = {
                     morning: 'Morning Routine',
                     afterSchool: 'After School',
@@ -634,13 +687,13 @@ export default function ParentPortal() {
                   }
                   return (
                     <div key={routine} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                      <div className="p-3 border-b border-slate-100 bg-slate-50">
+                      <div className={`p-3 border-b border-slate-100 ${editingWeekend ? 'bg-amber-50' : 'bg-slate-50'}`}>
                         <h3 className="font-semibold text-slate-800">
                           {routineLabels[routine]}
                         </h3>
                       </div>
                       <div className="divide-y divide-slate-100">
-                        {chores[selectedChild]?.[routine]?.map((task) => (
+                        {editingChores[selectedChild]?.[routine]?.map((task) => (
                           <div
                             key={task.id}
                             className="flex items-center justify-between p-3 hover:bg-slate-50 transition-colors"
@@ -658,7 +711,7 @@ export default function ParentPortal() {
                                 <Edit3 className="w-4 h-4" strokeWidth={1.5} />
                               </button>
                               <button
-                                onClick={() => removeChore(selectedChild, routine, task.id)}
+                                onClick={() => removeChore(selectedChild, routine, task.id, editingWeekend)}
                                 className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                               >
                                 <Trash2 className="w-4 h-4" strokeWidth={1.5} />
@@ -666,7 +719,7 @@ export default function ParentPortal() {
                             </div>
                           </div>
                         ))}
-                        {(!chores[selectedChild]?.[routine] || chores[selectedChild]?.[routine]?.length === 0) && (
+                        {(!editingChores[selectedChild]?.[routine] || editingChores[selectedChild]?.[routine]?.length === 0) && (
                           <div className="p-4 text-center text-slate-400 text-sm">
                             No tasks yet
                           </div>
@@ -878,7 +931,7 @@ export default function ParentPortal() {
                       className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
                     >
                       <option value="morning">Morning</option>
-                      <option value="afterSchool">After School</option>
+                      {!editingWeekend && <option value="afterSchool">After School</option>}
                       <option value="bedtime">Bedtime</option>
                       <option value="chores">Chores</option>
                     </select>

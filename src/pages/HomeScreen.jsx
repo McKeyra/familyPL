@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Star, Clock, CheckCircle2, Calendar, Gift, FileText, TrendingUp, Settings, Sun, Moon, Sparkles, LayoutList } from 'lucide-react'
 import useStore from '../store/useStore'
-import { getTorontoDate } from '../lib/timezone'
+import { getTorontoDate, isWeekend as checkIsWeekend } from '../lib/timezone'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const DAYS_SHORT = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
@@ -25,7 +25,9 @@ const quickAccessItems = [
 
 export default function HomeScreen() {
   const navigate = useNavigate()
-  const { children, chores, events, setCurrentChild } = useStore()
+  const { children, chores, weekendChores, events, setCurrentChild } = useStore()
+  const weekend = checkIsWeekend()
+  const activeChores = weekend ? weekendChores : chores
   const [currentDate, setCurrentDate] = useState(getTorontoDate)
   const [currentTime, setCurrentTime] = useState(getTorontoDate)
   const [childSelectPopup, setChildSelectPopup] = useState(null) // { path: string } or null
@@ -61,14 +63,14 @@ export default function HomeScreen() {
 
   // Memoize task progress calculations
   const getTaskProgress = useCallback((childId) => {
-    const childChores = chores[childId]
+    const childChores = activeChores[childId]
     if (!childChores) return { completed: 0, total: 0, percentage: 0 }
     let completed = 0, total = 0
     Object.values(childChores).forEach(routine => {
       routine.forEach(task => { total++; if (task.completed) completed++ })
     })
     return { completed, total, percentage: total > 0 ? (completed / total) * 100 : 0 }
-  }, [chores])
+  }, [activeChores])
 
   const briaProgress = useMemo(() => getTaskProgress('bria'), [getTaskProgress])
   const nayaProgress = useMemo(() => getTaskProgress('naya'), [getTaskProgress])
@@ -110,6 +112,11 @@ export default function HomeScreen() {
             <div>
               <p className="text-sm sm:text-base text-gray-400 font-medium tracking-wide uppercase">
                 {DAYS[today.getDay()]}
+                {weekend && (
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 uppercase tracking-wider">
+                    Weekend
+                  </span>
+                )}
               </p>
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-light text-gray-900 tracking-tight">
                 {MONTHS[today.getMonth()]} {today.getDate()}
@@ -124,7 +131,7 @@ export default function HomeScreen() {
               </div>
               {/* Layout Toggle */}
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/home')}
                 className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-sm mt-1 active:scale-95 transition-transform"
                 title="Switch to list layout"
               >
@@ -238,7 +245,7 @@ export default function HomeScreen() {
                     <span className="text-sm font-medium text-gray-700">Bria</span>
                   </div>
                   <div className="space-y-2">
-                    {chores.bria && Object.entries(chores.bria).flatMap(([, tasks]) =>
+                    {activeChores.bria && Object.entries(activeChores.bria).flatMap(([, tasks]) =>
                       tasks.slice(0, 2).map(task => (
                         <div key={task.id} className={`flex items-center gap-2 ${task.completed ? 'opacity-40' : ''}`}>
                           <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${task.completed ? 'border-green-400 bg-green-400' : 'border-gray-200'}`}>
@@ -263,7 +270,7 @@ export default function HomeScreen() {
                     <span className="text-sm font-medium text-gray-700">Naya</span>
                   </div>
                   <div className="space-y-2">
-                    {chores.naya && Object.entries(chores.naya).flatMap(([, tasks]) =>
+                    {activeChores.naya && Object.entries(activeChores.naya).flatMap(([, tasks]) =>
                       tasks.slice(0, 2).map(task => (
                         <div key={task.id} className={`flex items-center gap-2 ${task.completed ? 'opacity-40' : ''}`}>
                           <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${task.completed ? 'border-green-400 bg-green-400' : 'border-gray-200'}`}>
@@ -352,7 +359,7 @@ export default function HomeScreen() {
 
               {/* Parent Access */}
               <button
-                onClick={() => navigate('/parent')}
+                onClick={() => navigate('/')}
                 className="w-full mt-4 p-4 flex items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-2xl transition-colors active:scale-[0.99]"
               >
                 <Settings className="w-4 h-4 text-gray-400" />

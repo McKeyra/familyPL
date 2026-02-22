@@ -20,7 +20,7 @@ export default function Welcome() {
 
   const handleParentMode = () => {
     setParentMode(true)
-    navigate('/parent')
+    navigate('/')
   }
 
   return (

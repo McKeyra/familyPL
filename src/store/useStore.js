@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { getTodayString, getYesterdayString } from '../lib/timezone'
+import { getTodayString, getYesterdayString, isWeekend } from '../lib/timezone'
 
 // Initial data for the family
 const initialChildren = {
@@ -81,6 +81,49 @@ const initialChores = {
     chores: [
       { id: 'c1', text: 'Pick up toys', emoji: '🧸', completed: false, stars: 2 },
       { id: 'c2', text: 'Help set table', emoji: '🍽️', completed: false, stars: 2 },
+    ],
+  },
+}
+
+const initialWeekendChores = {
+  bria: {
+    morning: [
+      { id: 'wm1', text: 'Make bed', emoji: '🛏️', completed: false, stars: 1 },
+      { id: 'wm2', text: 'Brush teeth', emoji: '🦷', completed: false, stars: 1 },
+      { id: 'wm3', text: 'Get dressed', emoji: '👗', completed: false, stars: 1 },
+      { id: 'wm4', text: 'Eat breakfast', emoji: '🥣', completed: false, stars: 1 },
+    ],
+    bedtime: [
+      { id: 'wb1', text: 'Take a bath', emoji: '🛁', completed: false, stars: 1 },
+      { id: 'wb2', text: 'Put on PJs', emoji: '👚', completed: false, stars: 1 },
+      { id: 'wb3', text: 'Brush teeth', emoji: '🦷', completed: false, stars: 1 },
+      { id: 'wb4', text: 'Read a book', emoji: '📚', completed: false, stars: 2 },
+      { id: 'wb5', text: 'Say goodnight', emoji: '🌙', completed: false, stars: 1 },
+    ],
+    chores: [
+      { id: 'wc1', text: 'Clean room', emoji: '🧹', completed: false, stars: 3 },
+      { id: 'wc2', text: 'Help with dishes', emoji: '🍽️', completed: false, stars: 2 },
+      { id: 'wc3', text: 'Help with laundry', emoji: '👕', completed: false, stars: 2 },
+    ],
+  },
+  naya: {
+    morning: [
+      { id: 'wm1', text: 'Wake up happy', emoji: '☀️', completed: false, stars: 1 },
+      { id: 'wm2', text: 'Brush teeth', emoji: '🦷', completed: false, stars: 1 },
+      { id: 'wm3', text: 'Get dressed', emoji: '👗', completed: false, stars: 1 },
+      { id: 'wm4', text: 'Eat breakfast', emoji: '🥣', completed: false, stars: 1 },
+    ],
+    bedtime: [
+      { id: 'wb1', text: 'Bath time', emoji: '🛁', completed: false, stars: 1 },
+      { id: 'wb2', text: 'Put on PJs', emoji: '👚', completed: false, stars: 1 },
+      { id: 'wb3', text: 'Brush teeth', emoji: '🦷', completed: false, stars: 1 },
+      { id: 'wb4', text: 'Story time', emoji: '📖', completed: false, stars: 2 },
+      { id: 'wb5', text: 'Hugs & kisses', emoji: '💜', completed: false, stars: 1 },
+    ],
+    chores: [
+      { id: 'wc1', text: 'Pick up toys', emoji: '🧸', completed: false, stars: 2 },
+      { id: 'wc2', text: 'Help set table', emoji: '🍽️', completed: false, stars: 2 },
+      { id: 'wc3', text: 'Help with laundry', emoji: '👕', completed: false, stars: 2 },
     ],
   },
 }
@@ -172,6 +215,7 @@ const useStore = create(
       // Data
       children: initialChildren,
       chores: initialChores,
+      weekendChores: initialWeekendChores,
       events: initialEvents,
       notes: initialNotes,
       hearts: initialHearts,
@@ -305,16 +349,31 @@ const useStore = create(
         return false
       },
 
-      // Actions - Chores
-      completeChore: (childId, routineType, choreId) => {
-        const chore = get().chores[childId][routineType].find(c => c.id === choreId)
+      // Helper: get the chore storage key based on weekend status
+      // forWeekend: undefined = auto-detect, true = weekend, false = weekday
+      _getChoreKey: (forWeekend) => {
+        if (forWeekend !== undefined) return forWeekend ? 'weekendChores' : 'chores'
+        return isWeekend() ? 'weekendChores' : 'chores'
+      },
+
+      // Get the active chores based on current day (weekend vs weekday)
+      getActiveChores: () => {
+        return isWeekend() ? get().weekendChores : get().chores
+      },
+
+      // Actions - Chores (weekend-aware)
+      completeChore: (childId, routineType, choreId, forWeekend) => {
+        const key = get()._getChoreKey(forWeekend)
+        const routineTasks = get()[key]?.[childId]?.[routineType]
+        if (!routineTasks) return 0
+        const chore = routineTasks.find(c => c.id === choreId)
         if (chore && !chore.completed) {
           set((state) => ({
-            chores: {
-              ...state.chores,
+            [key]: {
+              ...state[key],
               [childId]: {
-                ...state.chores[childId],
-                [routineType]: state.chores[childId][routineType].map(c =>
+                ...state[key][childId],
+                [routineType]: state[key][childId][routineType].map(c =>
                   c.id === choreId ? { ...c, completed: true } : c
                 ),
               },
@@ -326,13 +385,15 @@ const useStore = create(
         return 0
       },
 
-      resetRoutine: (childId, routineType) => {
+      resetRoutine: (childId, routineType, forWeekend) => {
+        const key = get()._getChoreKey(forWeekend)
+        if (!get()[key]?.[childId]?.[routineType]) return
         set((state) => ({
-          chores: {
-            ...state.chores,
+          [key]: {
+            ...state[key],
             [childId]: {
-              ...state.chores[childId],
-              [routineType]: state.chores[childId][routineType].map(c => ({
+              ...state[key][childId],
+              [routineType]: state[key][childId][routineType].map(c => ({
                 ...c,
                 completed: false,
               })),
@@ -341,49 +402,56 @@ const useStore = create(
         }))
       },
 
-      addChore: (childId, routineType, chore) => {
+      addChore: (childId, routineType, chore, forWeekend) => {
+        const key = get()._getChoreKey(forWeekend)
+        const existing = get()[key]?.[childId]?.[routineType] || []
         set((state) => ({
-          chores: {
-            ...state.chores,
+          [key]: {
+            ...state[key],
             [childId]: {
-              ...state.chores[childId],
-              [routineType]: [...state.chores[childId][routineType], chore],
+              ...state[key][childId],
+              [routineType]: [...existing, chore],
             },
           },
         }))
       },
 
-      removeChore: (childId, routineType, choreId) => {
+      removeChore: (childId, routineType, choreId, forWeekend) => {
+        const key = get()._getChoreKey(forWeekend)
+        if (!get()[key]?.[childId]?.[routineType]) return
         set((state) => ({
-          chores: {
-            ...state.chores,
+          [key]: {
+            ...state[key],
             [childId]: {
-              ...state.chores[childId],
-              [routineType]: state.chores[childId][routineType].filter(c => c.id !== choreId),
+              ...state[key][childId],
+              [routineType]: state[key][childId][routineType].filter(c => c.id !== choreId),
             },
           },
         }))
       },
 
-      reorderChores: (childId, routineType, newOrder) => {
+      reorderChores: (childId, routineType, newOrder, forWeekend) => {
+        const key = get()._getChoreKey(forWeekend)
         set((state) => ({
-          chores: {
-            ...state.chores,
+          [key]: {
+            ...state[key],
             [childId]: {
-              ...state.chores[childId],
+              ...state[key][childId],
               [routineType]: newOrder,
             },
           },
         }))
       },
 
-      updateChore: (childId, routineType, choreId, updates) => {
+      updateChore: (childId, routineType, choreId, updates, forWeekend) => {
+        const key = get()._getChoreKey(forWeekend)
+        if (!get()[key]?.[childId]?.[routineType]) return
         set((state) => ({
-          chores: {
-            ...state.chores,
+          [key]: {
+            ...state[key],
             [childId]: {
-              ...state.chores[childId],
-              [routineType]: state.chores[childId][routineType].map(c =>
+              ...state[key][childId],
+              [routineType]: state[key][childId][routineType].map(c =>
                 c.id === choreId ? { ...c, ...updates } : c
               ),
             },
@@ -815,9 +883,11 @@ const useStore = create(
           get().logDailyProgress(lastReset)
         }
 
-        // Reset all chores for all children
+        // Reset all chores for all children (both weekday and weekend)
         const chores = get().chores
+        const weekendChores = get().weekendChores
         const resetChores = {}
+        const resetWeekendChores = {}
 
         Object.keys(chores).forEach(childId => {
           resetChores[childId] = {}
@@ -829,9 +899,20 @@ const useStore = create(
           })
         })
 
+        Object.keys(weekendChores).forEach(childId => {
+          resetWeekendChores[childId] = {}
+          Object.keys(weekendChores[childId]).forEach(routineType => {
+            resetWeekendChores[childId][routineType] = weekendChores[childId][routineType].map(chore => ({
+              ...chore,
+              completed: false,
+            }))
+          })
+        })
+
         // Clear daily time usage for new day
         set({
           chores: resetChores,
+          weekendChores: resetWeekendChores,
           lastResetDate: today,
         })
 
@@ -913,6 +994,7 @@ const useStore = create(
           isParentMode: false,
           children: initialChildren,
           chores: initialChores,
+          weekendChores: initialWeekendChores,
           events: initialEvents,
           notes: initialNotes,
           hearts: initialHearts,

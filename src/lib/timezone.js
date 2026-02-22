@@ -73,6 +73,12 @@ export function getDayName(date, short = false) {
   return new Intl.DateTimeFormat('en-US', options).format(date)
 }
 
+// Check if today is a weekend (Saturday or Sunday) in Toronto timezone
+export function isWeekend() {
+  const day = getTorontoDate().getDay()
+  return day === 0 || day === 6
+}
+
 // Get month name
 export function getMonthName(date, short = false) {
   const options = {

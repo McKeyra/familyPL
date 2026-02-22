@@ -3,12 +3,13 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { lazy, Suspense } from 'react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 
-// Eagerly load the home screen for instant first paint
-import HomeScreen from './pages/HomeScreen'
+// Eagerly load the parent portal for instant first paint (main landing page)
+import ParentPortal from './pages/ParentPortal'
 import Layout from './components/Layout'
 
 // Lazy load all other pages for faster initial bundle
 const Welcome = lazy(() => import('./pages/Welcome'))
+const HomeScreen = lazy(() => import('./pages/HomeScreen'))
 const Landing = lazy(() => import('./pages/Landing'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Checklist = lazy(() => import('./pages/Checklist'))
@@ -16,7 +17,6 @@ const Timer = lazy(() => import('./pages/Timer'))
 const Calendar = lazy(() => import('./pages/Calendar'))
 const NoteBoard = lazy(() => import('./pages/NoteBoard'))
 const Rewards = lazy(() => import('./pages/Rewards'))
-const ParentPortal = lazy(() => import('./pages/ParentPortal'))
 const Grocery = lazy(() => import('./pages/Grocery'))
 const Progress = lazy(() => import('./pages/Progress'))
 
@@ -93,7 +93,8 @@ function AnimatedRoutes() {
         } />
         {/* All main app pages wrapped in Layout with FloatingNav */}
         <Route element={<Layout />}>
-          <Route path="/" element={<HomeScreen />} />
+          <Route path="/" element={<ParentPortal />} />
+          <Route path="/home" element={<HomeScreen />} />
           <Route path="/home-alt" element={<Landing />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/checklist/:routine" element={<Checklist />} />
@@ -103,7 +104,6 @@ function AnimatedRoutes() {
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/grocery" element={<Grocery />} />
           <Route path="/progress" element={<Progress />} />
-          <Route path="/parent" element={<ParentPortal />} />
         </Route>
       </Routes>
     </AnimatePresence>

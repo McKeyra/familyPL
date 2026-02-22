@@ -18,6 +18,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import useStore from '../store/useStore'
+import { isWeekend as checkIsWeekend } from '../lib/timezone'
 import SortableChore from '../components/ui/SortableChore'
 
 const routineInfo = {
@@ -63,6 +64,7 @@ export default function Checklist() {
     currentChild,
     children,
     chores,
+    weekendChores,
     completeChore,
     resetRoutine,
     reorderChores,
@@ -72,13 +74,15 @@ export default function Checklist() {
     setBackpackOnTime,
     addStars,
   } = useStore()
+  const weekend = checkIsWeekend()
+  const activeChores = weekend ? weekendChores : chores
   const [showCelebration, setShowCelebration] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [showBackpackBonus, setShowBackpackBonus] = useState(false)
 
   const child = currentChild ? children[currentChild] : null
   const info = routineInfo[routine]
-  const tasks = currentChild && chores[currentChild] ? chores[currentChild][routine] : []
+  const tasks = currentChild && activeChores[currentChild] ? (activeChores[currentChild][routine] || []) : []
   const sleepMaskActive = currentChild ? getSleepMask(currentChild) : false
   const backpackStatus = currentChild ? getBackpackStatus(currentChild) : { onTime: false, time: null }
 
@@ -106,7 +110,7 @@ export default function Checklist() {
   }
 
   useEffect(() => {
-    if (!child) navigate('/')
+    if (!child) navigate('/home')
   }, [child, navigate])
 
   if (!child || !info) return null
@@ -339,7 +343,7 @@ export default function Checklist() {
               <button
                 onClick={() => {
                   setShowCelebration(false)
-                  navigate('/')
+                  navigate('/home')
                 }}
                 className={`w-full py-3 rounded-xl text-white font-medium bg-gradient-to-r ${info.gradient} shadow-md`}
               >
