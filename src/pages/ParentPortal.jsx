@@ -740,22 +740,21 @@ export default function ParentPortal() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
-              <div className="mb-4 sm:mb-6">
-                <button
+              <div className="mb-6">
+                <Button
+                  variant="parent"
+                  icon={<Plus className="w-5 h-5" />}
                   onClick={() => setShowAddEvent(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-stone-600 text-white rounded-xl font-display text-sm hover:bg-stone-700 transition-colors"
                 >
-                  <Plus className="w-4 h-4" strokeWidth={1.5} />
                   Add Event
-                </button>
+                </Button>
               </div>
 
-              <GlassCard variant="default">
-                <h3 className="font-display font-bold text-stone-800 mb-4 flex items-center gap-2">
-                  <Calendar className="w-5 h-5" strokeWidth={1.5} />
-                  Upcoming Events
-                </h3>
-                <div className="space-y-2">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-slate-100 bg-slate-50">
+                  <h3 className="font-semibold text-slate-800">Upcoming Events</h3>
+                </div>
+                <div className="divide-y divide-slate-100">
                   {events
                     .sort((a, b) => new Date(a.date) - new Date(b.date))
                     .map((event) => {
@@ -763,44 +762,36 @@ export default function ParentPortal() {
                       return (
                         <div
                           key={event.id}
-                          className={`flex items-center justify-between p-3 rounded-xl ${cat.color} border`}
+                          className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <span className="text-2xl">{cat.icon}</span>
+                            <div className={`w-10 h-10 rounded-xl ${cat.color} flex items-center justify-center border`}>
+                              <span className="text-lg">{cat.icon}</span>
+                            </div>
                             <div>
-                              <p className="font-display font-semibold text-gray-800">
-                                {event.title}
+                              <p className="font-medium text-slate-800">{event.title}</p>
+                              <p className="text-xs text-slate-500">
+                                {format(new Date(event.date), 'EEE, MMM d')} • {event.child === 'both' ? 'Everyone' : children[event.child]?.name}
                               </p>
-                              <div className="flex items-center gap-2 text-xs text-gray-500">
-                                <span>{format(new Date(event.date), 'EEE, MMM d')}</span>
-                                <span>•</span>
-                                <span>{cat.name}</span>
-                                {event.notes && <span>• {event.notes}</span>}
-                              </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs bg-stone-100 text-stone-600 px-2 py-1 rounded-full">
-                              {event.child === 'both' ? 'All' : children[event.child]?.name}
-                            </span>
-                            <button
-                              onClick={() => removeEvent(event.id)}
-                              className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" strokeWidth={1.5} />
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => removeEvent(event.id)}
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" strokeWidth={1.5} />
+                          </button>
                         </div>
                       )
                     })}
                   {events.length === 0 && (
-                    <div className="text-center py-8 text-gray-400">
-                      <Calendar className="w-12 h-12 mx-auto mb-2 opacity-30" strokeWidth={1} />
-                      <p className="font-display">No events scheduled</p>
+                    <div className="text-center py-12 text-slate-400">
+                      <span className="text-4xl mb-2 block">📅</span>
+                      <p className="text-sm">No events scheduled</p>
                     </div>
                   )}
                 </div>
-              </GlassCard>
+              </div>
             </motion.div>
           )}
 
@@ -1037,14 +1028,14 @@ export default function ParentPortal() {
                           type="button"
                           onClick={() => setNewEvent({ ...newEvent, category: cat.id })}
                           className={`
-                            p-2 rounded-xl flex flex-col items-center gap-1 transition-all border
+                            p-3 rounded-xl flex flex-col items-center gap-1.5 transition-all border-2
                             ${newEvent.category === cat.id
-                              ? `${cat.color} border-2`
-                              : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}
+                              ? `${cat.color} border-current shadow-sm`
+                              : 'bg-white border-slate-200 hover:border-slate-300'}
                           `}
                         >
-                          <span className="text-lg">{cat.icon}</span>
-                          <span className="text-[9px] font-display text-gray-600 truncate w-full text-center">
+                          <span className="text-xl">{cat.icon}</span>
+                          <span className="text-[10px] font-medium text-slate-600">
                             {cat.name}
                           </span>
                         </button>

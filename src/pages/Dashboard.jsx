@@ -19,7 +19,8 @@ import useStore from '../store/useStore'
 import ChildAvatar from '../components/ui/ChildAvatar'
 import AvatarCustomizer from '../components/ui/AvatarCustomizer'
 import { getTorontoDate, isWeekend as checkIsWeekend } from '../lib/timezone'
-import { format } from 'date-fns'
+import { eventCategories } from '../data/eventCategories'
+import { format, isToday, isTomorrow, parseISO } from 'date-fns'
 
 // Routine definitions with icons (no emoji)
 const routines = [
@@ -342,7 +343,7 @@ export default function Dashboard() {
 
       {/* Two Column Layout - Coming Up + Kindness */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Coming Up */}
+        {/* Coming Up - Events */}
         <motion.div
           className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm"
           initial={{ opacity: 0, y: 20 }}
@@ -355,24 +356,27 @@ export default function Dashboard() {
           </div>
           {upcomingEvents.length > 0 ? (
             <div className="space-y-2">
-              {upcomingEvents.slice(0, 2).map((event) => (
-                <div key={event.id} className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                    <Calendar className="w-3.5 h-3.5 text-slate-500" strokeWidth={1.5} />
+              {upcomingEvents.slice(0, 3).map((event) => {
+                const cat = eventCategories[event.category] || eventCategories.other
+                const eventDate = parseISO(event.date)
+                const dateLabel = isToday(eventDate) ? 'Today' : isTomorrow(eventDate) ? 'Tomorrow' : format(eventDate, 'EEE, MMM d')
+                return (
+                  <div key={event.id} className={`flex items-center gap-2.5 p-2 rounded-xl ${cat.color}`}>
+                    <span className="text-lg shrink-0">{cat.icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold truncate">{event.title}</p>
+                      <p className="text-[10px] opacity-70">{dateLabel}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-slate-700 truncate">{event.title}</p>
-                    <p className="text-[10px] text-slate-400">{event.date}</p>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
-            <p className="text-xs text-slate-400 text-center py-2">No events</p>
+            <p className="text-xs text-slate-400 text-center py-3">No upcoming events</p>
           )}
           <button
             onClick={() => navigate('/calendar')}
-            className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 mt-3"
+            className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 mt-3 w-full justify-center"
           >
             View all <ChevronRight className="w-3 h-3" />
           </button>
