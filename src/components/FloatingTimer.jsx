@@ -1,30 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Play, Pause, X, Clock, Tv, BookOpen, Gamepad2, Pencil } from 'lucide-react'
+import { Play, Pause, X, Clock } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import useStore from '../store/useStore'
-
-const activityIcons = {
-  screen: { emoji: '📺', icon: Tv, color: 'blue' },
-  reading: { emoji: '📚', icon: BookOpen, color: 'amber' },
-  play: { emoji: '🎮', icon: Gamepad2, color: 'green' },
-  homework: { emoji: '✏️', icon: Pencil, color: 'purple' },
-}
-
-const activityLabels = {
-  screen: 'Screen Time',
-  reading: 'Reading',
-  play: 'Play Time',
-  homework: 'Homework',
-}
-
-const activityStars = {
-  screen: 1,
-  reading: 2,
-  play: 1,
-  homework: 3,
-}
+import { getActivity } from '../data/activities'
 
 export default function FloatingTimer() {
   const location = useLocation()
@@ -112,8 +92,8 @@ export default function FloatingTimer() {
   const handleComplete = useCallback(() => {
     if (!activeTimer) return
 
-    const stars = activityStars[activeTimer.activity] || 1
-    completeTimer(activeTimer.sessionId, stars)
+    // No stars for timer completion - timer is for time management, not rewards
+    completeTimer(activeTimer.sessionId, 0)
     clearActiveTimer()
     setShowNotification(true)
     playCompletionSound()
@@ -227,7 +207,7 @@ export default function FloatingTimer() {
     return null
   }
 
-  const activity = activeTimer ? activityIcons[activeTimer.activity] : null
+  const activity = activeTimer ? getActivity(activeTimer.activity) : null
   const child = activeTimer ? children[activeTimer.childId] : null
 
   return (
@@ -291,7 +271,7 @@ export default function FloatingTimer() {
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">{activity?.emoji}</span>
                       <span className="text-sm font-display font-semibold text-gray-700">
-                        {activityLabels[activeTimer.activity]}
+                        {activity?.label}
                       </span>
                     </div>
                     <button
