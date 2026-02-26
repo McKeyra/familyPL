@@ -7,11 +7,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
-        'display': ['Nunito', 'system-ui', 'sans-serif'],
-        'toddler': ['Nunito', 'system-ui', 'sans-serif'],
-        'child': ['Space Grotesk', 'system-ui', 'sans-serif'],
-        'parent': ['Inter', 'system-ui', 'sans-serif'],
+        'sans': ['DM Sans', 'system-ui', 'sans-serif'],
+        'display': ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        'toddler': ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        'child': ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        'parent': ['DM Sans', 'system-ui', 'sans-serif'],
       },
       colors: {
         // ========================================

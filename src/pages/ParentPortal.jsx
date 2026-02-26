@@ -877,230 +877,332 @@ export default function ParentPortal() {
 
         </AnimatePresence>
 
-        {/* Add Task Modal */}
+        {/* Add Task Modal - Premium Design */}
         <AnimatePresence>
           {showAddTask && (
             <motion.div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-0 sm:p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowAddTask(false)}
             >
               <motion.div
-                className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl"
-                initial={{ scale: 0.8, y: 50 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.8, y: 50 }}
+                className="bg-gradient-to-b from-white to-slate-50 rounded-t-[28px] sm:rounded-[28px] w-full max-w-lg shadow-[0_-8px_40px_rgba(0,0,0,0.12)] max-h-[92vh] overflow-hidden"
+                initial={{ y: '100%', opacity: 0.5 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: '100%', opacity: 0.5 }}
+                transition={{ type: 'spring', damping: 32, stiffness: 400 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <h2 className="text-2xl font-display font-bold text-gray-800 mb-4">
-                  Add New Task
-                </h2>
+                {/* Drag handle */}
+                <div className="flex justify-center pt-3 pb-1 sm:hidden">
+                  <div className="w-10 h-1 rounded-full bg-slate-300" />
+                </div>
 
-                <div className="space-y-4">
+                {/* Header */}
+                <div className="px-6 pt-4 pb-5 border-b border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-display font-bold text-slate-900 tracking-tight">
+                        New Task
+                      </h2>
+                      <p className="text-sm text-slate-500 mt-0.5">
+                        For {children[selectedChild]?.name} • {editingWeekend ? 'Weekend' : 'Weekday'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowAddTask(false)}
+                      className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+                    >
+                      <X className="w-5 h-5 text-slate-500" strokeWidth={2} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="px-6 py-5 space-y-5 overflow-y-auto max-h-[calc(92vh-200px)]">
+                  {/* Task Name */}
                   <div>
-                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                       Task Name
                     </label>
                     <input
                       type="text"
                       value={newTask.text}
                       onChange={(e) => setNewTask({ ...newTask, text: e.target.value })}
-                      placeholder="e.g., Make bed"
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
+                      placeholder="Make bed, Brush teeth..."
+                      className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm focus:border-violet-400 focus:ring-4 focus:ring-violet-100 focus:outline-none text-slate-800 font-medium placeholder:text-slate-400 transition-all"
                     />
                   </div>
 
+                  {/* Routine Selection */}
                   <div>
-                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
                       Routine
                     </label>
-                    <select
-                      value={newTask.routine}
-                      onChange={(e) => setNewTask({ ...newTask, routine: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display"
-                    >
-                      <option value="morning">Morning</option>
-                      {!editingWeekend && <option value="afterSchool">After School</option>}
-                      <option value="bedtime">Bedtime</option>
-                      <option value="chores">Chores</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
-                      Stars Reward
-                    </label>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map((num) => (
-                        <Button
-                          key={num}
-                          variant={newTask.stars === num ? 'parent' : 'glass'}
-                          size="sm"
-                          onClick={() => setNewTask({ ...newTask, stars: num })}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {[
+                        { id: 'morning', label: 'Morning', icon: '🌅' },
+                        ...(!editingWeekend ? [{ id: 'afterSchool', label: 'After School', icon: '🎒' }] : []),
+                        { id: 'bedtime', label: 'Bedtime', icon: '🌙' },
+                        { id: 'chores', label: 'Chores', icon: '✨' },
+                      ].map((routine) => (
+                        <motion.button
+                          key={routine.id}
+                          onClick={() => setNewTask({ ...newTask, routine: routine.id })}
+                          className={`
+                            p-3.5 rounded-2xl flex items-center gap-3 transition-all
+                            ${newTask.routine === routine.id
+                              ? 'bg-gradient-to-r from-violet-500 to-purple-600 shadow-lg shadow-violet-200'
+                              : 'bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md'}
+                          `}
+                          whileTap={{ scale: 0.98 }}
                         >
-                          {num} ⭐
-                        </Button>
+                          <span className="text-xl">{routine.icon}</span>
+                          <span className={`font-semibold text-sm ${newTask.routine === routine.id ? 'text-white' : 'text-slate-700'}`}>
+                            {routine.label}
+                          </span>
+                        </motion.button>
                       ))}
                     </div>
                   </div>
 
+                  {/* Stars Reward */}
                   <div>
-                    <label className="block text-sm font-display font-semibold text-gray-700 mb-2">
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                      Stars Reward
+                    </label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((num) => (
+                        <motion.button
+                          key={num}
+                          onClick={() => setNewTask({ ...newTask, stars: num })}
+                          className={`
+                            flex-1 py-3 rounded-xl font-semibold text-sm transition-all
+                            ${newTask.stars === num
+                              ? 'bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900 shadow-lg shadow-amber-200'
+                              : 'bg-white border border-slate-200 text-slate-600 hover:border-amber-300'}
+                          `}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {num} ⭐
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Emoji */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                       Emoji
                     </label>
                     <input
                       type="text"
                       value={newTask.emoji}
                       onChange={(e) => setNewTask({ ...newTask, emoji: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-display text-center text-2xl"
+                      className="w-24 px-4 py-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm focus:border-violet-400 focus:ring-4 focus:ring-violet-100 focus:outline-none text-center text-3xl transition-all"
                       maxLength={2}
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-3 mt-6">
-                  <Button
-                    variant="ghost"
-                    className="flex-1"
-                    onClick={() => setShowAddTask(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="parent"
-                    className="flex-1"
-                    onClick={handleAddTask}
-                    disabled={!newTask.text.trim()}
-                  >
-                    Add Task
-                  </Button>
+                {/* Footer */}
+                <div className="px-6 py-5 border-t border-slate-100 bg-white/80 backdrop-blur-sm">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowAddTask(false)}
+                      className="flex-1 px-5 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-semibold hover:bg-slate-200 active:scale-[0.98] transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <motion.button
+                      onClick={handleAddTask}
+                      disabled={!newTask.text.trim()}
+                      className="flex-1 px-5 py-3.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-2xl font-semibold shadow-lg shadow-violet-200 hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Add Task
+                    </motion.button>
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Add Event Modal */}
+        {/* Add Event Modal - Premium Design */}
         <AnimatePresence>
           {showAddEvent && (
             <motion.div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-0 sm:p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowAddEvent(false)}
             >
               <motion.div
-                className="bg-white rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
-                initial={{ scale: 0.9, y: 30 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.9, y: 30 }}
+                className="bg-gradient-to-b from-white to-slate-50 rounded-t-[28px] sm:rounded-[28px] w-full max-w-lg shadow-[0_-8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(255,255,255,0.1)] max-h-[92vh] overflow-hidden"
+                initial={{ y: '100%', opacity: 0.5 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: '100%', opacity: 0.5 }}
+                transition={{ type: 'spring', damping: 32, stiffness: 400 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <h2 className="text-xl font-display font-bold text-gray-800 mb-4 text-center">
-                  Add Event
-                </h2>
+                {/* Drag handle for mobile */}
+                <div className="flex justify-center pt-3 pb-1 sm:hidden">
+                  <div className="w-10 h-1 rounded-full bg-slate-300" />
+                </div>
 
-                <div className="space-y-4">
+                {/* Header */}
+                <div className="px-6 pt-4 pb-5 border-b border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-display font-bold text-slate-900 tracking-tight">
+                        New Event
+                      </h2>
+                      <p className="text-sm text-slate-500 mt-0.5">Add to family calendar</p>
+                    </div>
+                    <button
+                      onClick={() => setShowAddEvent(false)}
+                      className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+                    >
+                      <X className="w-5 h-5 text-slate-500" strokeWidth={2} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="px-6 py-5 space-y-6 overflow-y-auto max-h-[calc(92vh-200px)]">
+                  {/* Event Title */}
                   <div>
-                    <label className="block text-sm font-display font-medium text-gray-600 mb-2">
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                       Event Title
                     </label>
                     <input
                       type="text"
                       value={newEvent.title}
                       onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                      placeholder="e.g., Soccer Practice"
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-stone-400 focus:outline-none font-display"
+                      placeholder="Soccer practice, Birthday party..."
+                      className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm focus:border-violet-400 focus:ring-4 focus:ring-violet-100 focus:outline-none text-slate-800 font-medium placeholder:text-slate-400 transition-all"
                     />
                   </div>
 
+                  {/* Category - Premium Grid */}
                   <div>
-                    <label className="block text-sm font-display font-medium text-gray-600 mb-2">
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
                       Category
                     </label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {eventCategoryList.map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setNewEvent({ ...newEvent, category: cat.id })}
-                          className={`
-                            p-3 rounded-xl flex flex-col items-center gap-1.5 transition-all border-2
-                            ${newEvent.category === cat.id
-                              ? `${cat.color} border-current shadow-sm`
-                              : 'bg-white border-slate-200 hover:border-slate-300'}
-                          `}
-                        >
-                          <span className="text-xl">{cat.icon}</span>
-                          <span className="text-[10px] font-medium text-slate-600">
-                            {cat.name}
-                          </span>
-                        </button>
-                      ))}
+                    <div className="grid grid-cols-4 gap-2.5">
+                      {eventCategoryList.map((cat) => {
+                        const isSelected = newEvent.category === cat.id
+                        return (
+                          <motion.button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setNewEvent({ ...newEvent, category: cat.id })}
+                            className={`
+                              relative p-3.5 rounded-2xl flex flex-col items-center gap-2 transition-all
+                              ${isSelected
+                                ? 'bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200 scale-[1.02]'
+                                : 'bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md'}
+                            `}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <span className={`text-2xl ${isSelected ? 'drop-shadow-sm' : ''}`}>{cat.icon}</span>
+                            <span className={`text-[11px] font-semibold tracking-tight ${isSelected ? 'text-white' : 'text-slate-600'}`}>
+                              {cat.name}
+                            </span>
+                            {isSelected && (
+                              <motion.div
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: 'spring', stiffness: 500 }}
+                              >
+                                <div className="w-2.5 h-2.5 bg-violet-500 rounded-full" />
+                              </motion.div>
+                            )}
+                          </motion.button>
+                        )
+                      })}
                     </div>
                   </div>
 
+                  {/* Date - Premium Input */}
                   <div>
-                    <label className="block text-sm font-display font-medium text-gray-600 mb-2">
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                       Date
                     </label>
-                    <input
-                      type="date"
-                      value={newEvent.date}
-                      onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-stone-400 focus:outline-none font-display"
-                    />
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={newEvent.date}
+                        onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                        className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm focus:border-violet-400 focus:ring-4 focus:ring-violet-100 focus:outline-none text-slate-800 font-medium transition-all"
+                      />
+                    </div>
                   </div>
 
+                  {/* For Who - Premium Select */}
                   <div>
-                    <label className="block text-sm font-display font-medium text-gray-600 mb-2">
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                       For
                     </label>
-                    <select
-                      value={newEvent.child}
-                      onChange={(e) => setNewEvent({ ...newEvent, child: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-stone-400 focus:outline-none font-display"
-                    >
-                      <option value="both">Everyone</option>
-                      <option value="bria">Bria</option>
-                      <option value="naya">Naya</option>
-                      <option value="mom">Mom</option>
-                      <option value="dad">Dad</option>
-                      <option value="parents">Parents</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={newEvent.child}
+                        onChange={(e) => setNewEvent({ ...newEvent, child: e.target.value })}
+                        className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm focus:border-violet-400 focus:ring-4 focus:ring-violet-100 focus:outline-none text-slate-800 font-medium appearance-none cursor-pointer transition-all"
+                      >
+                        <option value="both">Everyone</option>
+                        <option value="bria">Bria</option>
+                        <option value="naya">Naya</option>
+                        <option value="mom">Mom</option>
+                        <option value="dad">Dad</option>
+                        <option value="parents">Parents</option>
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
 
+                  {/* Notes */}
                   <div>
-                    <label className="block text-sm font-display font-medium text-gray-600 mb-2">
-                      Notes (optional)
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                      Notes <span className="text-slate-300 font-normal normal-case">(optional)</span>
                     </label>
                     <input
                       type="text"
                       value={newEvent.notes}
                       onChange={(e) => setNewEvent({ ...newEvent, notes: e.target.value })}
-                      placeholder="e.g., Bring jersey"
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-stone-400 focus:outline-none font-display"
+                      placeholder="Bring jersey, pick up at 5pm..."
+                      className="w-full px-4 py-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm focus:border-violet-400 focus:ring-4 focus:ring-violet-100 focus:outline-none text-slate-800 font-medium placeholder:text-slate-400 transition-all"
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={() => setShowAddEvent(false)}
-                    className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-display hover:bg-gray-200 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAddEvent}
-                    disabled={!newEvent.title.trim() || !newEvent.date}
-                    className="flex-1 px-4 py-2.5 bg-stone-600 text-white rounded-xl font-display hover:bg-stone-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Add Event
-                  </button>
+                {/* Footer Actions */}
+                <div className="px-6 py-5 border-t border-slate-100 bg-white/80 backdrop-blur-sm">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowAddEvent(false)}
+                      className="flex-1 px-5 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-semibold hover:bg-slate-200 active:scale-[0.98] transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <motion.button
+                      onClick={handleAddEvent}
+                      disabled={!newEvent.title.trim() || !newEvent.date}
+                      className="flex-1 px-5 py-3.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-2xl font-semibold shadow-lg shadow-violet-200 hover:shadow-xl hover:shadow-violet-300 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Add Event
+                    </motion.button>
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
