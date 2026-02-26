@@ -12,7 +12,8 @@ const initialChildren = {
     avatarType: 'letter', // 'letter', 'emoji', 'image'
     avatarImage: null, // Base64 or URL for custom image
     theme: 'bria',
-    stars: 0,
+    stars: 0, // Activity stars (earned from routines/chores)
+    plStars: 0, // PL stars (earned weekly, used for rewards)
     color: '#f97316',
   },
   naya: {
@@ -24,9 +25,20 @@ const initialChildren = {
     avatarImage: null,
     theme: 'naya',
     stars: 0,
+    plStars: 0,
     color: '#06b6d4',
   },
 }
+
+// Weekly star tracking for PL conversion
+// Structure: { childId: { weekStart: 'YYYY-MM-DD', stars: number, converted: boolean } }
+const initialWeeklyStars = {
+  bria: { weekStart: null, stars: 0, converted: false },
+  naya: { weekStart: null, stars: 0, converted: false },
+}
+
+// PL star log for tracking conversions and redemptions
+const initialPlStarLog = []
 
 const initialChores = {
   bria: {
@@ -234,6 +246,10 @@ const useStore = create(
       lastResetDate: null,
       dailyLogs: [], // Historical logs: [{ date, bria: { morning: 3, bedtime: 5, chores: 2, starsEarned: 10 }, naya: {...} }]
 
+      // PL Star System
+      weeklyStars: initialWeeklyStars, // Track stars accumulated this week
+      plStarLog: initialPlStarLog, // Log of PL star conversions and redemptions
+
       // Active timer state (persisted)
       activeTimer: null, // { childId, activity, duration, timeLeft, isRunning, sessionId, startedAt, pausedAt }
 
@@ -311,6 +327,11 @@ const useStore = create(
         // Update streak
         get().updateStreak(childId)
 
+        // Track weekly stars for PL conversion
+        if (amount > 0) {
+          get().addWeeklyStars(childId, amount)
+        }
+
         // Update challenge progress for chores
         if (reason.startsWith('Completed:')) {
           get().updateChallengeProgress(childId, 'chore')
@@ -347,6 +368,156 @@ const useStore = create(
           return true
         }
         return false
+      },
+
+      // ============================================
+      // PL STAR SYSTEM
+      // Weekly accumulated stars convert to PL stars
+      // PL stars are used for family activity rewards
+      // ============================================
+
+      // Get the current week's start date (Monday)
+      _getWeekStart: () => {
+        const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }))
+        const day = now.getDay()
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1) // Adjust for Sunday
+        const weekStart = new Date(now.setDate(diff))
+        return `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`
+      },
+
+      // Add stars to weekly tracking (called automatically when activity stars are earned)
+      addWeeklyStars: (childId, amount) => {
+        const weekStart = get()._getWeekStart()
+
+        set((state) => {
+          const childWeekly = state.weeklyStars[childId] || { weekStart: null, stars: 0, converted: false }
+
+          // If new week, reset tracking
+          if (childWeekly.weekStart !== weekStart) {
+            return {
+              weeklyStars: {
+                ...state.weeklyStars,
+                [childId]: { weekStart, stars: amount, converted: false },
+              },
+            }
+          }
+
+          // Same week, accumulate
+          return {
+            weeklyStars: {
+              ...state.weeklyStars,
+              [childId]: {
+                ...childWeekly,
+                stars: childWeekly.stars + amount,
+              },
+            },
+          }
+        })
+      },
+
+      // Get weekly star progress for a child
+      getWeeklyProgress: (childId) => {
+        const weekStart = get()._getWeekStart()
+        const childWeekly = get().weeklyStars[childId] || { weekStart: null, stars: 0, converted: false }
+
+        // If different week, return 0 progress
+        if (childWeekly.weekStart !== weekStart) {
+          return { stars: 0, converted: false, weekStart }
+        }
+
+        return { stars: childWeekly.stars, converted: childWeekly.converted, weekStart }
+      },
+
+      // Convert weekly stars to PL stars (called at end of week or manually by parent)
+      convertWeeklyToPL: (childId) => {
+        const weekStart = get()._getWeekStart()
+        const childWeekly = get().weeklyStars[childId] || { weekStart: null, stars: 0, converted: false }
+
+        // Don't convert if already converted this week or different week
+        if (childWeekly.converted || childWeekly.weekStart !== weekStart) {
+          return 0
+        }
+
+        // Calculate PL stars earned (can customize threshold later)
+        // For now: having accumulated stars = 1 PL star (reward for effort)
+        const plEarned = childWeekly.stars > 0 ? 1 : 0
+
+        if (plEarned > 0) {
+          set((state) => ({
+            children: {
+              ...state.children,
+              [childId]: {
+                ...state.children[childId],
+                plStars: (state.children[childId].plStars || 0) + plEarned,
+              },
+            },
+            weeklyStars: {
+              ...state.weeklyStars,
+              [childId]: { ...childWeekly, converted: true },
+            },
+            plStarLog: [{
+              id: Date.now().toString(),
+              childId,
+              amount: plEarned,
+              weeklyStars: childWeekly.stars,
+              reason: 'Weekly conversion',
+              timestamp: Date.now(),
+              weekStart,
+            }, ...state.plStarLog],
+          }))
+        }
+
+        return plEarned
+      },
+
+      // Spend PL stars on family rewards
+      spendPLStars: (childId, amount, reward) => {
+        const current = get().children[childId].plStars || 0
+        if (current >= amount) {
+          set((state) => ({
+            children: {
+              ...state.children,
+              [childId]: {
+                ...state.children[childId],
+                plStars: (state.children[childId].plStars || 0) - amount,
+              },
+            },
+            plStarLog: [{
+              id: Date.now().toString(),
+              childId,
+              amount: -amount,
+              reason: `Redeemed: ${reward}`,
+              timestamp: Date.now(),
+            }, ...state.plStarLog],
+          }))
+          return true
+        }
+        return false
+      },
+
+      // Get PL stars for a child
+      getPLStars: (childId) => {
+        return get().children[childId]?.plStars || 0
+      },
+
+      // Parent can manually award PL stars
+      addPLStars: (childId, amount, reason) => {
+        set((state) => ({
+          children: {
+            ...state.children,
+            [childId]: {
+              ...state.children[childId],
+              plStars: (state.children[childId].plStars || 0) + amount,
+            },
+          },
+          plStarLog: [{
+            id: Date.now().toString(),
+            childId,
+            amount,
+            reason: reason || 'Parent bonus',
+            timestamp: Date.now(),
+          }, ...state.plStarLog],
+        }))
       },
 
       // Helper: get the chore storage key based on weekend status

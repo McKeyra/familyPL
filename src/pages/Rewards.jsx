@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Star, Gift, Trophy, Sparkles, Clock, ShoppingBag, Check, ChevronDown } from 'lucide-react'
+import { Star, Gift, Trophy, Sparkles, Users, ChevronDown, TrendingUp } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import useStore from '../store/useStore'
 import confetti from 'canvas-confetti'
@@ -26,23 +26,24 @@ const themeConfig = {
   },
 }
 
-const rewards = [
-  { id: 'r1', name: 'Extra Screen Time', icon: '📺', cost: 10, description: '15 extra minutes of screen time' },
-  { id: 'r2', name: 'Choose Dinner', icon: '🍕', cost: 20, description: 'Pick what the family eats tonight' },
-  { id: 'r3', name: 'Stay Up Late', icon: '🌙', cost: 25, description: '30 extra minutes before bedtime' },
-  { id: 'r4', name: 'Special Treat', icon: '🍦', cost: 15, description: 'Ice cream or your favorite candy' },
-  { id: 'r5', name: 'Game Night', icon: '🎲', cost: 50, description: 'Family game night - you pick!' },
-  { id: 'r6', name: 'Movie Night', icon: '🎬', cost: 30, description: 'Pick the family movie' },
-  { id: 'r7', name: 'Park Trip', icon: '🎢', cost: 35, description: 'Trip to your favorite park' },
-  { id: 'r8', name: 'Dance Party', icon: '💃', cost: 75, description: 'Living room dance party!' },
+// Family activity rewards using PL stars
+const familyRewards = [
+  { id: 'r1', name: 'Dance Party', icon: '💃', cost: 1, description: 'Living room dance party with the family!' },
+  { id: 'r2', name: 'Pancake Sunday', icon: '🥞', cost: 2, description: 'Special pancake breakfast made together' },
+  { id: 'r3', name: 'Bowling', icon: '🎳', cost: 3, description: 'Family bowling trip!' },
+  { id: 'r4', name: 'Movie Night', icon: '🎬', cost: 4, description: 'Pick the family movie + popcorn' },
+  { id: 'r5', name: 'Park Adventure', icon: '🎢', cost: 2, description: 'Trip to your favorite park' },
+  { id: 'r6', name: 'Game Night', icon: '🎲', cost: 1, description: 'Family game night - you pick the game!' },
+  { id: 'r7', name: 'Ice Cream Trip', icon: '🍦', cost: 2, description: 'Ice cream outing for the family' },
+  { id: 'r8', name: 'Bike Ride', icon: '🚴', cost: 1, description: 'Family bike ride adventure' },
 ]
 
-// Animated star counter component
-function AnimatedStarCounter({ count, theme }) {
+// Animated PL star counter component
+function AnimatedPLCounter({ count, theme }) {
   const [displayCount, setDisplayCount] = useState(0)
 
   useEffect(() => {
-    const duration = 1000
+    const duration = 800
     const startTime = Date.now()
     const startCount = displayCount
 
@@ -63,7 +64,7 @@ function AnimatedStarCounter({ count, theme }) {
 
   return (
     <motion.div
-      className={`relative bg-gradient-to-br ${theme.gradient} rounded-2xl p-5 shadow-lg overflow-hidden`}
+      className={`relative bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-5 shadow-lg overflow-hidden`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
@@ -76,26 +77,70 @@ function AnimatedStarCounter({ count, theme }) {
       </div>
 
       <div className="relative z-10 text-center">
-        <p className="text-white/80 text-sm mb-1">Your Balance</p>
+        <p className="text-white/80 text-sm mb-1">Your PL Stars</p>
         <div className="flex items-center justify-center gap-2">
           <motion.div
-            className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center shadow-md"
-            animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-300 to-yellow-500 flex items-center justify-center shadow-lg"
+            animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.05, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
           >
-            <Star className="w-7 h-7 text-yellow-700 fill-yellow-700" strokeWidth={1.5} />
+            <span className="text-2xl">⭐</span>
           </motion.div>
           <span className="text-5xl font-bold text-white tabular-nums">{displayCount}</span>
         </div>
-        <p className="text-white/70 text-xs mt-2">stars to spend</p>
+        <p className="text-white/70 text-xs mt-2">for family fun!</p>
       </div>
+    </motion.div>
+  )
+}
+
+// Weekly progress component
+function WeeklyProgress({ weeklyStars, theme }) {
+  // Simple progress visualization
+  const progressPercent = Math.min(100, (weeklyStars / 20) * 100) // 20 stars = nice visual
+
+  return (
+    <motion.div
+      className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${theme.gradient} flex items-center justify-center`}>
+            <TrendingUp className="w-4 h-4 text-white" strokeWidth={2} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-700">This Week</p>
+            <p className="text-xs text-slate-500">Keep earning stars!</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 rounded-full">
+          <Star className="w-4 h-4 text-amber-600 fill-amber-600" />
+          <span className="font-bold text-amber-800">{weeklyStars}</span>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+        <motion.div
+          className={`h-full bg-gradient-to-r ${theme.gradient} rounded-full`}
+          initial={{ width: 0 }}
+          animate={{ width: `${progressPercent}%` }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+        />
+      </div>
+      <p className="text-xs text-slate-400 mt-2 text-center">
+        Complete routines daily to earn 1 PL star each week!
+      </p>
     </motion.div>
   )
 }
 
 export default function Rewards() {
   const navigate = useNavigate()
-  const { currentChild, children, starLog, spendStars } = useStore()
+  const { currentChild, children, plStarLog, spendPLStars, getWeeklyProgress } = useStore()
   const child = currentChild ? children[currentChild] : null
   const theme = themeConfig[child?.theme] || themeConfig.bria
 
@@ -104,31 +149,34 @@ export default function Rewards() {
   const [showSuccess, setShowSuccess] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
 
+  // Get PL star data
+  const plStars = child?.plStars || 0
+  const weeklyProgress = getWeeklyProgress(currentChild)
+
   // Get logs for current child
-  const childStarLog = starLog.filter((log) => log.childId === currentChild)
-  const redeemedRewards = childStarLog.filter((log) => log.amount < 0).slice(0, 10)
-  const earnedStars = childStarLog.filter((log) => log.amount > 0).slice(0, 10)
+  const childPLLog = plStarLog.filter((log) => log.childId === currentChild)
+  const redeemedRewards = childPLLog.filter((log) => log.amount < 0).slice(0, 10)
 
   const handleRedeemReward = () => {
     if (!selectedReward) return
 
-    const success = spendStars(currentChild, selectedReward.cost, selectedReward.name)
+    const success = spendPLStars(currentChild, selectedReward.cost, selectedReward.name)
 
     if (success) {
       setShowConfirmation(false)
       setShowSuccess(true)
 
       confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#fcd34d', '#f59e0b', '#eab308'],
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.5 },
+        colors: ['#8b5cf6', '#a855f7', '#d946ef', '#fcd34d', '#f59e0b'],
       })
 
       setTimeout(() => {
         setShowSuccess(false)
         setSelectedReward(null)
-      }, 3000)
+      }, 4000)
     }
   }
 
@@ -142,33 +190,38 @@ export default function Rewards() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${theme.gradient} flex items-center justify-center shadow-md`}>
-          <ShoppingBag className="w-6 h-6 text-white" strokeWidth={1.5} />
+        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md`}>
+          <Users className="w-6 h-6 text-white" strokeWidth={1.5} />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-slate-800">Rewards Shop</h1>
-          <p className="text-sm text-slate-500">Spend your stars on awesome rewards!</p>
+          <h1 className="text-xl font-bold text-slate-800">Family Rewards</h1>
+          <p className="text-sm text-slate-500">Earn PL stars for family fun!</p>
         </div>
       </motion.header>
 
-      {/* Animated Star Balance */}
-      <div className="mb-6">
-        <AnimatedStarCounter count={child.stars} theme={theme} />
+      {/* PL Star Balance */}
+      <div className="mb-4">
+        <AnimatedPLCounter count={plStars} theme={theme} />
       </div>
 
-      {/* Rewards Grid - Store Style */}
+      {/* Weekly Progress */}
+      <div className="mb-6">
+        <WeeklyProgress weeklyStars={weeklyProgress.stars} theme={theme} />
+      </div>
+
+      {/* Family Rewards Grid */}
       <section className="mb-6">
-        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Available Rewards</h2>
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Family Activities</h2>
         <div className="grid grid-cols-2 gap-3">
-          {rewards.map((reward, index) => {
-            const canAfford = child.stars >= reward.cost
+          {familyRewards.map((reward, index) => {
+            const canAfford = plStars >= reward.cost
 
             return (
               <motion.div
                 key={reward.id}
                 className={`
                   relative bg-white rounded-2xl border overflow-hidden shadow-sm
-                  ${canAfford ? `${theme.border} hover:shadow-md` : 'border-slate-200 opacity-60'}
+                  ${canAfford ? `border-purple-200 hover:shadow-md hover:border-purple-300` : 'border-slate-200 opacity-60'}
                 `}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -192,13 +245,13 @@ export default function Rewards() {
                   {/* Description */}
                   <p className="text-xs text-slate-500 mb-3 line-clamp-2">{reward.description}</p>
 
-                  {/* Cost Badge */}
+                  {/* PL Cost Badge */}
                   <div className={`
-                    inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold
-                    ${canAfford ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}
+                    inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold
+                    ${canAfford ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-500'}
                   `}>
-                    <Star className={`w-3 h-3 ${canAfford ? 'text-amber-500 fill-amber-500' : 'text-slate-400'}`} strokeWidth={1.5} />
-                    {reward.cost}
+                    <span className="text-sm">⭐</span>
+                    {reward.cost} PL
                   </div>
                 </div>
 
@@ -214,16 +267,20 @@ export default function Rewards() {
                   className={`
                     w-full py-2.5 text-sm font-medium transition-colors
                     ${canAfford
-                      ? `bg-gradient-to-r ${theme.gradient} text-white hover:opacity-90`
+                      ? `bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90`
                       : 'bg-slate-100 text-slate-400 cursor-not-allowed'}
                   `}
                 >
-                  {canAfford ? 'Redeem' : 'Need more stars'}
+                  {canAfford ? 'Choose This!' : `Need ${reward.cost - plStars} more`}
                 </button>
 
                 {/* Affordable indicator */}
                 {canAfford && (
-                  <div className={`absolute top-2 right-2 w-2 h-2 rounded-full bg-gradient-to-r ${theme.gradient}`} />
+                  <motion.div
+                    className={`absolute top-2 right-2 w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600`}
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  />
                 )}
               </motion.div>
             )
@@ -231,7 +288,7 @@ export default function Rewards() {
         </div>
       </section>
 
-      {/* Redeemed History */}
+      {/* Reward History */}
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -246,8 +303,8 @@ export default function Rewards() {
               <Trophy className="w-5 h-5 text-purple-500" strokeWidth={1.5} />
             </div>
             <div className="text-left">
-              <h3 className="font-semibold text-slate-800">Reward History</h3>
-              <p className="text-xs text-slate-500">{redeemedRewards.length} rewards redeemed</p>
+              <h3 className="font-semibold text-slate-800">Family Fun History</h3>
+              <p className="text-xs text-slate-500">{redeemedRewards.length} activities enjoyed</p>
             </div>
           </div>
           <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${showHistory ? 'rotate-180' : ''}`} />
@@ -269,8 +326,8 @@ export default function Rewards() {
                       className="flex items-center justify-between p-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                          <Gift className="w-4 h-4 text-amber-600" strokeWidth={1.5} />
+                        <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                          <Gift className="w-4 h-4 text-purple-600" strokeWidth={1.5} />
                         </div>
                         <div>
                           <p className="text-sm font-medium text-slate-700">{log.reason}</p>
@@ -279,9 +336,8 @@ export default function Rewards() {
                           </p>
                         </div>
                       </div>
-                      <span className="text-sm font-bold text-red-500 tabular-nums">
-                        {log.amount}
-                        <Star className="w-3 h-3 inline ml-0.5 fill-current" />
+                      <span className="text-sm font-bold text-purple-600 tabular-nums">
+                        {Math.abs(log.amount)} ⭐
                       </span>
                     </div>
                   ))}
@@ -289,7 +345,8 @@ export default function Rewards() {
               ) : (
                 <div className="p-6 text-center text-slate-400">
                   <Gift className="w-8 h-8 mx-auto mb-2 opacity-30" strokeWidth={1.5} />
-                  <p className="text-sm">No rewards redeemed yet</p>
+                  <p className="text-sm">No family activities yet</p>
+                  <p className="text-xs mt-1">Earn PL stars to unlock fun!</p>
                 </div>
               )}
             </motion.div>
@@ -319,23 +376,23 @@ export default function Rewards() {
 
               <div className="text-center">
                 <motion.div
-                  className="text-6xl mb-4"
-                  animate={{ scale: [1, 1.1, 1] }}
+                  className="text-7xl mb-4"
+                  animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
                   {selectedReward.icon}
                 </motion.div>
 
                 <h2 className="text-xl font-bold text-slate-800 mb-2">
-                  Redeem {selectedReward.name}?
+                  Choose {selectedReward.name}?
                 </h2>
                 <p className="text-sm text-slate-500 mb-4">{selectedReward.description}</p>
 
-                <div className="flex items-center justify-center gap-2 mb-6 p-3 bg-amber-50 rounded-xl">
-                  <span className="text-sm text-amber-700">This will cost</span>
-                  <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 rounded-full">
-                    <Star className="w-4 h-4 text-amber-600 fill-amber-600" strokeWidth={1.5} />
-                    <span className="font-bold text-amber-800">{selectedReward.cost}</span>
+                <div className="flex items-center justify-center gap-2 mb-6 p-3 bg-purple-50 rounded-xl">
+                  <span className="text-sm text-purple-700">This will use</span>
+                  <div className="flex items-center gap-1 px-3 py-1 bg-purple-100 rounded-full">
+                    <span className="text-lg">⭐</span>
+                    <span className="font-bold text-purple-800">{selectedReward.cost} PL</span>
                   </div>
                 </div>
 
@@ -344,14 +401,14 @@ export default function Rewards() {
                     onClick={() => setShowConfirmation(false)}
                     className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-600"
                   >
-                    Cancel
+                    Maybe Later
                   </button>
                   <motion.button
                     onClick={handleRedeemReward}
-                    className={`flex-1 py-3 rounded-xl bg-gradient-to-r ${theme.gradient} text-white text-sm font-medium shadow-sm`}
+                    className={`flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-sm font-medium shadow-sm`}
                     whileTap={{ scale: 0.98 }}
                   >
-                    Redeem Now
+                    Yes, Let's Do It!
                   </motion.button>
                 </div>
               </div>
@@ -374,7 +431,7 @@ export default function Rewards() {
             }}
           >
             <motion.div
-              className="bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500 rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center"
+              className="bg-gradient-to-br from-purple-500 via-indigo-500 to-purple-600 rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center"
               initial={{ scale: 0.8, rotate: -5 }}
               animate={{ scale: 1, rotate: 0 }}
               exit={{ scale: 0.8, opacity: 0 }}
@@ -382,20 +439,26 @@ export default function Rewards() {
             >
               <motion.div
                 className="text-7xl mb-4"
-                animate={{ y: [0, -10, 0], rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 1, repeat: Infinity }}
+                animate={{ y: [0, -15, 0], rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 1.2, repeat: Infinity }}
               >
                 🎉
               </motion.div>
               <h2 className="text-2xl font-bold text-white mb-2">
-                Congratulations!
+                Family Fun Time!
               </h2>
               <p className="text-lg text-white/90 mb-2">
-                You got {selectedReward.name}!
+                You chose {selectedReward.name}!
               </p>
-              <div className="text-5xl my-4">{selectedReward.icon}</div>
+              <motion.div
+                className="text-6xl my-4"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              >
+                {selectedReward.icon}
+              </motion.div>
               <p className="text-sm text-white/80 mb-6">
-                Ask mom or dad to give you your reward!
+                Time to enjoy some family fun together!
               </p>
               <button
                 onClick={() => {
