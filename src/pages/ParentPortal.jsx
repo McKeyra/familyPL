@@ -881,14 +881,14 @@ export default function ParentPortal() {
         <AnimatePresence>
           {showAddTask && (
             <motion.div
-              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-0 sm:p-4"
+              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-0 sm:p-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowAddTask(false)}
             >
               <motion.div
-                className="bg-gradient-to-b from-white to-slate-50 rounded-t-[28px] sm:rounded-[28px] w-full max-w-lg shadow-[0_-8px_40px_rgba(0,0,0,0.12)] max-h-[92vh] overflow-hidden"
+                className="bg-gradient-to-b from-white to-slate-50 rounded-t-[28px] sm:rounded-[28px] w-full max-w-lg shadow-[0_-8px_40px_rgba(0,0,0,0.12)] max-h-[90vh] sm:max-h-[85vh] overflow-hidden sm:my-auto"
                 initial={{ y: '100%', opacity: 0.5 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: '100%', opacity: 0.5 }}
@@ -921,7 +921,7 @@ export default function ParentPortal() {
                 </div>
 
                 {/* Content */}
-                <div className="px-6 py-5 space-y-5 overflow-y-auto max-h-[calc(92vh-200px)]">
+                <div className="px-6 py-5 space-y-5 overflow-y-auto max-h-[calc(90vh-200px)] sm:max-h-[calc(85vh-200px)]">
                   {/* Task Name */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
@@ -1035,14 +1035,14 @@ export default function ParentPortal() {
         <AnimatePresence>
           {showAddEvent && (
             <motion.div
-              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-0 sm:p-4"
+              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-0 sm:p-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowAddEvent(false)}
             >
               <motion.div
-                className="bg-gradient-to-b from-white to-slate-50 rounded-t-[28px] sm:rounded-[28px] w-full max-w-lg shadow-[0_-8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(255,255,255,0.1)] max-h-[92vh] overflow-hidden"
+                className="bg-gradient-to-b from-white to-slate-50 rounded-t-[28px] sm:rounded-[28px] w-full max-w-lg shadow-[0_-8px_40px_rgba(0,0,0,0.12),0_0_0_1px_rgba(255,255,255,0.1)] max-h-[90vh] sm:max-h-[85vh] overflow-hidden sm:my-auto"
                 initial={{ y: '100%', opacity: 0.5 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: '100%', opacity: 0.5 }}
@@ -1073,7 +1073,7 @@ export default function ParentPortal() {
                 </div>
 
                 {/* Content */}
-                <div className="px-6 py-5 space-y-6 overflow-y-auto max-h-[calc(92vh-200px)]">
+                <div className="px-6 py-5 space-y-6 overflow-y-auto max-h-[calc(90vh-200px)] sm:max-h-[calc(85vh-200px)]">
                   {/* Event Title */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
